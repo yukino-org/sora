@@ -1,0 +1,197 @@
+external fun decryptCryptoJsAES(salted: str, decrypter: str, length: num) -> str;
+external fun fetch(data: Map, cb: fun (Map) -> void) -> void;
+external fun httpUserAgent() -> str;
+
+const FuzzySearcher: type = fun(terms: str, limit: num) -> List<Map>;
+external fun createFuzzy(data: List<Map>, keys: List<Map>) -> FuzzySearcher;
+
+external class HtmlElement {
+    const classes: List<str>;
+    const id: str?;
+    const text: str?;
+    const innerHtml: str;
+    const outerHtml: str;
+    const attributes: Map<str>;
+
+    fun querySelector(selector: str) -> HtmlElement?;
+    fun querySelectorAll(selector: str) -> List<HtmlElement>;
+}
+external fun parseHtml(html: str) -> HtmlElement;
+
+external fun jsonEncode(data) -> str;
+external fun jsonDecode(data: str);
+
+external class RegExpMatchResult {
+    const input: str;
+
+    fun group(group: num) -> str?;
+}
+external fun regexMatch(regex: str, text: str) -> RegExpMatchResult?;
+external fun regexMatchAll(regex: str, text: str) -> List<RegExpMatchResult>;
+
+const ListMapper: type = fun(i: num, item: any) -> any;
+external fun mapList(data: List<any>, mapper: ListMapper) -> str;
+
+const ListFilterer: type = fun(i: num, item: any) -> bool;
+external fun filterList(data: List<any>, filterer: ListFilterer) -> List<any>;
+external fun findList(data: List<any>, filterer: ListFilterer) -> any?;
+
+/* Anime Extractor */
+const baseURL = 'https://twist.moe';
+const apiURL = 'https://api.twist.moe/api';
+
+const _twistDecryptKey = '267041df55ca2b36f2e322d05ee2c9cf';
+const _twistAccessToken = '0df14814b9e590a1f26d3071a4ed7974';
+
+const defaultHeaders: Map<str> = {
+    'User-Agent': httpUserAgent(),
+    'Referer': baseURL,
+    'x-access-token': _twistAccessToken,
+}
+
+fun searchApiURL() -> str {
+    return '${apiURL}/anime';
+}
+
+fun animeURL(slug: str) -> str {
+    return'${baseURL}/a/${slug}';
+}
+
+fun animeApiURL(slug: str) -> str {
+    return '${apiURL}/anime/${slug}';
+}
+
+fun animeSourcesURL(slug: str) -> str {
+    return'${animeApiURL(slug)}/sources';
+}
+
+fun extractSlugFromURL(url: str) -> str? {
+    const match: RegExpMatchResult? = regexMatch('https?:\\/\\/twist\\.moe\\/a\\/([^\\/]+)', url);
+    return match != null ? match.group(1) : match;
+}
+
+fun defaultLocale() -> str {
+    return "en";
+}
+
+let searcher: FuzzySearcher? = null;
+const SearchCallback: type = fun(err: str?, result: List<Map>?) -> void;
+fun search(terms: str, locale: str, cb: SearchCallback) -> void {
+    if (searcher == null) {
+        fetch({
+            'method': 'get',
+            'url': searchApiURL(),
+            'headers': defaultHeaders
+        }, fun (resp) {
+            const data: List<Map> = mapList(jsonDecode(resp['body']), fun (i: num, x: Map) {
+                return {
+                    'title': x['title'],
+                    'altTitle': x['altTitle'] != null ? x['altTitle'] : '',
+                    'url': animeURL(x['slug']['slug']),
+                    'locale': locale,
+                };
+            });
+
+            searcher = createFuzzy(data, [{
+                'key': 'title',
+                'weight': 2
+            }, {
+                'key': 'altTitle',
+                'weight': 1
+            }]);
+
+            cb(null, searcher(terms, 10));
+        });
+    } else {
+        cb(null, searcher(terms, 10));
+    }
+}
+
+const GetInfoCallback: type = fun(err: str?, result: Map?) -> void;
+fun getInfo(url: str, locale: str, cb: GetInfoCallback) -> void {
+    const slug: str? = extractSlugFromURL(url);
+    if (slug == null) {
+        return cb('Failed to parse "slug"', null);
+    }
+
+    fetch({
+        'method': 'get',
+        'url': animeApiURL(slug),
+        'headers': defaultHeaders
+    }, fun (resp) {
+        const parsed: Map = jsonDecode(resp['body']);
+        const animeURLP = animeURL(slug);
+
+        cb(null, {
+            'title': parsed['title'],
+            'url': animeURLP,
+            'episodes': mapList(parsed['episodes'], fun (i: num, x: Map) {
+                const epNum = x['number'].toString();
+                return {
+                    'episode': epNum,
+                    'url': '${animeURLP}/${epNum}',
+                    'locale': locale,
+                };
+            }),
+            'locale': locale,
+            'availableLocales': [
+                locale
+            ]
+        });
+    });
+}
+
+const sourceCache: Map<List<Map>> = {};
+const GetSourcesCallback: type = fun(err: str?, result: List<Map>?) -> void;
+fun getSources(episode: Map, cb: GetSourcesCallback) -> void {
+    const slug: str? = extractSlugFromURL(episode['url']);
+    if (slug == null) {
+        return cb('Failed to parse "slug"', null);
+    }
+
+    var ep = int.parse(episode['episode']);
+
+    fun returnFromCache() {
+        const src: Map? = findList(sourceCache[slug], fun (i: num, x: Map) {
+            return x['episode'] == ep;
+        });
+        if (src == null) {
+            return cb('Unknown episode: ${ep}', null);
+        }
+
+        if (src['url'] == null) {
+            const decrypted = decryptCryptoJsAES(src['source'], _twistDecryptKey, 48);
+            src['url'] = 'https://cdn.twist.moe${decrypted}';
+        }
+
+        return cb(null, [src]);
+    }
+
+    if (sourceCache[slug] != null) {
+        return returnFromCache();
+    }
+
+    fetch({
+        'method': 'get',
+        'url': animeSourcesURL(slug),
+        'headers': defaultHeaders
+    }, fun (resp) {
+        const parsed: List<Map> = jsonDecode(resp['body']);
+
+        sourceCache[slug] = mapList(parsed, fun (i: num, x: Map) {
+            const ep: num = x['number'];
+            return {
+                'episode': ep,
+                'quality': 'unknown',
+                'source': x['source'],
+                'headers': {
+                  'Referer': '${baseURL}/a/${slug}/${ep}',
+                  'User-Agent': httpUserAgent()
+                },
+                'locale': episode['locale']
+            };
+        });
+
+        returnFromCache();
+    });
+}
