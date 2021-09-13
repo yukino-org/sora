@@ -1,0 +1,199 @@
+external fun decryptCryptoJsAES(salted: str, decrypter: str, length: num) -> str;
+external fun fetch(data: Map);
+external fun httpUserAgent() -> str;
+
+const FuzzySearcher: type = fun(terms: str, limit: num) -> List<Map>;
+external fun createFuzzy(data: List<Map>, keys: List<Map>) -> FuzzySearcher;
+
+external class HtmlElement {
+    const classes: List<str>;
+    const id: str?;
+    const text: str?;
+    const innerHtml: str;
+    const outerHtml: str;
+    const attributes: Map<str>;
+
+    fun querySelector(selector: str) -> HtmlElement?;
+    fun querySelectorAll(selector: str) -> List<HtmlElement>;
+}
+external fun parseHtml(html: str) -> HtmlElement;
+
+external fun jsonEncode(data) -> str;
+external fun jsonDecode(data: str);
+
+external class RegExpMatchResult {
+    const input: str;
+
+    fun group(group: num) -> str?;
+}
+external fun regexMatch(regex: str, text: str) -> RegExpMatchResult?;
+external fun regexMatchAll(regex: str, text: str) -> List<RegExpMatchResult>;
+
+const ListMapper: type = fun(i: num, item: any) -> any;
+external fun mapList(data: List<any>, mapper: ListMapper) -> str;
+
+const ListFilterer: type = fun(i: num, item: any) -> bool;
+external fun filterList(data: List<any>, filterer: ListFilterer) -> List<any>;
+external fun findList(data: List<any>, filterer: ListFilterer) -> any?;
+
+external fun regexReplaceAll(data: str, from: str, to: str) -> str;
+external fun regexReplaceFirst(data: str, from: str, to: str) -> str;
+
+const ResolveFutureCallback: type = fun(err: str?, result) -> void;
+external fun resolveFuture(future, fn: ResolveFutureCallback);
+
+external fun throwError(err: str) -> void;
+
+/* Extractor */
+const baseURL = 'https://fanfox.net';
+
+const defaultHeaders: Map<str> = {
+    'User-Agent': httpUserAgent(),
+    'Referer': baseURL,
+    'Cookie': 'isAdult=1;',
+}
+
+fun searchURL(terms: str) -> str {
+    return '${baseURL}/search?title=${terms}';
+}
+
+fun defaultLocale() -> str {
+    return "en";
+}
+
+fun search(terms: str, locale: str) {
+    return resolveFuture(fetch({
+        'method': 'get',
+        'url': searchURL(terms),
+        'headers': defaultHeaders
+    }), fun (err: str?, resp) {
+        if (err != null) return throwError(err);
+
+        const document: HtmlElement = parseHtml(resp['body']);
+
+        const result: List<Map?> = mapList(document.querySelectorAll('.line-list li'), fun (i: num, x: HtmlElement) {
+            const link: HtmlElement? = x.querySelector('.manga-list-4-item-title a');
+            const title: String? = link.text;
+            const url: String? = link.attributes['href'];
+
+            if (link != null) {
+                const image: String? = x.querySelector('img').attributes['src'];
+
+                return {
+                    'title': link.text,
+                    'url': '${baseURL}${url}',
+                    'thumbnail': image != null
+                        ? {
+                            'url': image,
+                            'headers': defaultHeaders,
+                        }
+                        : null,
+                    'locale': locale,
+                };
+            }
+
+            return null;
+        });
+
+        return filterList(result, fun (i: num, x: Map?) {
+            return x != null;
+        });
+    });
+}
+
+fun getInfo(url: str, locale: str) {
+    return resolveFuture(fetch({
+        'method': 'get',
+        'url': url,
+        'headers': defaultHeaders
+    }), fun (err: str?, resp) {
+        if (err != null) return throwError(err);
+
+        const document: HtmlElement = parseHtml(resp['body']);
+        
+        const chapters: List<Map> = mapList(document.querySelectorAll('#chapterlist li a'), fun (i: num, x: HtmlElement) {
+            const title: str = x.querySelector('.title3').text;
+            const shortTitle: RegExpMatchResult? = regexMatch('-(.*)', title);
+            const route: str = x.attributes['href'];
+            const vol: RegExpMatchResult? = regexMatch('Vol.(\\d+)', title);
+            const chap: RegExpMatchResult? = regexMatch('Ch.([\\d.]+)', title);
+
+            if (chap != null) {
+                return {
+                    'title': shortTitle != null ? shortTitle.group(1) : title,
+                    'url': '${baseURL}${route}',
+                    'chapter': chap.group(1),
+                    'volume': vol != null ? vol.group(1) : null,
+                    'locale': locale,
+                };
+            }
+
+            return null;
+        });
+
+        const thumbnail: str? = document.querySelector('img.detail-info-cover-img');
+        return {
+            'title': document.querySelector('.detail-info-right-title-font').text,
+            'url': url,
+            'thumbnail': thumbnail != null ? {
+                'url': thumbnail.attributes['src'],
+                'headers': defaultHeaders
+            } : null,
+            'chapters': filterList(chapters, fun (i: num, x: Map) {
+                return x != null;
+            }),
+            'locale': locale,
+            'availableLocales': [
+                locale
+            ]
+        };
+    });
+}
+
+fun replaceWithMobileURL(url: str) -> str {
+    return regexReplaceFirst(url, 'https?:\\/\\/fanfox', 'https://m.fanfox');
+}
+
+fun getChapter(chapter: Map) {
+    const url: str = replaceWithMobileURL(chapter['url']);
+
+    return resolveFuture(fetch({
+        'method': 'get',
+        'url': url,
+        'headers': defaultHeaders
+    }), fun (err: str?, resp) {
+        if (err != null) return throwError(err);
+
+        return mapList(
+            parseHtml(resp['body'])
+                .querySelector('select.mangaread-page')
+                .querySelectorAll('option'),
+            fun (i: num, x: Map) {
+                return {
+                    'url': x.attributes['value'],
+                    'locale': chapter['locale']
+                };
+            }
+        );
+    });
+}
+
+fun getPage(page: Map) {
+    const url: str = replaceWithMobileURL(page['url']);
+
+    return resolveFuture(fetch({
+        'method': 'get',
+        'url': url,
+        'headers': defaultHeaders
+    }), fun (err: str?, resp) {
+        if (err != null) return throwError(err);
+
+        const img: RegExpMatchResult? = regexMatch('<img src="(.*?)".*id="image".*>', resp['body']);
+        if (img == null) return throwError('Failed to parse image URL');
+
+        return {
+            'url': img.group(1),
+            'headers': defaultHeaders
+        };
+    });
+}
