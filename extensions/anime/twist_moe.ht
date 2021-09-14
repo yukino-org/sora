@@ -39,7 +39,7 @@ external fun findList(data: List<any>, filterer: ListFilterer) -> any?;
 external fun regexReplaceAll(data: str, from: str, to: str) -> str;
 external fun regexReplaceFirst(data: str, from: str, to: str) -> str;
 
-const ResolveFutureCallback: type = fun(err: str?, result) -> void;
+const ResolveFutureCallback: type = fun(err: str?, result);
 external fun resolveFuture(future, fn: ResolveFutureCallback);
 
 external fun throwError(err: str) -> void;
