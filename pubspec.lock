@@ -118,7 +118,7 @@ packages:
     description:
       path: "packages\\extensions"
       ref: HEAD
-      resolved-ref: d90272e2fbcb0badb00e32c63ed1706a2efe4063
+      resolved-ref: "361cb34e2be0d1139b4c35f2c50f4d449b9f8350"
       url: "git://github.com/yukino-app/yukino.git"
     source: git
     version: "0.0.2"
