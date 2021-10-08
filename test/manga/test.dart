@@ -17,12 +17,13 @@ Future<void> run(
       : ['search', 'getInfo', 'getChapter', 'getPage'];
 
   final script = File(path);
-  final extenstion = Extension(
+  final extenstion = ResolvedExtension(
     name: 'test',
     id: 'test',
     version: 0,
     type: ExtensionType.manga,
     code: await script.readAsString(),
+    image: '',
   );
   final extractor = await ExtensionUtils.transpileToMangaExtractor(extenstion);
   final client = MangaExtractorTest(extractor);

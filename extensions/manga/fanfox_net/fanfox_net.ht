@@ -43,6 +43,7 @@ const ResolveFutureCallback: type = fun(err: str?, result);
 external fun resolveFuture(future, fn: ResolveFutureCallback);
 
 external fun throwError(err: str) -> void;
+external fun ensureURL(url: str) -> str;
 
 /* Extractor */
 const baseURL = 'https://fanfox.net';
@@ -54,7 +55,7 @@ const defaultHeaders: Map<str> = {
 }
 
 fun searchURL(terms: str) -> str {
-    return '${baseURL}/search?title=${terms}';
+    return ensureURL('${baseURL}/search?title=${terms}');
 }
 
 fun defaultLocale() -> str {
@@ -81,10 +82,10 @@ fun search(terms: str, locale: str) {
 
                 return {
                     'title': link.text,
-                    'url': '${baseURL}${url}',
+                    'url': ensureURL('${baseURL}${url}'),
                     'thumbnail': image != null
                         ? {
-                            'url': image,
+                            'url': ensureURL(image),
                             'headers': defaultHeaders,
                         }
                         : null,
@@ -104,7 +105,7 @@ fun search(terms: str, locale: str) {
 fun getInfo(url: str, locale: str) {
     return resolveFuture(fetch({
         'method': 'get',
-        'url': url,
+        'url': ensureURL(url),
         'headers': defaultHeaders
     }), fun (err: str?, resp) {
         if (err != null) return throwError(err);
@@ -121,7 +122,7 @@ fun getInfo(url: str, locale: str) {
             if (chap != null) {
                 return {
                     'title': shortTitle != null ? shortTitle.group(1) : title,
-                    'url': '${baseURL}${route}',
+                    'url': ensureURL('${baseURL}${route}'),
                     'chapter': chap.group(1),
                     'volume': vol != null ? vol.group(1) : null,
                     'locale': locale,
@@ -134,9 +135,9 @@ fun getInfo(url: str, locale: str) {
         const thumbnail: str? = document.querySelector('img.detail-info-cover-img');
         return {
             'title': document.querySelector('.detail-info-right-title-font').text,
-            'url': url,
+            'url': ensureURL(url),
             'thumbnail': thumbnail != null ? {
-                'url': thumbnail.attributes['src'],
+                'url': ensureURL(thumbnail.attributes['src']),
                 'headers': defaultHeaders
             } : null,
             'chapters': filterList(chapters, fun (i: num, x: Map) {
@@ -159,7 +160,7 @@ fun getChapter(chapter: Map) {
 
     return resolveFuture(fetch({
         'method': 'get',
-        'url': url,
+        'url': ensureURL(url),
         'headers': defaultHeaders
     }), fun (err: str?, resp) {
         if (err != null) return throwError(err);
@@ -170,7 +171,7 @@ fun getChapter(chapter: Map) {
                 .querySelectorAll('option'),
             fun (i: num, x: Map) {
                 return {
-                    'url': x.attributes['value'],
+                    'url': ensureURL(x.attributes['value']),
                     'locale': chapter['locale']
                 };
             }
@@ -183,7 +184,7 @@ fun getPage(page: Map) {
 
     return resolveFuture(fetch({
         'method': 'get',
-        'url': url,
+        'url': ensureURL(url),
         'headers': defaultHeaders
     }), fun (err: str?, resp) {
         if (err != null) return throwError(err);
@@ -192,7 +193,7 @@ fun getPage(page: Map) {
         if (img == null) return throwError('Failed to parse image URL');
 
         return {
-            'url': img.group(1),
+            'url': ensureURL(img.group(1)),
             'headers': defaultHeaders
         };
     });

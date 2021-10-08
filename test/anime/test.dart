@@ -15,12 +15,13 @@ Future<void> run(
       method != null ? [method] : ['search', 'getInfo', 'getSources'];
 
   final script = File(path);
-  final extenstion = Extension(
+  final extenstion = ResolvedExtension(
     name: 'test',
     id: 'test',
     version: 0,
     type: ExtensionType.anime,
     code: await script.readAsString(),
+    image: '',
   );
   final extractor = await ExtensionUtils.transpileToAnimeExtractor(extenstion);
   final client = AnimeExtractorTest(extractor);

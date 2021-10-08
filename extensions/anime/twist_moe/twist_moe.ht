@@ -43,6 +43,7 @@ const ResolveFutureCallback: type = fun(err: str?, result);
 external fun resolveFuture(future, fn: ResolveFutureCallback);
 
 external fun throwError(err: str) -> void;
+external fun ensureURL(url: str) -> str;
 
 /* Extractor */
 const baseURL = 'https://twist.moe';
@@ -62,11 +63,11 @@ fun searchApiURL() -> str {
 }
 
 fun animeURL(slug: str) -> str {
-    return'${baseURL}/a/${slug}';
+    return ensureURL('${baseURL}/a/${slug}');
 }
 
 fun animeApiURL(slug: str) -> str {
-    return '${apiURL}/anime/${slug}';
+    return ensureURL('${apiURL}/anime/${slug}');
 }
 
 fun animeSourcesURL(slug: str) -> str {
@@ -99,7 +100,7 @@ fun search(terms: str, locale: str) {
             return {
                 'title': x['title'],
                 'altTitle': x['altTitle'] != null ? x['altTitle'] : '',
-                'url': animeURL(x['slug']['slug']),
+                'url': ensureURL(animeURL(x['slug']['slug'])),
                 'locale': locale,
             };
         });
@@ -139,7 +140,7 @@ fun getInfo(url: str, locale: str) {
                 const epNum = x['number'].toString();
                 return {
                     'episode': epNum,
-                    'url': '${animeURLP}/${epNum}',
+                    'url': ensureURL('${animeURLP}/${epNum}'),
                     'locale': locale,
                 };
             }),
@@ -170,7 +171,7 @@ fun getSources(episode: Map) {
 
         if (src['url'] == null) {
             const decrypted = decryptCryptoJsAES(src['source'], _twistDecryptKey, 48);
-            src['url'] = 'https://cdn.twist.moe${decrypted}';
+            src['url'] = ensureURL('https://cdn.twist.moe${decrypted}');
         }
 
         return [src];
@@ -196,7 +197,7 @@ fun getSources(episode: Map) {
                 'quality': 'unknown',
                 'source': x['source'],
                 'headers': {
-                  'Referer': '${baseURL}/a/${slug}/${ep}',
+                  'Referer': ensureURL('${baseURL}/a/${slug}/${ep}'),
                   'User-Agent': httpUserAgent()
                 },
                 'locale': episode['locale']
