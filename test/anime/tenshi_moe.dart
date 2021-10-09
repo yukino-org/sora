@@ -7,18 +7,17 @@ Future<void> main() async {
   await run(
     path.join(
       Directory.current.path,
-      'extensions/anime/twist_moe/twist_moe.ht',
+      'extensions/anime/tenshi_moe/tenshi_moe.ht',
     ),
-    search: (ext) async => ext.search('bunny girl', 'en'),
+    search: (ext) async => ext.search('mayo chiki', 'en'),
     getInfo: (ext) async => ext.getInfo(
-      'https://twist.moe/a/seishun-buta-yarou-wa-bunny-girl-senpai-no-yume-wo-minai',
+      'https://tenshi.moe/anime/1kwzf88a',
       'en',
     ),
     getSources: (ext) async => ext.getSources(
       EpisodeInfo(
         episode: '1',
-        url:
-            'https://twist.moe/a/seishun-buta-yarou-wa-bunny-girl-senpai-no-yume-wo-minai/1',
+        url: 'https://tenshi.moe/anime/1kwzf88a/1',
         locale: 'en',
       ),
     ),

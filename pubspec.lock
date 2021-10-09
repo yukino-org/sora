@@ -118,10 +118,10 @@ packages:
     description:
       path: "packages/extensions"
       ref: HEAD
-      resolved-ref: b1ec074508c190092fafc30e9af61f69f8acc376
+      resolved-ref: e42f355543bba0273ad5fdfdc5c5bfffb5758ad0
       url: "git://github.com/yukino-app/yukino.git"
     source: git
-    version: "0.0.5"
+    version: "0.0.9"
   file:
     dependency: transitive
     description:

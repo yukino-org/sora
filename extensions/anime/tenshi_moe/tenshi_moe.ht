@@ -1,0 +1,120 @@
+const baseURL = 'https://tenshi.moe';
+
+const defaultHeaders: Map<str> = {
+    'User-Agent': httpUserAgent(),
+    'Referer': baseURL,
+}
+
+fun searchURL(terms: str) -> str {
+    return ensureURL('${baseURL}/anime?q=${terms}');
+}
+
+fun defaultLocale() -> str {
+    return "en";
+}
+
+fun search(terms: str, locale: str) {
+    return resolveFuture(fetch({
+        'method': 'get',
+        'url': searchURL(terms),
+        'headers': mergeMap(defaultHeaders, {
+            'cookie': 'loop-view=thumb;'
+        })
+    }), fun (err: str?, resp) {
+        if (err != null) return throwError(err);
+
+        const document: HtmlElement = parseHtml(resp['body']);
+
+        return mapList(document.querySelectorAll('.anime-loop li'), fun (i: num, x: HtmlElement) {
+            const link: HtmlElement? = x.querySelector('a');
+            const title: str = link.querySelector('.thumb-title').text.trim();
+            const url: str = link.attributes['href'].trim();
+            const thumbnail: str = link.querySelector('.image').attributes['src'].trim();
+
+            return {
+                'title': title,
+                'url': ensureURL(url),
+                'thumbnail': {
+                    'url': ensureURL(thumbnail),
+                    'headers': defaultHeaders,
+                },
+                'locale': locale,
+            };
+        });
+    });
+}
+
+fun getInfo(url: str, locale: str) {
+    return resolveFuture(fetch({
+        'method': 'get',
+        'url': ensureURL(url),
+        'headers': defaultHeaders
+    }), fun (err: str?, resp) {
+        if (err != null) return throwError(err);
+
+        const document: HtmlElement = parseHtml(resp['body']);
+
+        const estimated: num = document.querySelector('.entry-episodes .badge.badge-secondary.align-top').text.trim();
+        if (estimated is! str) {
+            return throwError('Improper episodes information');
+        }
+
+        const trimmedURL: str = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+        const episodes: Map = mapList(rangeList(0, int.parse(estimated)), fun (i: num, x: num) {
+            const epNum: num = '${x + 1}';
+            return {
+                'episode': epNum,
+                'url': ensureURL('${trimmedURL}/${epNum}'),
+                'locale': locale
+            }
+        });
+
+        return {
+            'title': document.querySelector('.entry-header').text.trim(),
+            'url': ensureURL(url),
+            'thumbnail': {
+                'url': ensureURL(document.querySelector('img.cover-image').attributes['src'].trim()),
+                'headers': defaultHeaders,
+            },
+            'episodes': episodes,
+            'locale': locale,
+            'availableLocales': [
+                locale
+            ]
+        };
+    });
+}
+
+const sourceCache: Map<List<Map>> = {};
+fun getSources(episode: Map) {
+    return resolveFuture(fetch({
+        'method': 'get',
+        'url': episode['url'],
+        'headers': defaultHeaders
+    }), fun (err: str?, resp) {
+        if (err != null) return throwError(err);
+
+        const iframeURL: str = regexMatch('<iframe src="([^"]+)"', resp['body']).group(1);
+        const epHeaders: Map = mergeMap(defaultHeaders, {
+            'Referer': episode['url'],
+        });
+
+        return resolveFuture(fetch({
+            'method': 'get',
+            'url': iframeURL,
+            'headers': epHeaders
+        }), fun (err: str?, resp) {
+            if (err != null) return throwError(err);
+
+            const sources: str = regexMatch('sources:[\\s]+\\[([^\\]]+)', resp['body']).group(1);
+            return mapList(regexMatchAll('src:[\\s]+["\']([^\'"]+)[\\S\\s]+size:[\\s]+(\\d+)', sources), fun (i: num, x: RegExpMatchResult) {
+                return {
+                    'url': ensureURL(x.group(1)),
+                    'quality': x.group(2),
+                    'headers': epHeaders,
+                    'locale': episode['locale']
+                };
+            });
+        });
+    });
+}

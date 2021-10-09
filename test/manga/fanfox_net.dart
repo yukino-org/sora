@@ -5,7 +5,10 @@ import './test.dart';
 
 Future<void> main() async {
   await run(
-    path.join(Directory.current.path, "extensions/manga/fanfox_net.ht"),
+    path.join(
+      Directory.current.path,
+      'extensions/manga/fanfox_net/fanfox_net.ht',
+    ),
     search: (ext) async => ext.search('bunny girl', 'en'),
     getInfo: (ext) async => ext.getInfo(
       'https://fanfox.net/manga/seishun_buta_yarou_wa_bunny_girl_senpai_no_yume_o_minai/',
