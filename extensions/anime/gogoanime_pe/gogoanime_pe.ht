@@ -1,0 +1,192 @@
+const baseURL = 'https://gogoanime.pe';
+
+const defaultHeaders: Map<str> = {
+    'User-Agent': httpUserAgent(),
+    'Referer': baseURL,
+}
+
+fun searchURL(terms: str) -> str {
+    return ensureURL('${baseURL}/search.html?keyword=${terms}');
+}
+
+fun episodesApiURL(id: num, start: num, end: num) -> str {
+    return ensureURL('https://ajax.gogo-load.com/ajax/load-list-episode?ep_start=${start}&ep_end=${end}&id=${id}');
+}
+
+fun defaultLocale() -> str {
+    return "en";
+}
+
+fun search(terms: str, locale: str) {
+    return resolveFuture(fetch({
+        'method': 'get',
+        'url': searchURL(terms),
+        'headers': defaultHeaders
+    }), fun (err: str?, resp) {
+        if (err != null) return throwError(err);
+
+        const document: HtmlElement = parseHtml(resp['body']);
+
+        return mapList(document.querySelectorAll('.items li'), fun (i: num, x: HtmlElement) {
+            const title: HtmlElement = x.querySelector('.name a');
+            const url: str = title.attributes['href'].trim();
+            const thumbnail: str = x.querySelector('.img img').attributes['src'].trim();
+
+            return {
+                'title': title.text.trim(),
+                'url': ensureURL('${baseURL}${url}'),
+                'thumbnail': {
+                    'url': ensureURL(thumbnail),
+                    'headers': defaultHeaders,
+                },
+                'locale': locale,
+            };
+        });
+    });
+}
+
+fun getInfo(url: str, locale: str) {
+    return resolveFuture(fetch({
+        'method': 'get',
+        'url': ensureURL(url),
+        'headers': defaultHeaders
+    }), fun (err: str?, resp) {
+        if (err != null) return throwError(err);
+
+        const document: HtmlElement = parseHtml(resp['body']);
+
+        const epPages: List<HtmlElement> = document.querySelectorAll('#episode_page a');
+        const epStart: str = epPages.first.attributes['ep_start'].trim();
+        const epEnd: str = epPages.last.attributes['ep_end'].trim();
+        const epId: str = document.querySelector('input#movie_id').attributes['value'].trim();
+
+        return resolveFuture(fetch({
+            'method': 'get',
+            'url': episodesApiURL(epId, epStart, epEnd),
+            'headers': defaultHeaders
+        }), fun (err: str?, epRes) {
+            const episodes: Map = mapList(parseHtml(epRes['body']).querySelectorAll('#episode_related a'), fun (i: num, x: HtmlElement) {
+                const episode: str = x.querySelector('.name').text.replaceFirst('EP', '').trim();
+                const url: str = x.attributes['href'].trim();
+                return {
+                    'episode': episode,
+                    'url': ensureURL('${baseURL}/${url}'),
+                    'locale': locale
+                }
+            });
+
+            return {
+                'title': document.querySelector('.anime_info_body_bg h1').text.trim(),
+                'url': ensureURL(url),
+                'thumbnail': {
+                    'url': ensureURL(document.querySelector('.anime_info_body_bg img').attributes['src'].trim()),
+                    'headers': defaultHeaders,
+                },
+                'episodes': episodes,
+                'locale': locale,
+                'availableLocales': [
+                    locale
+                ]
+            };
+        });
+    });
+}
+
+fun getSources(episode: Map) {
+    return resolveFuture(fetch({
+        'method': 'get',
+        'url': episode['url'],
+        'headers': defaultHeaders
+    }), fun (err: str?, resp) {
+        if (err != null) return throwError(err);
+
+        const links: List<str> = filterList(
+            mapList(
+                parseHtml(resp['body']).querySelectorAll('.anime_muti_link a'),
+                fun (i: num, x: HtmlElement) {
+                    return x.attributes['data-video'];
+                }
+            ),
+            fun (i: num, x: str?) {
+                return x != null;
+            }
+        );
+
+        const defaultSourceProps: Map = {
+            'quality': 'unknown',
+            'locale': episode['locale']
+        }
+
+        print('0');
+        return resolveFutureAll(
+            filterList(
+                mapList(links, fun (i: num, x: str) {
+                    if (testSbPlay(x)) {
+                        return parseSbPlay(x, defaultSourceProps);
+                    }
+
+                    return null;
+                }),
+                fun (i: num, x: str?) {
+                    return x != null;
+                }
+            ),
+            fun (err: str?, res) {
+                if (err != null) return throwError(err);
+                print('3');
+                return flatList(res, 1);
+            }
+        );
+    });
+}
+
+const sbPlayURL = 'https://sbplay.org';
+const sbPlayHeaders = {
+    'User-Agent': httpUserAgent(),
+};
+
+fun testSbPlay(url: str) -> bool {
+    const match: RegExpMatchResult = regexMatch('https?:\\/\\/sbplay\\.org\\/.*', url);
+    return match != null;
+}
+
+fun parseSbPlay(url: str, defaultResult: Map) {
+    return resolveFuture(fetch({
+        'method': 'get',
+        'url': ensureURL(url.replaceFirst('embed-', 'd/')),
+        'headers': sbPlayHeaders
+    }), fun (err: str?, resp) {
+        return resolveFutureAll(
+            mapList(
+                regexMatchAll('onclick="download_video\\(\'([^\']+)\',\'([^\']+)\',\'([^\']+)\'\\)"', resp['body']),
+                fun (i: num, x: RegExpMatchResult) {
+                    const code: str = x.group(0);
+                    const mode: str = x.group(1);
+                    const hash: str = x.group(2);
+
+                    return resolveFuture(fetch({
+                        'method': 'get',
+                        'url': '${sbPlayURL}/dl?op=download_orig&id=${code}&mode=${mode}&hash=${hash}',
+                        'headers': sbPlayHeaders
+                    }), fun (err: str?, resp) {
+                        if (err != null) return throwError(err);
+
+                        const match: RegExpMatchResult? = regexMatch('<a href="([^"]+)">Direct Download Link<\\/a>', resp['body']);
+                        return match != null ? mergeMap(defaultResult, {
+                            'url': ensureURL(match.group(1)),
+                            'headers': sbPlayHeaders
+                        }) : null;
+                    });
+                }
+            ),
+            fun (err: str?, res) {
+                if (err != null) return throwError(err);
+                print('1');
+                return filterList(res, fun (i: num, x) {
+                    print('2');
+                    return x != null;
+                });
+            }
+        );
+    });
+}

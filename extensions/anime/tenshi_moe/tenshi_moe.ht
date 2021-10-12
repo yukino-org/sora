@@ -26,7 +26,7 @@ fun search(terms: str, locale: str) {
         const document: HtmlElement = parseHtml(resp['body']);
 
         return mapList(document.querySelectorAll('.anime-loop li'), fun (i: num, x: HtmlElement) {
-            const link: HtmlElement? = x.querySelector('a');
+            const link: HtmlElement = x.querySelector('a');
             const title: str = link.querySelector('.thumb-title').text.trim();
             const url: str = link.attributes['href'].trim();
             const thumbnail: str = link.querySelector('.image').attributes['src'].trim();
@@ -54,11 +54,7 @@ fun getInfo(url: str, locale: str) {
 
         const document: HtmlElement = parseHtml(resp['body']);
 
-        const estimated: num = document.querySelector('.entry-episodes .badge.badge-secondary.align-top').text.trim();
-        if (estimated is! str) {
-            return throwError('Improper episodes information');
-        }
-
+        const estimated: str = document.querySelector('.entry-episodes .badge.badge-secondary.align-top').text.trim();
         const trimmedURL: str = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
         const episodes: Map = mapList(rangeList(0, int.parse(estimated)), fun (i: num, x: num) {
             const epNum: num = '${x + 1}';
@@ -85,7 +81,6 @@ fun getInfo(url: str, locale: str) {
     });
 }
 
-const sourceCache: Map<List<Map>> = {};
 fun getSources(episode: Map) {
     return resolveFuture(fetch({
         'method': 'get',

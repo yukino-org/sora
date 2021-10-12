@@ -63,7 +63,7 @@ packages:
       name: cli_util
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.4"
+    version: "0.3.5"
   clock:
     dependency: transitive
     description:
@@ -118,10 +118,10 @@ packages:
     description:
       path: "packages/extensions"
       ref: HEAD
-      resolved-ref: e42f355543bba0273ad5fdfdc5c5bfffb5758ad0
+      resolved-ref: "279984903c2da9739553b433956eeef78d7f3103"
       url: "git://github.com/yukino-app/yukino.git"
     source: git
-    version: "0.0.9"
+    version: "0.0.11"
   file:
     dependency: transitive
     description:

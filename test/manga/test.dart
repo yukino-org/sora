@@ -12,6 +12,7 @@ Future<void> run(
 }) async {
   const String? method =
       bool.hasEnvironment('method') ? String.fromEnvironment('method') : null;
+  final DateTime now = DateTime.now();
   final List<String> methods = method != null
       ? [method]
       : ['search', 'getInfo', 'getChapter', 'getPage'];
@@ -20,10 +21,11 @@ Future<void> run(
   final extenstion = ResolvedExtension(
     name: 'test',
     id: 'test',
-    version: 0,
+    version: ExtensionVersion(now.year, now.month, 0),
     type: ExtensionType.manga,
     code: await script.readAsString(),
     image: '',
+    nsfw: false,
   );
   final extractor = await ExtensionUtils.transpileToMangaExtractor(extenstion);
   final client = MangaExtractorTest(extractor);
