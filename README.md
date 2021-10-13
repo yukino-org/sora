@@ -18,3 +18,4 @@ Officially supported extensions of Yukino.
 ## Manga
 
 * [FanFox.net (https://fanfox.net)](./extensions/manga/fanfox_net/fanfox_net.ht)
+* [ReadM.org (https://readm.org)](./extensions/manga/readm_org/readm_org.ht)

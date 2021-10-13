@@ -1,0 +1,114 @@
+const baseURL = 'https://readm.org';
+
+const defaultHeaders: Map<str> = {
+    'User-Agent': httpUserAgent(),
+    'Referer': baseURL,
+}
+
+fun searchURL() -> str {
+    return ensureURL('${baseURL}/service/search');
+}
+
+fun defaultLocale() -> str {
+    return "en";
+}
+
+fun search(terms: str, locale: str) {
+    return resolveFuture(fetch({
+        'method': 'post',
+        'url': searchURL(),
+        'headers': mergeMap(defaultHeaders, {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'x-requested-with': 'XMLHttpRequest'
+        }),
+        'body': qsEncode({
+            'dataType': 'json',
+            'phrase': terms,
+        }),
+    }), fun (err: str?, resp) {
+        if (err != null) return throwError(err);
+
+        const parsed = jsonDecode(resp['body']);
+
+        return mapList(parsed['manga'], fun (i: num, x: Map) {
+            const url: str = x['url'];
+            return {
+                'title': x['title'],
+                'url': ensureURL('${baseURL}${url}'),
+                'thumbnail': {
+                    'url': ensureURL(x['image']),
+                    'headers': defaultHeaders,
+                },
+                'locale': locale,
+            };
+        });
+    });
+}
+
+fun getInfo(url: str, locale: str) {
+    return resolveFuture(fetch({
+        'method': 'get',
+        'url': ensureURL(url),
+        'headers': defaultHeaders
+    }), fun (err: str?, resp) {
+        if (err != null) return throwError(err);
+
+        const document: HtmlElement = parseHtml(resp['body']);
+        
+        const chapters: List<Map> = mapList(document.querySelectorAll('.episodes-list .table-episodes-title a'), fun (i: num, x: HtmlElement) {
+            const title: str = x.text.trim();
+            const url: str = x.attributes['href'].trim();
+            const chapvol: RegExpMatchResult = regexMatch('Chapter (\\d+)(v(\\d+))?', title);
+
+            return {
+                'title': regexMatch('^Chapter \\d*\\.?\\d+(v\\d+)?$', title) == null ? title : null,
+                'url': ensureURL('${baseURL}${url}'),
+                'chapter': chapvol.group(1),
+                'volume': chapvol.group(3),
+                'locale': locale,
+            };
+        });
+
+        return {
+            'title': document.querySelector('.page-title').text,
+            'url': ensureURL(url),
+            'thumbnail': {
+                'url': ensureURL(document.querySelector('.series-profile-thumb').attributes['src'].trim()),
+                'headers': defaultHeaders
+            },
+            'chapters': chapters,
+            'locale': locale,
+            'availableLocales': [
+                locale
+            ]
+        };
+    });
+}
+
+fun getChapter(chapter: Map) {
+    return resolveFuture(fetch({
+        'method': 'get',
+        'url': ensureURL(chapter['url']),
+        'headers': defaultHeaders
+    }), fun (err: str?, resp) {
+        if (err != null) return throwError(err);
+
+        return mapList(
+            parseHtml(resp['body']).querySelectorAll('.ch-images img'),
+            fun (i: num, x: Map) {
+                const url: str = x.attributes['src'].trim();
+                return {
+                    'url': ensureURL('${baseURL}${url}'),
+                    'locale': chapter['locale']
+                };
+            }
+        );
+    });
+}
+
+fun getPage(page: Map) {
+    return {
+        'url': page['url'],
+        'headers': defaultHeaders
+    };
+}

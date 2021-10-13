@@ -24,32 +24,20 @@ fun search(terms: str, locale: str) {
 
         const document: HtmlElement = parseHtml(resp['body']);
 
-        const result: List<Map?> = mapList(document.querySelectorAll('.line-list li'), fun (i: num, x: HtmlElement) {
-            const link: HtmlElement? = x.querySelector('.manga-list-4-item-title a');
-            const title: String? = link.text;
-            const url: String? = link.attributes['href'];
+        return mapList(document.querySelectorAll('.line-list li'), fun (i: num, x: HtmlElement) {
+            const link: HtmlElement = x.querySelector('.manga-list-4-item-title a');
+            const url: str = link.attributes['href'];
+            const image: str = x.querySelector('img').attributes['src'];
 
-            if (link != null) {
-                const image: String? = x.querySelector('img').attributes['src'];
-
-                return {
-                    'title': link.text,
-                    'url': ensureURL('${baseURL}${url}'),
-                    'thumbnail': image != null
-                        ? {
-                            'url': ensureURL(image),
-                            'headers': defaultHeaders,
-                        }
-                        : null,
-                    'locale': locale,
-                };
-            }
-
-            return null;
-        });
-
-        return filterList(result, fun (i: num, x: Map?) {
-            return x != null;
+            return {
+                'title': link.text.trim(),
+                'url': ensureURL('${baseURL}${url}'),
+                'thumbnail': {
+                    'url': ensureURL(image),
+                    'headers': defaultHeaders,
+                },
+                'locale': locale,
+            };
         });
     });
 }
@@ -64,7 +52,7 @@ fun getInfo(url: str, locale: str) {
 
         const document: HtmlElement = parseHtml(resp['body']);
         
-        const chapters: List<Map> = mapList(document.querySelectorAll('#chapterlist li a'), fun (i: num, x: HtmlElement) {
+        const chapters: List<Map> = filterList(mapList(document.querySelectorAll('#chapterlist li a'), fun (i: num, x: HtmlElement) {
             const title: str = x.querySelector('.title3').text;
             const shortTitle: RegExpMatchResult? = regexMatch('-(.*)', title);
             const route: str = x.attributes['href'];
@@ -82,19 +70,18 @@ fun getInfo(url: str, locale: str) {
             }
 
             return null;
+        }), fun (i: num, x: Map) {
+            return x != null;
         });
 
-        const thumbnail: str? = document.querySelector('img.detail-info-cover-img');
         return {
             'title': document.querySelector('.detail-info-right-title-font').text,
             'url': ensureURL(url),
-            'thumbnail': thumbnail != null ? {
-                'url': ensureURL(thumbnail.attributes['src']),
+            'thumbnail': {
+                'url': ensureURL(document.querySelector('img.detail-info-cover-img').attributes['src']),
                 'headers': defaultHeaders
-            } : null,
-            'chapters': filterList(chapters, fun (i: num, x: Map) {
-                return x != null;
-            }),
+            },
+            'chapters': chapters,
             'locale': locale,
             'availableLocales': [
                 locale
@@ -118,9 +105,7 @@ fun getChapter(chapter: Map) {
         if (err != null) return throwError(err);
 
         return mapList(
-            parseHtml(resp['body'])
-                .querySelector('select.mangaread-page')
-                .querySelectorAll('option'),
+            parseHtml(resp['body']).querySelector('select.mangaread-page').querySelectorAll('option'),
             fun (i: num, x: Map) {
                 return {
                     'url': ensureURL(x.attributes['value']),
