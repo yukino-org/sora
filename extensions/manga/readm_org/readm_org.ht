@@ -58,10 +58,10 @@ fun getInfo(url: str, locale: str) {
         const chapters: List<Map> = mapList(document.querySelectorAll('.episodes-list .table-episodes-title a'), fun (i: num, x: HtmlElement) {
             const title: str = x.text.trim();
             const url: str = x.attributes['href'].trim();
-            const chapvol: RegExpMatchResult = regexMatch('^Chapter.*\\d$', title);
+            const chapvol: RegExpMatchResult = regexMatch('Chapter (\\d+\\.?\\d*)(v(\\d+\\.?\\d*))?', title);
 
             return {
-                'title': regexMatch('^Chapter \\d*\\.?\\d+(v\\d+)?$', title) == null ? title : null,
+                'title': regexMatch('^Chapter.*\\d$', title) == null ? title : null,
                 'url': ensureURL('${baseURL}${url}'),
                 'chapter': chapvol.group(1),
                 'volume': chapvol.group(3),
