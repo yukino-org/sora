@@ -7,14 +7,14 @@ packages:
       name: _fe_analyzer_shared
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "28.0.0"
+    version: "29.0.0"
   analyzer:
     dependency: transitive
     description:
       name: analyzer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.5.0"
+    version: "2.6.0"
   args:
     dependency: transitive
     description:
@@ -118,10 +118,10 @@ packages:
     description:
       path: "packages/extensions"
       ref: HEAD
-      resolved-ref: "279984903c2da9739553b433956eeef78d7f3103"
+      resolved-ref: "0d215575f6c5f59506702e09370766e481ea65f5"
       url: "git://github.com/yukino-app/yukino.git"
     source: git
-    version: "0.0.11"
+    version: "0.0.13"
   file:
     dependency: transitive
     description:
