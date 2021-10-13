@@ -11,6 +11,7 @@ Officially supported extensions of Yukino.
 ## Anime
 
 * [Gogoanime.pe (https://gogoanime.pe)](./extensions/anime/gogoanime_pe/gogoanime_pe.ht)
+* [Kawaiifu.com (https://kawaiifu.com)](./extensions/anime/kawaiifu_com/kawaiifu_com.ht)
 * [Tenshi.moe (https://tenshi.moe)](./extensions/anime/tenshi_moe/tenshi_moe.ht)
 * [Twist.moe (https://twist.moe)](./extensions/anime/twist_moe/twist_moe.ht)
 

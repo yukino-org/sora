@@ -1,0 +1,127 @@
+const baseURL = 'https://kawaiifu.com';
+
+const defaultHeaders: Map<str> = {
+    'User-Agent': httpUserAgent(),
+    'Referer': baseURL,
+}
+
+fun searchURL(terms: str) -> str {
+    return ensureURL('${baseURL}/search-movie?keyword=${terms}');
+}
+
+fun defaultLocale() -> str {
+    return "en";
+}
+
+fun search(terms: str, locale: str) {
+    return resolveFuture(fetch({
+        'method': 'get',
+        'url': searchURL(terms),
+        'headers': mergeMap(defaultHeaders, {
+            'cookie': 'loop-view=thumb;'
+        })
+    }), fun (err: str?, resp) {
+        if (err != null) return throwError(err);
+
+        const document: HtmlElement = parseHtml(resp['body']);
+
+        return mapList(document.querySelectorAll('.today-update .item'), fun (i: num, x: HtmlElement) {
+            const title: str = x.querySelectorAll('.info h4 a').last.text.trim();
+            const url: str = x.querySelector('.thumb').attributes['href'].trim();
+            const thumbnail: str = x.querySelector('img').attributes['src'].trim();
+
+            return {
+                'title': title,
+                'url': ensureURL(url),
+                'thumbnail': {
+                    'url': ensureURL(thumbnail),
+                    'headers': defaultHeaders,
+                },
+                'locale': locale,
+            };
+        });
+    });
+}
+
+fun getInfo(url: str, locale: str) {
+    return resolveFuture(fetch({
+        'method': 'get',
+        'url': ensureURL(url),
+        'headers': defaultHeaders
+    }), fun (err: str?, resp) {
+        if (err != null) return throwError(err);
+
+        const document: HtmlElement = parseHtml(resp['body']);
+        print('2');
+
+        const server: str = findList(document.querySelectorAll('.list-server'), fun (i: num, x: HtmlElement) {
+            const style: str? = x.attributes['style'];
+            return style != null ? style.contains('display: none') == false : true;
+        }).querySelector('a').attributes['href'].trim();
+        print('3');
+
+        return resolveFuture(fetch({
+            'method': 'get',
+            'url': ensureURL(server),
+            'headers': defaultHeaders
+        }), fun (err: str?, sevRes) {
+            if (err != null) return throwError(err);
+
+            print('4');
+            const episodes: List = mapList(
+                findList(parseHtml(sevRes['body']).querySelectorAll('.list-ep'), fun (i: num, x: HtmlElement) {
+                    const style: str? = x.attributes['style'];
+                    return style != null ? style.contains('display: none') == false : true;
+                }).querySelectorAll('a'),
+                fun (i: num, x: HtmlElement) {
+                    const url: str = x.attributes['href'].trim();
+                    return {
+                        'episode': x.text.replaceFirst('Ep', '').trim(),
+                        'url': ensureURL(url),
+                        'locale': locale
+                    }
+                }
+            );
+            print('5');
+
+            const title1: HtmlElement? = document.querySelector('.desc h2.title');
+            const title2: HtmlElement? = document.querySelector('.desc .sub-title');
+            print('6');
+
+            return {
+                'title': title1 != null ? title1.text.trim() : title2.text.trim(),
+                'url': ensureURL(url),
+                'thumbnail': {
+                    'url': ensureURL(document.querySelector('.row .thumb img').attributes['src'].trim()),
+                    'headers': defaultHeaders,
+                },
+                'episodes': episodes,
+                'locale': locale,
+                'availableLocales': [
+                    locale
+                ]
+            };
+        });
+    });
+}
+
+fun getSources(episode: Map) {
+    return resolveFuture(fetch({
+        'method': 'get',
+        'url': episode['url'],
+        'headers': defaultHeaders
+    }), fun (err: str?, resp) {
+        if (err != null) return throwError(err);
+
+        const document: HtmlElement = parseHtml(resp['body']);
+        
+        return mapList(document.querySelectorAll('.player source'), fun (i: num, x: HtmlElement) {
+            return {
+                'url': ensureURL(x.attributes['src']),
+                'quality': x.attributes['data-quality'],
+                'headers': defaultHeaders,
+                'locale': episode['locale']
+            };
+        });
+    });
+}
