@@ -25,18 +25,19 @@ fun search(terms: str, locale: str) {
             'dataType': 'json',
             'phrase': terms,
         }),
-    }), fun (err: str?, resp) {
+    }), fun (err, resp) {
         if (err != null) return throwError(err);
 
         const parsed = jsonDecode(resp['body']);
 
         return mapList(parsed['manga'], fun (i: num, x: Map) {
             const url: str = x['url'];
+            const thumbnail: str = x['image'];
             return {
                 'title': x['title'],
                 'url': ensureURL('${baseURL}${url}'),
                 'thumbnail': {
-                    'url': ensureURL(x['image']),
+                    'url': ensureURL('${baseURL}${thumbnail}'),
                     'headers': defaultHeaders,
                 },
                 'locale': locale,
@@ -50,7 +51,7 @@ fun getInfo(url: str, locale: str) {
         'method': 'get',
         'url': ensureURL(url),
         'headers': defaultHeaders
-    }), fun (err: str?, resp) {
+    }), fun (err, resp) {
         if (err != null) return throwError(err);
 
         const document: HtmlElement = parseHtml(resp['body']);
@@ -90,7 +91,7 @@ fun getChapter(chapter: Map) {
         'method': 'get',
         'url': ensureURL(chapter['url']),
         'headers': defaultHeaders
-    }), fun (err: str?, resp) {
+    }), fun (err, resp) {
         if (err != null) return throwError(err);
 
         return mapList(

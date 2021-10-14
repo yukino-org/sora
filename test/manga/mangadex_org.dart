@@ -7,23 +7,25 @@ Future<void> main() async {
   await run(
     path.join(
       Directory.current.path,
-      'extensions/manga/readm_org/readm_org.ht',
+      'extensions/manga/mangadex_org/mangadex_org.ht',
     ),
-    search: (ext) async => ext.search('tonikaku cawaii', 'en'),
+    search: (ext) async => ext.search('bunny girl', 'en'),
     getInfo: (ext) async => ext.getInfo(
-      'https://readm.org/manga/16381',
+      'https://fanfox.net/manga/seishun_buta_yarou_wa_bunny_girl_senpai_no_yume_o_minai/',
       'en',
     ),
     getChapter: (ext) async => ext.getChapter(
       ChapterInfo(
         chapter: '1',
-        url: 'https://readm.org/manga/16381/1/all-pages',
+        url:
+            'https://fanfox.net/manga/seishun_buta_yarou_wa_bunny_girl_senpai_no_yume_o_minai/c001/1.html',
         locale: 'en',
       ),
     ),
     getPage: (ext) async => ext.getPage(
       PageInfo(
-        url: 'https://readm.org/uploads/chapter_files/16381/6/1.jpg',
+        url:
+            'https://m.fanfox.net/manga/seishun_buta_yarou_wa_bunny_girl_senpai_no_yume_o_minai/c001/31.html',
         locale: 'en',
       ),
     ),

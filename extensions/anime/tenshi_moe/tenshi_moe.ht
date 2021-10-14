@@ -20,7 +20,7 @@ fun search(terms: str, locale: str) {
         'headers': mergeMap(defaultHeaders, {
             'cookie': 'loop-view=thumb;'
         })
-    }), fun (err: str?, resp) {
+    }), fun (err, resp) {
         if (err != null) return throwError(err);
 
         const document: HtmlElement = parseHtml(resp['body']);
@@ -49,7 +49,7 @@ fun getInfo(url: str, locale: str) {
         'method': 'get',
         'url': ensureURL(url),
         'headers': defaultHeaders
-    }), fun (err: str?, resp) {
+    }), fun (err, resp) {
         if (err != null) return throwError(err);
 
         const document: HtmlElement = parseHtml(resp['body']);
@@ -86,7 +86,7 @@ fun getSources(episode: Map) {
         'method': 'get',
         'url': episode['url'],
         'headers': defaultHeaders
-    }), fun (err: str?, resp) {
+    }), fun (err, resp) {
         if (err != null) return throwError(err);
 
         const iframeURL: str = regexMatch('<iframe src="([^"]+)"', resp['body']).group(1);
@@ -98,7 +98,7 @@ fun getSources(episode: Map) {
             'method': 'get',
             'url': iframeURL,
             'headers': epHeaders
-        }), fun (err: str?, resp) {
+        }), fun (err, resp) {
             if (err != null) return throwError(err);
 
             const sources: str = regexMatch('sources:[\\s]+\\[([^\\]]+)', resp['body']).group(1);

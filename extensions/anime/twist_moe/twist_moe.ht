@@ -26,16 +26,16 @@ fun animeSourcesURL(slug: str) -> str {
     return'${animeApiURL(slug)}/sources';
 }
 
-fun extractSlugFromURL(url: str) -> str? {
-    const match: RegExpMatchResult? = regexMatch('https?:\\/\\/twist\\.moe\\/a\\/([^\\/]+)', url);
-    return match != null ? match.group(1) : match;
+fun extractSlugFromURL(url: str) {
+    const match = regexMatch('https?:\\/\\/twist\\.moe\\/a\\/([^\\/]+)', url);
+    return match != null ? match.group(1) : null;
 }
 
 fun defaultLocale() -> str {
     return "en";
 }
 
-let searcher: FuzzySearcher? = null;
+let searcher = null;
 fun search(terms: str, locale: str) {
     if (searcher != null) {
         return searcher(terms, 10);
@@ -45,7 +45,7 @@ fun search(terms: str, locale: str) {
         'method': 'get',
         'url': searchApiURL(),
         'headers': defaultHeaders
-    }), fun (err: str?, resp) {
+    }), fun (err, resp) {
         if (err != null) return throwError(err);
 
         const data: List<Map> = mapList(jsonDecode(resp['body']), fun (i: num, x: Map) {
@@ -70,7 +70,7 @@ fun search(terms: str, locale: str) {
 }
 
 fun getInfo(url: str, locale: str) {
-    const slug: str? = extractSlugFromURL(url);
+    const slug = extractSlugFromURL(url);
     if (slug == null) {
         return throwError('Failed to parse "slug"');
     }
@@ -79,7 +79,7 @@ fun getInfo(url: str, locale: str) {
         'method': 'get',
         'url': animeApiURL(slug),
         'headers': defaultHeaders
-    }), fun (err: str?, resp) {
+    }), fun (err, resp) {
         if (err != null) return throwError(err);
 
         const parsed: Map = jsonDecode(resp['body']);
@@ -106,7 +106,7 @@ fun getInfo(url: str, locale: str) {
 
 const sourceCache: Map<List<Map>> = {};
 fun getSources(episode: Map) {
-    const slug: str? = extractSlugFromURL(episode['url']);
+    const slug = extractSlugFromURL(episode['url']);
     if (slug == null) {
         return throwError('Failed to parse "slug"');
     }
@@ -114,7 +114,7 @@ fun getSources(episode: Map) {
     const ep: num = int.parse(episode['episode']);
 
     fun returnFromCache() {
-        const src: Map? = findList(sourceCache[slug], fun (i: num, x: Map) {
+        const src = findList(sourceCache[slug], fun (i: num, x: Map) {
             return x['episode'] == ep;
         });
         if (src == null) {
@@ -137,7 +137,7 @@ fun getSources(episode: Map) {
         'method': 'get',
         'url': animeSourcesURL(slug),
         'headers': defaultHeaders
-    }), fun (err: str?, resp) {
+    }), fun (err, resp) {
         if (err != null) return throwError(err);
 
         const parsed: List<Map> = jsonDecode(resp['body']);

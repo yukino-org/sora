@@ -19,7 +19,7 @@ fun search(terms: str, locale: str) {
         'method': 'get',
         'url': searchURL(terms),
         'headers': defaultHeaders
-    }), fun (err: str?, resp) {
+    }), fun (err, resp) {
         if (err != null) return throwError(err);
 
         const document: HtmlElement = parseHtml(resp['body']);
@@ -47,17 +47,17 @@ fun getInfo(url: str, locale: str) {
         'method': 'get',
         'url': ensureURL(url),
         'headers': defaultHeaders
-    }), fun (err: str?, resp) {
+    }), fun (err, resp) {
         if (err != null) return throwError(err);
 
         const document: HtmlElement = parseHtml(resp['body']);
         
         const chapters: List<Map> = filterList(mapList(document.querySelectorAll('#chapterlist li a'), fun (i: num, x: HtmlElement) {
             const title: str = x.querySelector('.title3').text;
-            const shortTitle: RegExpMatchResult? = regexMatch('-(.*)', title);
+            const shortTitle = regexMatch('-(.*)', title);
             const route: str = x.attributes['href'];
-            const vol: RegExpMatchResult? = regexMatch('Vol.(\\d+)', title);
-            const chap: RegExpMatchResult? = regexMatch('Ch.([\\d.]+)', title);
+            const vol = regexMatch('Vol.(\\d+)', title);
+            const chap = regexMatch('Ch.([\\d.]+)', title);
 
             if (chap != null) {
                 return {
@@ -101,7 +101,7 @@ fun getChapter(chapter: Map) {
         'method': 'get',
         'url': ensureURL(url),
         'headers': defaultHeaders
-    }), fun (err: str?, resp) {
+    }), fun (err, resp) {
         if (err != null) return throwError(err);
 
         return mapList(
@@ -123,10 +123,10 @@ fun getPage(page: Map) {
         'method': 'get',
         'url': ensureURL(url),
         'headers': defaultHeaders
-    }), fun (err: str?, resp) {
+    }), fun (err, resp) {
         if (err != null) return throwError(err);
 
-        const img: RegExpMatchResult? = regexMatch('<img src="(.*?)".*id="image".*>', resp['body']);
+        const img = regexMatch('<img src="(.*?)".*id="image".*>', resp['body']);
         if (img == null) return throwError('Failed to parse image URL');
 
         return {

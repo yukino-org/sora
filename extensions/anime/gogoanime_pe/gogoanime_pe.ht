@@ -22,7 +22,7 @@ fun search(terms: str, locale: str) {
         'method': 'get',
         'url': searchURL(terms),
         'headers': defaultHeaders
-    }), fun (err: str?, resp) {
+    }), fun (err, resp) {
         if (err != null) return throwError(err);
 
         const document: HtmlElement = parseHtml(resp['body']);
@@ -50,7 +50,7 @@ fun getInfo(url: str, locale: str) {
         'method': 'get',
         'url': ensureURL(url),
         'headers': defaultHeaders
-    }), fun (err: str?, resp) {
+    }), fun (err, resp) {
         if (err != null) return throwError(err);
 
         const document: HtmlElement = parseHtml(resp['body']);
@@ -64,7 +64,7 @@ fun getInfo(url: str, locale: str) {
             'method': 'get',
             'url': episodesApiURL(epId, epStart, epEnd),
             'headers': defaultHeaders
-        }), fun (err: str?, epRes) {
+        }), fun (err, epRes) {
             const episodes: Map = mapList(parseHtml(epRes['body']).querySelectorAll('#episode_related a'), fun (i: num, x: HtmlElement) {
                 const episode: str = x.querySelector('.name').text.replaceFirst('EP', '').trim();
                 const url: str = x.attributes['href'].trim();
@@ -97,7 +97,7 @@ fun getSources(episode: Map) {
         'method': 'get',
         'url': episode['url'],
         'headers': defaultHeaders
-    }), fun (err: str?, resp) {
+    }), fun (err, resp) {
         if (err != null) return throwError(err);
 
         const links: List<str> = filterList(
@@ -107,7 +107,7 @@ fun getSources(episode: Map) {
                     return x.attributes['data-video'];
                 }
             ),
-            fun (i: num, x: str?) {
+            fun (i: num) {
                 return x != null;
             }
         );
@@ -132,11 +132,11 @@ fun getSources(episode: Map) {
 
                     return null;
                 }),
-                fun (i: num, x: str?) {
+                fun (i: num, x) {
                     return x != null;
                 }
             ),
-            fun (err: str?, res) {
+            fun (err, res) {
                 if (err != null) return throwError(err);
                 return flattenList(res, 1);
             }
@@ -160,7 +160,7 @@ fun parseSbPlay(url: str, defaultResult: Map) {
         'method': 'get',
         'url': ensureURL(url.replaceFirst('embed-', 'd/')),
         'headers': sbPlayHeaders
-    }), fun (err: str?, resp) {
+    }), fun (err, resp) {
         return resolveFutureAll(
             mapList(
                 regexMatchAll('onclick="download_video\\(\'([^\']+)\',\'([^\']+)\',\'([^\']+)\'\\)"', resp['body']),
@@ -174,10 +174,10 @@ fun parseSbPlay(url: str, defaultResult: Map) {
                             'method': 'get',
                             'url': '${sbPlayURL}/dl?op=download_orig&id=${code}&mode=${mode}&hash=${hash}',
                             'headers': sbPlayHeaders
-                        }), fun (err: str?, resp) {
+                        }), fun (err, resp) {
                             if (err != null) return throwError(err);
 
-                            const match: RegExpMatchResult? = regexMatch('<a href="([^"]+)">Direct Download Link<\\/a>', resp['body']);
+                            const match = regexMatch('<a href="([^"]+)">Direct Download Link<\\/a>', resp['body']);
                             return match != null ? mergeMap(defaultResult, {
                                 'url': ensureURL(match.group(1)),
                                 'headers': sbPlayHeaders
@@ -186,7 +186,7 @@ fun parseSbPlay(url: str, defaultResult: Map) {
                     });
                 }
             ),
-            fun (err: str?, res) {
+            fun (err, res) {
                 if (err != null) return throwError(err);
                 return filterList(res, fun (i: num, x) {
                     return x != null;
@@ -212,8 +212,8 @@ fun parseStreamTape(url: str, defaultResult: Map) {
         'method': 'get',
         'url': ensureURL(url),
         'headers': streamTapeHeaders
-    }), fun (err: str?, resp) {
-        const match: RegExpMatchResult? = regexMatch('id="videolink"[\\s\\S]+\\.innerHTML[\\s]+=[\\s\\S]+(id=[^\'"]+)', resp['body']);
+    }), fun (err, resp) {
+        const match = regexMatch('id="videolink"[\\s\\S]+\\.innerHTML[\\s]+=[\\s\\S]+(id=[^\'"]+)', resp['body']);
         const params: str = match != null ? match.group(1) : null;
 
         return params != null ? [
@@ -242,7 +242,7 @@ fun parseXstreamCdn(url: str, defaultResult: Map) {
         'method': 'post',
         'url': ensureURL(url.replaceFirst('/v', '/api/source')),
         'headers': xstreamCdnHeaders
-    }), fun (err: str?, resp) {
+    }), fun (err, resp) {
         const parsed: Map = jsonDecode(resp['body']);
 
         return filterList(

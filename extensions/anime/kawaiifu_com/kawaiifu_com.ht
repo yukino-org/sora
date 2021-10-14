@@ -20,7 +20,7 @@ fun search(terms: str, locale: str) {
         'headers': mergeMap(defaultHeaders, {
             'cookie': 'loop-view=thumb;'
         })
-    }), fun (err: str?, resp) {
+    }), fun (err, resp) {
         if (err != null) return throwError(err);
 
         const document: HtmlElement = parseHtml(resp['body']);
@@ -48,29 +48,26 @@ fun getInfo(url: str, locale: str) {
         'method': 'get',
         'url': ensureURL(url),
         'headers': defaultHeaders
-    }), fun (err: str?, resp) {
+    }), fun (err, resp) {
         if (err != null) return throwError(err);
 
         const document: HtmlElement = parseHtml(resp['body']);
-        print('2');
 
         const server: str = findList(document.querySelectorAll('.list-server'), fun (i: num, x: HtmlElement) {
-            const style: str? = x.attributes['style'];
+            const style = x.attributes['style'];
             return style != null ? style.contains('display: none') == false : true;
         }).querySelector('a').attributes['href'].trim();
-        print('3');
 
         return resolveFuture(fetch({
             'method': 'get',
             'url': ensureURL(server),
             'headers': defaultHeaders
-        }), fun (err: str?, sevRes) {
+        }), fun (err, sevRes) {
             if (err != null) return throwError(err);
 
-            print('4');
             const episodes: List = mapList(
                 findList(parseHtml(sevRes['body']).querySelectorAll('.list-ep'), fun (i: num, x: HtmlElement) {
-                    const style: str? = x.attributes['style'];
+                    const style = x.attributes['style'];
                     return style != null ? style.contains('display: none') == false : true;
                 }).querySelectorAll('a'),
                 fun (i: num, x: HtmlElement) {
@@ -82,11 +79,9 @@ fun getInfo(url: str, locale: str) {
                     }
                 }
             );
-            print('5');
 
-            const title1: HtmlElement? = document.querySelector('.desc h2.title');
-            const title2: HtmlElement? = document.querySelector('.desc .sub-title');
-            print('6');
+            const title1 = document.querySelector('.desc h2.title');
+            const title2 = document.querySelector('.desc .sub-title');
 
             return {
                 'title': title1 != null ? title1.text.trim() : title2.text.trim(),
@@ -110,7 +105,7 @@ fun getSources(episode: Map) {
         'method': 'get',
         'url': episode['url'],
         'headers': defaultHeaders
-    }), fun (err: str?, resp) {
+    }), fun (err, resp) {
         if (err != null) return throwError(err);
 
         const document: HtmlElement = parseHtml(resp['body']);

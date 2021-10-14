@@ -118,10 +118,10 @@ packages:
     description:
       path: "packages/extensions"
       ref: HEAD
-      resolved-ref: "61dcc0d80308683c5818ce510de5986c5c45ba42"
+      resolved-ref: eee606b63120adb4ecbeda9dcf262b97346e68a8
       url: "git://github.com/yukino-app/yukino.git"
     source: git
-    version: "0.0.14"
+    version: "0.0.15"
   file:
     dependency: transitive
     description:
@@ -405,6 +405,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.3.0"
+  utilx:
+    dependency: transitive
+    description:
+      path: "packages/utilx"
+      ref: HEAD
+      resolved-ref: eee606b63120adb4ecbeda9dcf262b97346e68a8
+      url: "https://github.com/yukino-app/yukino.git"
+    source: git
+    version: "0.0.0"
   vector_math:
     dependency: transitive
     description:
@@ -449,3 +458,4 @@ packages:
     version: "3.1.0"
 sdks:
   dart: ">=2.14.0 <3.0.0"
+  flutter: ">=1.17.0"
