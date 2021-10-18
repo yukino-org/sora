@@ -107,7 +107,7 @@ fun getSources(episode: Map) {
                     return x.attributes['data-video'];
                 }
             ),
-            fun (i: num) {
+            fun (i: num, x: Map) {
                 return x != null;
             }
         );
@@ -151,14 +151,14 @@ const sbPlayHeaders = {
 };
 
 fun testSbPlay(url: str) -> bool {
-    const match: RegExpMatchResult = regexMatch('https?:\\/\\/sbplay\\.org\\/.*', url);
+    const match: RegExpMatchResult = regexMatch('https?:\\/\\/(sbplay\\.org|sbplay1\\.com)\\/.*', url);
     return match != null;
 }
 
 fun parseSbPlay(url: str, defaultResult: Map) {
     return resolveFuture(fetch({
         'method': 'get',
-        'url': ensureURL(url.replaceFirst('embed-', 'd/')),
+        'url': ensureURL(regexReplaceFirst(url, '(\\/embed-|\\/e\\/)', '/d/')),
         'headers': sbPlayHeaders
     }), fun (err, resp) {
         return resolveFutureAll(
