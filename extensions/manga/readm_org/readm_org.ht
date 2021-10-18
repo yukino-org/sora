@@ -70,11 +70,12 @@ fun getInfo(url: str, locale: str) {
             };
         });
 
+        const thumbnail: str = document.querySelector('.series-profile-thumb').attributes['src'].trim();
         return {
             'title': document.querySelector('.page-title').text,
             'url': ensureURL(url),
             'thumbnail': {
-                'url': ensureURL(document.querySelector('.series-profile-thumb').attributes['src'].trim()),
+                'url': ensureURL('${baseURL}${thumbnail}'),
                 'headers': defaultHeaders
             },
             'chapters': chapters,
