@@ -233,7 +233,7 @@ const xstreamCdnHeaders = {
 };
 
 fun testXstreamCdn(url: str) -> bool {
-    const match: RegExpMatchResult = regexMatch('https?:\\/\\/embedsito\\.com\\/v\\/.*', url);
+    const match: RegExpMatchResult = regexMatch('https?:\\/\\/fplayer\\.info\\/v\\/.*', url);
     return match != null;
 }
 
