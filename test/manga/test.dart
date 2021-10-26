@@ -14,7 +14,7 @@ Future<void> run(
       bool.hasEnvironment('method') ? String.fromEnvironment('method') : null;
   final DateTime now = DateTime.now();
   final List<String> methods = method != null
-      ? [method]
+      ? method.split(',')
       : ['search', 'getInfo', 'getChapter', 'getPage'];
 
   final script = File(path);

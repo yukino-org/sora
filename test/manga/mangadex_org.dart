@@ -11,21 +11,21 @@ Future<void> main() async {
     ),
     search: (ext) async => ext.search('bunny girl', 'en'),
     getInfo: (ext) async => ext.getInfo(
-      'https://fanfox.net/manga/seishun_buta_yarou_wa_bunny_girl_senpai_no_yume_o_minai/',
+      'https://api.mangadex.org/manga/b15632d7-88d0-4233-9815-c01e75cabda8',
       'en',
     ),
     getChapter: (ext) async => ext.getChapter(
       ChapterInfo(
-        chapter: '1',
-        url:
-            'https://fanfox.net/manga/seishun_buta_yarou_wa_bunny_girl_senpai_no_yume_o_minai/c001/1.html',
+        volume: '2',
+        chapter: '21',
+        url: '{&server_url&}/data/c67bf16d31edf36be6b321b44b7dd41a',
         locale: 'en',
       ),
     ),
     getPage: (ext) async => ext.getPage(
       PageInfo(
         url:
-            'https://m.fanfox.net/manga/seishun_buta_yarou_wa_bunny_girl_senpai_no_yume_o_minai/c001/31.html',
+            'https://uploads.mangadex.org/data/c67bf16d31edf36be6b321b44b7dd41a/S19-2ca73f816c6ce0ed93b7e63126798856f970f58f6693eaf1a9458687732503a8.png',
         locale: 'en',
       ),
     ),

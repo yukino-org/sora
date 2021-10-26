@@ -7,14 +7,14 @@ packages:
       name: _fe_analyzer_shared
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "29.0.0"
+    version: "30.0.0"
   analyzer:
     dependency: transitive
     description:
       name: analyzer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.6.0"
+    version: "2.7.0"
   args:
     dependency: transitive
     description:
@@ -118,10 +118,10 @@ packages:
     description:
       path: "packages/extensions"
       ref: HEAD
-      resolved-ref: eee606b63120adb4ecbeda9dcf262b97346e68a8
+      resolved-ref: "55ff162d6b29e83af71078b8819dffd24f6a3182"
       url: "git://github.com/yukino-app/yukino.git"
     source: git
-    version: "0.0.15"
+    version: "0.0.16"
   file:
     dependency: transitive
     description:
@@ -245,7 +245,7 @@ packages:
       name: mime
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.0"
+    version: "1.0.1"
   node_preamble:
     dependency: transitive
     description:
@@ -294,7 +294,7 @@ packages:
       name: quiver
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.1"
+    version: "3.0.1+1"
   shelf:
     dependency: transitive
     description:
@@ -383,21 +383,21 @@ packages:
       name: test
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.18.2"
+    version: "1.19.2"
   test_api:
     dependency: transitive
     description:
       name: test_api
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.5"
+    version: "0.4.6"
   test_core:
     dependency: transitive
     description:
       name: test_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.5"
+    version: "0.4.7"
   typed_data:
     dependency: transitive
     description:
@@ -410,7 +410,7 @@ packages:
     description:
       path: "packages/utilx"
       ref: HEAD
-      resolved-ref: eee606b63120adb4ecbeda9dcf262b97346e68a8
+      resolved-ref: "55ff162d6b29e83af71078b8819dffd24f6a3182"
       url: "https://github.com/yukino-app/yukino.git"
     source: git
     version: "0.0.0"

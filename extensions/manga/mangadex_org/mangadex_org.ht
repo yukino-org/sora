@@ -2,7 +2,10 @@ const baseURL = 'https://mangadex.org';
 const apiURL = 'https://api.mangadex.org';
 const uploadsURL = 'https://uploads.mangadex.org';
 
-const defaultHeaders: Map<str> = {}
+const defaultHeaders: Map<str> = {
+    'Origin': baseURL,
+    'Referer': baseURL,
+};
 
 fun searchApiURL(terms: str) -> str {
     return '${apiURL}/manga?title=${terms}';
@@ -41,7 +44,7 @@ fun coverURL(mangaID: str, coverFile: str) -> str {
 }
 
 fun extractIdFromURL(url: str) -> str {
-    return regexMatch('https?:\\/\\/api\\.mangadex\\.org\\/manga\\/([^\\/]+)').group(1);
+    return regexMatch('https?:\\/\\/api\\.mangadex\\.org\\/manga\\/([^\\/]+)', url).group(1);
 }
 
 const GetCoverImageCallback: type = fun(cover: str);
@@ -56,29 +59,31 @@ fun getCoverImageURL(manga: str, cover: str, cb: GetCoverImageCallback) {
         const parsed: Map = jsonDecode(resp['body']);
 
         return cb({
-            'url': coverURL(manga, parsed['data']['attributes']['fileName']),
+            'url': ensureURL(coverURL(manga, parsed['data']['attributes']['fileName'])),
             'headers': defaultHeaders
         });
     });
 }
 
 const _allLanguagesCache: List<str> = allLanguages();
-fun getAvailableLanguages(manga: str) {
+const GetAvailableLanguagesCallback: type = fun(langs: List<str>);
+fun getAvailableLanguages(manga: str, cb: GetAvailableLanguagesCallback) {
     return resolveFuture(fetch({
         'method': 'get',
-        'url': mangaChapterOverviewURL(manga),
+        'url': ensureURL(mangaChapterOverviewURL(manga, 1, 1, 100)),
         'headers': defaultHeaders,
     }), fun (err, resp) {
         if (err != null) return throwError(err);
         
         const parsed: Map = jsonDecode(resp['body']);
-
-        return filterList(mapList(parsed['results'], fun (i: num, x: Map) {
-            const code = regexMatch('\\w+', x['data']['attributes']['translatedLanguage']);
+        const langs: List<str> = filterList(mapList(parsed['data'], fun (i: num, x: Map) {
+            const code = regexMatch('\\w+', x['attributes']['translatedLanguage']);
             return code != null ? code.group(0) : null;
         }), fun (i: num, x) {
             return x != null && _allLanguagesCache.contains(x);
         });
+
+        return cb(langs);
     });
 }
 
@@ -123,60 +128,101 @@ fun search(terms: str, locale: str) {
     });
 }
 
+const _chapterLimit = 500;
+const _chapterInfoCache: Map = {};
+const _serverURLPlaceholder: str = '{&server_url&}';
 fun getInfo(url: str, locale: str) {
+    const id: str = extractIdFromURL(url);
+    const mangaURL: str = ensureURL(mangaApiURL(id));
+
     return resolveFuture(fetch({
         'method': 'get',
-        'url': ensureURL(url),
+        'url': mangaURL,
         'headers': defaultHeaders
     }), fun (err, resp) {
         if (err != null) return throwError(err);
 
-        const document: HtmlElement = parseHtml(resp['body']);
-        
-        const chapters: List<Map> = mapList(document.querySelectorAll('.episodes-list .table-episodes-title a'), fun (i: num, x: HtmlElement) {
-            const title: str = x.text.trim();
-            const url: str = x.attributes['href'].trim();
-            const chapvol: RegExpMatchResult = regexMatch('Chapter (\\d+)(v(\\d+))?', title);
-
-            return {
-                'title': regexMatch('^Chapter \\d*\\.?\\d+(v\\d+)?$', title) == null ? title : null,
-                'url': ensureURL('${baseURL}${url}'),
-                'chapter': chapvol.group(1),
-                'volume': chapvol.group(3),
-                'locale': locale,
-            };
+        const parsed = jsonDecode(resp['body']);
+        const coverArt = findList(parsed['data']['relationships'], fun (i: num, x: Map) {
+            return x['type'] == 'cover_art';
         });
 
-        return {
-            'title': document.querySelector('.page-title').text,
-            'url': ensureURL(url),
-            'thumbnail': {
-                'url': ensureURL(document.querySelector('.series-profile-thumb').attributes['src'].trim()),
-                'headers': defaultHeaders
-            },
-            'chapters': chapters,
-            'locale': locale,
-            'availableLocales': [
-                locale
-            ]
-        };
+        return getAvailableLanguages(id, fun (langs: List<str>) {
+            fun finish(cover) {
+                fun resolveChapters(info: Map, offset: num) {
+                    return resolveFuture(fetch({
+                        'method': 'get',
+                        'url': ensureURL(mangaFeedApiURL(id, locale, _chapterLimit, offset)),
+                        'headers': defaultHeaders
+                    }), fun (err, resp) {
+                        if (err != null) return throwError(err);
+
+
+                        const chapters: List<Map> = mapList(jsonDecode(resp['body'])['data'], fun (i: num, x: Map) {
+                            const title = x['attributes']['title'];
+                            const url = chapterApiURL(_serverURLPlaceholder, 'data', x['attributes']['hash']);
+
+                            _chapterInfoCache[url] = {
+                                'id': x['id'],
+                                'files': x['attributes']['data'],
+                            };
+
+                            return {
+                                'title': title != null && title.isNotEmpty ? title : null,
+                                'url': url,
+                                'chapter': x['attributes']['chapter'],
+                                'volume': x['attributes']['volume'],
+                                'locale': locale,
+                            };
+                        });
+
+                        const nInfo = mergeMap(info, {
+                            'chapters': mergeList(info['chapters'], chapters)
+                        });
+
+                        return chapters.isNotEmpty
+                            ? resolveChapters(nInfo, offset + _chapterLimit)
+                            : nInfo;
+                    });
+                }
+
+                const localeTitle = parsed['data']['attributes']['title'][locale];
+                const defaultLocaleTitle = parsed['data']['attributes']['title'][defaultLocale()];
+
+                return resolveChapters({
+                    'title': localeTitle != null ? localeTitle : defaultLocaleTitle,
+                    'url': mangaURL,
+                    'thumbnail': cover,
+                    'chapters': [],
+                    'locale': locale,
+                    'availableLocales': langs
+                }, 0);
+            }
+
+            return coverArt != null
+                ? getCoverImageURL(parsed['data']['id'], coverArt['id'], finish)
+                : finish(null);
+        });
     });
 }
 
 fun getChapter(chapter: Map) {
+    const cache = _chapterInfoCache[chapter['url']];
+
     return resolveFuture(fetch({
         'method': 'get',
-        'url': ensureURL(chapter['url']),
+        'url': ensureURL(mangaServerApiURL(cache['id'])),
         'headers': defaultHeaders
     }), fun (err, resp) {
         if (err != null) return throwError(err);
 
+        const chapterURL: str = chapter['url'].replaceFirst(_serverURLPlaceholder, jsonDecode(resp['body'])['baseUrl']);
+
         return mapList(
-            parseHtml(resp['body']).querySelectorAll('.ch-images img'),
+            cache['files'],
             fun (i: num, x: Map) {
-                const url: str = x.attributes['src'].trim();
                 return {
-                    'url': ensureURL('${baseURL}${url}'),
+                    'url': ensureURL(pageSourceURL(chapterURL, x)),
                     'locale': chapter['locale']
                 };
             }
