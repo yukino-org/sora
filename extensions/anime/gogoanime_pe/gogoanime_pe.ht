@@ -5,7 +5,7 @@ const defaultHeaders: Map<str> = {
     'Referer': baseURL,
 }
 
-fun maybeSetHeaders(headers: Map<str>) {
+fun maybeUpdateHeaders(headers: Map<str>) {
     if (headers['set-cookie'] is String) {
         defaultHeaders['cookie'] = headers['set-cookie'];
     }
@@ -31,7 +31,7 @@ fun search(terms: str, locale: str) {
     }), fun (err, resp) {
         if (err != null) return throwError(err);
 
-        maybeSetHeaders(resp['headers']);
+        maybeUpdateHeaders(resp['headers']);
         const document: HtmlElement = parseHtml(resp['body']);
 
         return mapList(document.querySelectorAll('.items li'), fun (i: num, x: HtmlElement) {
@@ -60,7 +60,7 @@ fun getInfo(url: str, locale: str) {
     }), fun (err, resp) {
         if (err != null) return throwError(err);
 
-        maybeSetHeaders(resp['headers']);
+        maybeUpdateHeaders(resp['headers']);
         const document: HtmlElement = parseHtml(resp['body']);
 
         const epPages: List<HtmlElement> = document.querySelectorAll('#episode_page a');
@@ -108,7 +108,7 @@ fun getSources(episode: Map) {
     }), fun (err, resp) {
         if (err != null) return throwError(err);
 
-        maybeSetHeaders(resp['headers']);
+        maybeUpdateHeaders(resp['headers']);
         const defaultSourceProps: Map = {
             'quality': 'unknown',
             'locale': episode['locale']
