@@ -1,4 +1,4 @@
-const baseURL = 'https://gogoanime.be';
+const baseURL = 'https://gogoanime2.org';
 
 const defaultHeaders: Map<str> = {
     'User-Agent': httpUserAgent(),
@@ -6,7 +6,7 @@ const defaultHeaders: Map<str> = {
 }
 
 fun searchURL(terms: str) -> str {
-    return ensureURL('${baseURL}/search.html?keyword=${terms}');
+    return ensureURL('${baseURL}/search/${terms}');
 }
 
 fun episodesApiURL(id: num, start: num, end: num) -> str {
