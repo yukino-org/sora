@@ -1,4 +1,4 @@
-const baseURL = 'https://gogoanime.pe';
+const baseURL = 'https://gogoanime.be';
 
 const defaultHeaders: Map<str> = {
     'User-Agent': httpUserAgent(),
@@ -100,6 +100,8 @@ fun getSources(episode: Map) {
     }), fun (err, resp) {
         if (err != null) return throwError(err);
 
+        print(resp['body']);
+
         const links: List<str> = filterList(
             mapList(
                 parseHtml(resp['body']).querySelectorAll('.anime_muti_link a'),
@@ -116,6 +118,9 @@ fun getSources(episode: Map) {
             'quality': 'unknown',
             'locale': episode['locale']
         }
+
+        
+        print(links);
 
         return resolveFutureAll(
             filterList(
