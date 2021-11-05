@@ -100,40 +100,27 @@ fun getSources(episode: Map) {
     }), fun (err, resp) {
         if (err != null) return throwError(err);
 
-        print(resp['body']);
-
-        const links: List<str> = filterList(
-            mapList(
-                parseHtml(resp['body']).querySelectorAll('.anime_muti_link a'),
-                fun (i: num, x: HtmlElement) {
-                    return x.attributes['data-video'];
-                }
-            ),
-            fun (i: num, x: Map) {
-                return x != null;
-            }
-        );
-
         const defaultSourceProps: Map = {
             'quality': 'unknown',
             'locale': episode['locale']
         }
 
-        
-        print(links);
-
         return resolveFutureAll(
             filterList(
-                mapList(links, fun (i: num, x: str) {
-                    if (testSbPlay(x)) {
-                        return parseSbPlay(x, defaultSourceProps);
-                    } else if (testXstreamCdn(x)) {
-                        return parseXstreamCdn(x, defaultSourceProps);
+                mapList(parseHtml(resp['body']).querySelectorAll('.anime_muti_link ul > li'), fun (i: num, x: HtmlElement) {
+                    const link: str = x.querySelector('a').attributes['data-video'];
+
+                    if (link != null) {
+                        if (x.classes.contains('streamsb')) {
+                            return parseSbPlay(link, defaultSourceProps);
+                        } else if (x.classes.contains('xstreamcdn')) {
+                            return parseXstreamCdn(link, defaultSourceProps);
+                        }
+                        // TODO: Test streamtape links
+                        // else if (testStreamTape(xlink)) {
+                        //    return parseStreamTape(link, defaultSourceProps);
+                        // }
                     }
-                    // TODO: Test streamtape links
-                    // else if (testStreamTape(x)) {
-                    //    return parseStreamTape(x, defaultSourceProps);
-                    // }
 
                     return null;
                 }),
@@ -154,11 +141,6 @@ const sbPlayURL = 'https://sbplay.org';
 const sbPlayHeaders = {
     'User-Agent': httpUserAgent(),
 };
-
-fun testSbPlay(url: str) -> bool {
-    const match: RegExpMatchResult = regexMatch('https?:\\/\\/(sbplay\\.org|sbplay1\\.com)\\/.*', url);
-    return match != null;
-}
 
 fun parseSbPlay(url: str, defaultResult: Map) {
     return resolveFuture(fetch({
@@ -207,11 +189,6 @@ const streamTapeHeaders = {
     'User-Agent': httpUserAgent(),
 };
 
-fun testStreamTape(url: str) -> bool {
-    const match: RegExpMatchResult = regexMatch('https?:\\/\\/streamtape\\.com\\/.*', url);
-    return match != null;
-}
-
 fun parseStreamTape(url: str, defaultResult: Map) {
     return resolveFuture(fetch({
         'method': 'get',
@@ -236,11 +213,6 @@ const xstreamCdnHeaders = {
     'User-Agent': httpUserAgent(),
     'Referer': xstreamCdnURL
 };
-
-fun testXstreamCdn(url: str) -> bool {
-    const match: RegExpMatchResult = regexMatch('https?:\\/\\/fplayer\\.info\\/v\\/.*', url);
-    return match != null;
-}
 
 fun parseXstreamCdn(url: str, defaultResult: Map) {
     return resolveFuture(fetch({
