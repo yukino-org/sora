@@ -6,8 +6,11 @@ const defaultHeaders: Map<str> = {
 }
 
 fun maybeUpdateHeaders(headers: Map<str>) {
-    if (headers['set-cookie'] is String) {
-        defaultHeaders['cookie'] = headers['set-cookie'];
+    if (headers['set-cookie'] != null) {
+        const splitCookies: List<str> = headers['set-cookie'].split(';');
+        if (splitCookies.length >= 1) {
+            defaultHeaders['cookie'] = splitCookies[0].trim();
+        }
     }
 }
 
