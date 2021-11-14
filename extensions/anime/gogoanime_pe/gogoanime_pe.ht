@@ -1,17 +1,45 @@
-const baseURL = 'https://gogoanime.pe';
+const baseURL = 'https://gogoanime.cm';
 
 const defaultHeaders: Map<str> = {
     'User-Agent': httpUserAgent(),
     'Referer': baseURL,
 }
 
-fun maybeUpdateHeaders(headers: Map<str>) {
-    if (headers['set-cookie'] != null) {
-        const splitCookies: List<str> = headers['set-cookie'].split(';');
-        if (splitCookies.length >= 1) {
-            defaultHeaders['cookie'] = splitCookies[0].trim();
-        }
+var dom = null;
+
+fun getDOM(trace: TaskTrace) {
+    if (dom != null && !dom.disposed) {
+        trace.add('Returning previous DOM');
+        return dom;
     }
+
+    trace.add('Creating new DOM');
+    return resolveFuture(createDOM(), fun (err, res) {
+        if (err != null) return throwError(err);
+        dom = res;
+        return dom;
+    });
+}
+
+fun getSite(url: str, trace: TaskTrace) {
+    trace.add('Preparing DOM');
+    return resolveFuture(getDOM(trace), fun (err, tab) {
+        if (err != null) return throwError(err, trace);
+
+        trace.add('Opening URL: "${url}"');
+        return resolveFuture(tab.open(url, 'domContentLoaded'), fun (err, mt) {
+            if (err != null) return throwError(err, trace);
+
+            trace.add('Trying to bypass cloudflare');
+            return resolveFuture(tryBypassCloudflareCheck(tab), fun (err, bypassed) {
+                if (err != null) return throwError(err, trace);
+                print('bypassed: ${bypassed}');
+                if (!bypassed) return throwError('Failed to bypass cloudflare', trace);
+
+                return tab;
+            });
+        });
+    });
 }
 
 fun searchURL(terms: str) -> str {
@@ -27,124 +55,146 @@ fun defaultLocale() -> str {
 }
 
 fun search(terms: str, locale: str) {
-    return resolveFuture(fetch({
-        'method': 'get',
-        'url': searchURL(terms),
-        'headers': defaultHeaders
-    }), fun (err, resp) {
-        if (err != null) return throwError(err);
+    const trace = TaskTrace();
+    const url: str = searchURL(terms);
+    
+    trace.add('Getting URL: "${url}"');
+    return resolveFuture(getSite(url, trace), fun (err, tab) {
+        if (err != null) return throwError(err, trace);
 
-        maybeUpdateHeaders(resp['headers']);
-        const document: HtmlElement = parseHtml(resp['body']);
+        trace.add('Getting HTML of "${url}"');
+        return resolveFuture(tab.getHtml(), fun (err, html) {
+            if (err != null) return throwError(err, trace);
+            if (html == null) return throwError('No html was received', trace);
 
-        return mapList(document.querySelectorAll('.items li'), fun (i: num, x: HtmlElement) {
-            const title: HtmlElement = x.querySelector('.name a');
-            const url: str = title.attributes['href'].trim();
-            const thumbnail: str = x.querySelector('.img img').attributes['src'].trim();
+            const document: HtmlElement = parseHtml(html);
 
-            return {
-                'title': title.text.trim(),
-                'url': ensureURL('${baseURL}${url}'),
-                'thumbnail': {
-                    'url': ensureURL(thumbnail),
-                    'headers': defaultHeaders,
-                },
-                'locale': locale,
-            };
+            return mapList(document.querySelectorAll('.items li'), fun (i: num, x: HtmlElement) {
+                const title: HtmlElement = x.querySelector('.name a');
+                const url: str = title.attributes['href'].trim();
+                const thumbnail: str = x.querySelector('.img img').attributes['src'].trim();
+
+                return {
+                    'title': title.text.trim(),
+                    'url': ensureURL('${baseURL}${url}'),
+                    'thumbnail': {
+                        'url': ensureURL(thumbnail),
+                        'headers': defaultHeaders,
+                    },
+                    'locale': locale,
+                };
+            });
         });
     });
 }
 
 fun getInfo(url: str, locale: str) {
-    return resolveFuture(fetch({
-        'method': 'get',
-        'url': ensureURL(url),
-        'headers': defaultHeaders
-    }), fun (err, resp) {
-        if (err != null) return throwError(err);
+    const trace = TaskTrace();
+    const url: str = ensureURL(url);
+    
+    trace.add('Getting URL: "${url}"');
+    return resolveFuture(getSite(url, trace), fun (err, tab) {
+        if (err != null) return throwError(err, trace);
 
-        maybeUpdateHeaders(resp['headers']);
-        const document: HtmlElement = parseHtml(resp['body']);
+        trace.add('Getting HTML of "${url}"');
+        return resolveFuture(tab.getHtml(), fun (err, html) {
+            print(html);
 
-        const epPages: List<HtmlElement> = document.querySelectorAll('#episode_page a');
-        const epStart: str = epPages.first.attributes['ep_start'].trim();
-        const epEnd: str = epPages.last.attributes['ep_end'].trim();
-        const epId: str = document.querySelector('input#movie_id').attributes['value'].trim();
+            if (err != null) return throwError(err, trace);
+            if (html == null) return throwError('No html was received', trace);
 
-        return resolveFuture(fetch({
-            'method': 'get',
-            'url': episodesApiURL(epId, epStart, epEnd),
-            'headers': defaultHeaders
-        }), fun (err, epRes) {
-            const episodes: Map = mapList(parseHtml(epRes['body']).querySelectorAll('#episode_related a'), fun (i: num, x: HtmlElement) {
-                const episode: str = x.querySelector('.name').text.replaceFirst('EP', '').trim();
-                const url: str = x.attributes['href'].trim();
-                return {
-                    'episode': episode,
-                    'url': ensureURL('${baseURL}/${url}'),
-                    'locale': locale
-                }
+            const document: HtmlElement = parseHtml(html);
+
+            const epPages: List<HtmlElement> = document.querySelectorAll('#episode_page a');
+            const epStart: str = epPages.first.attributes['ep_start'].trim();
+            const epEnd: str = epPages.last.attributes['ep_end'].trim();
+            const epId: str = document.querySelector('input#movie_id').attributes['value'].trim();
+            const epURL: str = episodesApiURL(epId, epStart, epEnd);
+
+            trace.add('Getting URL: "${epURL}"');
+            return resolveFuture(getSite(epURL, trace), fun (err, tab) {
+                if (err != null) return throwError(err, trace);
+                
+                trace.add('Getting HTML of "${epURL}"');
+                return resolveFuture(tab.getHtml(), fun (err, epHtml) {
+                    if (err != null) return throwError(err, trace);
+
+                    const episodes: Map = mapList(parseHtml(epHtml).querySelectorAll('#episode_related a'), fun (i: num, x: HtmlElement) {
+                        const episode: str = x.querySelector('.name').text.replaceFirst('EP', '').trim();
+                        const url: str = x.attributes['href'].trim();
+                        return {
+                            'episode': episode,
+                            'url': ensureURL('${baseURL}/${url}'),
+                            'locale': locale
+                        }
+                    });
+
+                    return {
+                        'title': document.querySelector('.anime_info_body_bg h1').text.trim(),
+                        'url': ensureURL(url),
+                        'thumbnail': {
+                            'url': ensureURL(document.querySelector('.anime_info_body_bg img').attributes['src'].trim()),
+                            'headers': defaultHeaders,
+                        },
+                        'episodes': episodes,
+                        'locale': locale,
+                        'availableLocales': [
+                            locale
+                        ]
+                    };
+                });
             });
-
-            return {
-                'title': document.querySelector('.anime_info_body_bg h1').text.trim(),
-                'url': ensureURL(url),
-                'thumbnail': {
-                    'url': ensureURL(document.querySelector('.anime_info_body_bg img').attributes['src'].trim()),
-                    'headers': defaultHeaders,
-                },
-                'episodes': episodes,
-                'locale': locale,
-                'availableLocales': [
-                    locale
-                ]
-            };
         });
     });
 }
 
 fun getSources(episode: Map) {
-    return resolveFuture(fetch({
-        'method': 'get',
-        'url': episode['url'],
-        'headers': defaultHeaders
-    }), fun (err, resp) {
-        if (err != null) return throwError(err);
+    const trace = TaskTrace();
+    const url: str = episode['url'];
 
-        maybeUpdateHeaders(resp['headers']);
-        const defaultSourceProps: Map = {
-            'quality': 'unknown',
-            'locale': episode['locale']
-        }
+    trace.add('Getting URL: "${url}"');
+    return resolveFuture(getSite(url, trace), fun (err, tab) {
+        if (err != null) return throwError(err, trace);
 
-        return resolveFutureAll(
-            filterList(
-                mapList(parseHtml(resp['body']).querySelectorAll('.anime_muti_link ul > li'), fun (i: num, x: HtmlElement) {
-                    const link: str = x.querySelector('a').attributes['data-video'];
+        trace.add('Getting HTML of "${url}"');
+        return resolveFuture(tab.getHtml(), fun (err, html) {
+            if (err != null) return throwError(err, trace);
+            if (html == null) return throwError('No html was received', trace);
 
-                    if (link != null) {
-                        if (x.classes.contains('streamsb')) {
-                            return parseSbPlay(link, defaultSourceProps);
-                        } else if (x.classes.contains('xstreamcdn')) {
-                            return parseXstreamCdn(link, defaultSourceProps);
+            const defaultSourceProps: Map = {
+                'quality': 'unknown',
+                'locale': episode['locale']
+            };
+
+            return resolveFutureAll(
+                filterList(
+                    mapList(parseHtml(html).querySelectorAll('.anime_muti_link ul > li'), fun (i: num, x: HtmlElement) {
+                        const link: str = x.querySelector('a').attributes['data-video'];
+
+                        if (link != null) {
+                            if (x.classes.contains('streamsb')) {
+                                return parseSbPlay(link, defaultSourceProps);
+                            } else if (x.classes.contains('xstreamcdn')) {
+                                return parseXstreamCdn(link, defaultSourceProps);
+                            }
+                            // TODO: Test streamtape links
+                            // else if (testStreamTape(xlink)) {
+                            //    return parseStreamTape(link, defaultSourceProps);
+                            // }
                         }
-                        // TODO: Test streamtape links
-                        // else if (testStreamTape(xlink)) {
-                        //    return parseStreamTape(link, defaultSourceProps);
-                        // }
-                    }
 
-                    return null;
-                }),
-                fun (i: num, x) {
-                    return x != null;
+                        return null;
+                    }),
+                    fun (i: num, x) {
+                        return x != null;
+                    }
+                ),
+                fun (err, res) {
+                    if (err != null) return throwError(err);
+                    return flattenList(res, 1);
                 }
-            ),
-            fun (err, res) {
-                if (err != null) return throwError(err);
-                return flattenList(res, 1);
-            }
-        );
+            );
+        });
     });
 }
 

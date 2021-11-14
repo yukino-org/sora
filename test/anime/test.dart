@@ -1,7 +1,11 @@
+// ignore_for_file: depend_on_referenced_packages
+
 import 'dart:io';
 import 'package:extensions/extensions.dart';
 import 'package:extensions/test.dart';
 import 'package:test/test.dart';
+import 'package:utilx/utilities/locale.dart';
+import '../test.dart';
 
 Future<void> run(
   String path, {
@@ -9,6 +13,10 @@ Future<void> run(
   required final Future<void> Function(AnimeExtractorTest) getInfo,
   required final Future<void> Function(AnimeExtractorTest) getSources,
 }) async {
+  setUpAll(() async {
+    await prepareExtensionsManager();
+  });
+
   const String? method =
       bool.hasEnvironment('method') ? String.fromEnvironment('method') : null;
   final DateTime now = DateTime.now();
@@ -19,13 +27,16 @@ Future<void> run(
   final extenstion = ResolvedExtension(
     name: 'test',
     id: 'test',
+    author: 'test',
+    defaultLocale: Locale(LanguageCodes.en),
     version: ExtensionVersion(now.year, now.month, 0),
     type: ExtensionType.anime,
     code: await script.readAsString(),
     image: '',
     nsfw: false,
   );
-  final extractor = await ExtensionUtils.transpileToAnimeExtractor(extenstion);
+  final extractor =
+      await ExtensionInternals.transpileToAnimeExtractor(extenstion);
   final client = AnimeExtractorTest(extractor);
 
   if (methods.contains('search')) {
@@ -48,4 +59,8 @@ Future<void> run(
       await Future.delayed(const Duration(seconds: 3));
     });
   }
+
+  tearDownAll(() async {
+    await disposeExtensionsManager();
+  });
 }
