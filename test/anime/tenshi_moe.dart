@@ -15,10 +15,10 @@ Future<void> main() async {
       'en',
     ),
     getSources: (ext) async => ext.getSources(
-      EpisodeInfo(
+      const EpisodeInfo(
         episode: '1',
         url: 'https://tenshi.moe/anime/1kwzf88a/1',
-        locale: 'en',
+        locale: defaultLocale,
       ),
     ),
   );

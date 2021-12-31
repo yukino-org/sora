@@ -15,11 +15,11 @@ Future<void> main() async {
       'en',
     ),
     getSources: (ext) async => ext.getSources(
-      EpisodeInfo(
+      const EpisodeInfo(
         episode: '1',
         url:
             'https://gogoanime.pe//seishun-buta-yarou-wa-bunny-girl-senpai-no-yume-wo-minai-episode-1',
-        locale: 'en',
+        locale: defaultLocale,
       ),
     ),
   );

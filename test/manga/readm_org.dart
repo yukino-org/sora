@@ -15,16 +15,16 @@ Future<void> main() async {
       'en',
     ),
     getChapter: (ext) async => ext.getChapter(
-      ChapterInfo(
+      const ChapterInfo(
         chapter: '1',
         url: 'https://readm.org/manga/16381/1/all-pages',
-        locale: 'en',
+        locale: defaultLocale,
       ),
     ),
     getPage: (ext) async => ext.getPage(
-      PageInfo(
+      const PageInfo(
         url: 'https://readm.org/uploads/chapter_files/16381/6/1.jpg',
-        locale: 'en',
+        locale: defaultLocale,
       ),
     ),
   );

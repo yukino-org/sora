@@ -1,4 +1,4 @@
-const baseURL = 'https://gogoanime.cm';
+const baseURL = 'https://www2.gogoanime.cm';
 
 const defaultHeaders: Map<str> = {
     'User-Agent': httpUserAgent(),
@@ -33,7 +33,6 @@ fun getSite(url: str, trace: TaskTrace) {
             trace.add('Trying to bypass cloudflare');
             return resolveFuture(tryBypassCloudflareCheck(tab), fun (err, bypassed) {
                 if (err != null) return throwError(err, trace);
-                print('bypassed: ${bypassed}');
                 if (!bypassed) return throwError('Failed to bypass cloudflare', trace);
 
                 return tab;
@@ -98,8 +97,6 @@ fun getInfo(url: str, locale: str) {
 
         trace.add('Getting HTML of "${url}"');
         return resolveFuture(tab.getHtml(), fun (err, html) {
-            print(html);
-
             if (err != null) return throwError(err, trace);
             if (html == null) return throwError('No html was received', trace);
 

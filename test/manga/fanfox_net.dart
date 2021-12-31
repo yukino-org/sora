@@ -15,18 +15,18 @@ Future<void> main() async {
       'en',
     ),
     getChapter: (ext) async => ext.getChapter(
-      ChapterInfo(
+      const ChapterInfo(
         chapter: '1',
         url:
             'https://fanfox.net/manga/seishun_buta_yarou_wa_bunny_girl_senpai_no_yume_o_minai/c001/1.html',
-        locale: 'en',
+        locale: defaultLocale,
       ),
     ),
     getPage: (ext) async => ext.getPage(
-      PageInfo(
+      const PageInfo(
         url:
             'https://m.fanfox.net/manga/seishun_buta_yarou_wa_bunny_girl_senpai_no_yume_o_minai/c001/31.html',
-        locale: 'en',
+        locale: defaultLocale,
       ),
     ),
   );

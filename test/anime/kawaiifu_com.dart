@@ -15,11 +15,11 @@ Future<void> main() async {
       'en',
     ),
     getSources: (ext) async => ext.getSources(
-      EpisodeInfo(
+      const EpisodeInfo(
         episode: '1',
         url:
             'https://domdom.stream/anime/season/summer-2011/mayo-chiki-uc-high-quality-hd-episode',
-        locale: 'en',
+        locale: defaultLocale,
       ),
     ),
   );

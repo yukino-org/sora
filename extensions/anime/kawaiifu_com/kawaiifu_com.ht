@@ -1,8 +1,46 @@
+// Doesn't work anymore due to hCaptcha
+
 const baseURL = 'https://kawaiifu.com';
 
 const defaultHeaders: Map<str> = {
     'User-Agent': httpUserAgent(),
     'Referer': baseURL,
+}
+
+var dom = null;
+
+fun getDOM(trace: TaskTrace) {
+    if (dom != null && !dom.disposed) {
+        trace.add('Returning previous DOM');
+        return dom;
+    }
+
+    trace.add('Creating new DOM');
+    return resolveFuture(createDOM(), fun (err, res) {
+        if (err != null) return throwError(err);
+        dom = res;
+        return dom;
+    });
+}
+
+fun getSite(url: str, trace: TaskTrace) {
+    trace.add('Preparing DOM');
+    return resolveFuture(getDOM(trace), fun (err, tab) {
+        if (err != null) return throwError(err, trace);
+
+        trace.add('Opening URL: "${url}"');
+        return resolveFuture(tab.open(url, 'domContentLoaded'), fun (err, mt) {
+            if (err != null) return throwError(err, trace);
+
+            trace.add('Trying to bypass cloudflare');
+            return resolveFuture(tryBypassCloudflareCheck(tab), fun (err, bypassed) {
+                if (err != null) return throwError(err, trace);
+                if (!bypassed) return throwError('Failed to bypass cloudflare', trace);
+
+                return tab;
+            });
+        });
+    });
 }
 
 fun searchURL(terms: str) -> str {
@@ -44,6 +82,8 @@ fun search(terms: str, locale: str) {
 }
 
 fun getInfo(url: str, locale: str) {
+    const trace = TaskTrace();
+
     return resolveFuture(fetch({
         'method': 'get',
         'url': ensureURL(url),
@@ -58,44 +98,42 @@ fun getInfo(url: str, locale: str) {
             return style != null ? style.contains('display: none') == false : true;
         }).querySelector('a').attributes['href'].trim();
 
-        return resolveFuture(fetch({
-            'method': 'get',
-            'url': ensureURL(server),
-            'headers': defaultHeaders
-        }), fun (err, sevRes) {
-            if (err != null) return throwError(err);
+        return resolveFuture(getSite(ensureURL(server), trace), fun (err, tab) {
+            if (err != null) return throwError(err, trace);
 
-            const episodes: List = mapList(
-                findList(parseHtml(sevRes['body']).querySelectorAll('.list-ep'), fun (i: num, x: HtmlElement) {
-                    const style = x.attributes['style'];
-                    return style != null ? style.contains('display: none') == false : true;
-                }).querySelectorAll('a'),
-                fun (i: num, x: HtmlElement) {
-                    const url: str = x.attributes['href'].trim();
-                    return {
-                        'episode': x.text.replaceFirst('Ep', '').trim(),
-                        'url': ensureURL(url),
-                        'locale': locale
+            return resolveFuture(tab.getHtml(), fun (err, sevRes) {
+                const episodes: List = mapList(
+                    findList(parseHtml(sevRes).querySelectorAll('.list-ep'), fun (i: num, x: HtmlElement) {
+                        const style = x.attributes['style'];
+                        return style != null ? style.contains('display: none') == false : true;
+                    }).querySelectorAll('a'),
+                    fun (i: num, x: HtmlElement) {
+                        const url: str = x.attributes['href'].trim();
+                        return {
+                            'episode': x.text.replaceFirst('Ep', '').trim(),
+                            'url': ensureURL(url),
+                            'locale': locale
+                        }
                     }
-                }
-            );
+                );
 
-            const title1 = document.querySelector('.desc h2.title');
-            const title2 = document.querySelector('.desc .sub-title');
+                const title1 = document.querySelector('.desc h2.title');
+                const title2 = document.querySelector('.desc .sub-title');
 
-            return {
-                'title': title1 != null ? title1.text.trim() : title2.text.trim(),
-                'url': ensureURL(url),
-                'thumbnail': {
-                    'url': ensureURL(document.querySelector('.row .thumb img').attributes['src'].trim()),
-                    'headers': defaultHeaders,
-                },
-                'episodes': episodes,
-                'locale': locale,
-                'availableLocales': [
-                    locale
-                ]
-            };
+                return {
+                    'title': title1 != null ? title1.text.trim() : title2.text.trim(),
+                    'url': ensureURL(url),
+                    'thumbnail': {
+                        'url': ensureURL(document.querySelector('.row .thumb img').attributes['src'].trim()),
+                        'headers': defaultHeaders,
+                    },
+                    'episodes': episodes,
+                    'locale': locale,
+                    'availableLocales': [
+                        locale
+                    ]
+                };
+            });
         });
     });
 }

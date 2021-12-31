@@ -15,18 +15,18 @@ Future<void> main() async {
       'en',
     ),
     getChapter: (ext) async => ext.getChapter(
-      ChapterInfo(
+      const ChapterInfo(
         volume: '2',
         chapter: '21',
         url: '{&server_url&}/data/c67bf16d31edf36be6b321b44b7dd41a',
-        locale: 'en',
+        locale: defaultLocale,
       ),
     ),
     getPage: (ext) async => ext.getPage(
-      PageInfo(
+      const PageInfo(
         url:
             'https://uploads.mangadex.org/data/c67bf16d31edf36be6b321b44b7dd41a/S19-2ca73f816c6ce0ed93b7e63126798856f970f58f6693eaf1a9458687732503a8.png',
-        locale: 'en',
+        locale: defaultLocale,
       ),
     ),
   );
