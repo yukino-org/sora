@@ -1,0 +1,26 @@
+name: extensions_test
+description: Yukino extensions test library
+version: 0.0.0
+
+publish_to: none
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+
+dependencies:
+  colorize: ^3.0.0
+  extensions:
+    git:
+      url: git://github.com/yukino-app/yukino.git
+      path: packages/extensions
+      ref: next
+  test: ^1.17.12
+
+dev_dependencies:
+  devx:
+    git:
+      url: https://github.com/yukino-app/yukino.git
+      ref: next
+      path: packages/devx
+  lint: ^1.0.0
+  path: ^1.8.0

@@ -7,21 +7,21 @@ packages:
       name: _fe_analyzer_shared
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "34.0.0"
+    version: "32.0.0"
   analyzer:
     dependency: transitive
     description:
       name: analyzer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.2.0"
+    version: "3.0.0"
   archive:
     dependency: transitive
     description:
       name: archive
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.1.9"
+    version: "3.1.8"
   args:
     dependency: transitive
     description:
@@ -35,7 +35,7 @@ packages:
       name: asn1lib
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.0.3"
   async:
     dependency: transitive
     description:
@@ -86,7 +86,7 @@ packages:
     source: hosted
     version: "1.15.0"
   colorize:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: colorize
       url: "https://pub.dartlang.org"
@@ -105,7 +105,7 @@ packages:
       name: coverage
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.0.4"
   crypto:
     dependency: transitive
     description:
@@ -125,7 +125,7 @@ packages:
     description:
       path: "packages/devx"
       ref: next
-      resolved-ref: "85f32a2ee82fc78bc2102c05ad61242e43341ac1"
+      resolved-ref: "5961e1db8dedaa9ceff0e5b826fc3a98ae8f25ac"
       url: "https://github.com/yukino-app/yukino.git"
     source: git
     version: "0.0.0"
@@ -137,21 +137,14 @@ packages:
     source: hosted
     version: "5.0.1"
   extensions:
-    dependency: transitive
+    dependency: "direct main"
     description:
       path: "packages/extensions"
       ref: next
-      resolved-ref: "85f32a2ee82fc78bc2102c05ad61242e43341ac1"
+      resolved-ref: "8e19b80b94a05adc3a3e2810e7e8523c5bcb2f41"
       url: "git://github.com/yukino-app/yukino.git"
     source: git
-    version: "1.0.3"
-  extensions_test:
-    dependency: "direct main"
-    description:
-      path: "packages/extensions_test"
-      relative: true
-    source: path
-    version: "0.0.0"
+    version: "1.0.2"
   file:
     dependency: transitive
     description:
@@ -254,7 +247,7 @@ packages:
       name: lint
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.8.2"
+    version: "1.8.1"
   logging:
     dependency: transitive
     description:
@@ -413,7 +406,7 @@ packages:
       name: source_span
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.8.2"
+    version: "1.8.1"
   stack_trace:
     dependency: transitive
     description:
@@ -443,7 +436,7 @@ packages:
     source: hosted
     version: "1.2.0"
   test:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: test
       url: "https://pub.dartlang.org"
@@ -475,7 +468,7 @@ packages:
     description:
       path: "packages/utilx"
       ref: HEAD
-      resolved-ref: "85f32a2ee82fc78bc2102c05ad61242e43341ac1"
+      resolved-ref: "8e19b80b94a05adc3a3e2810e7e8523c5bcb2f41"
       url: "https://github.com/yukino-app/yukino.git"
     source: git
     version: "0.0.0"
