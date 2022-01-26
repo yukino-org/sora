@@ -1,238 +1,253 @@
-const baseURL = 'https://mangadex.org';
-const apiURL = 'https://api.mangadex.org';
-const uploadsURL = 'https://uploads.mangadex.org';
+final BASE_URL = 'https://mangadex.org';
+final BASE_API_URL = 'https://api.mangadex.org';
+final BASE_UPLOADS_URL = 'https://uploads.mangadex.org';
 
-const defaultHeaders: Map<str> = {
-    'Origin': baseURL,
-    'Referer': baseURL,
+final defaultHeaders = {
+    'Origin': BASE_URL,
+    'Referer': BASE_URL,
 };
 
-fun searchApiURL(terms: str) -> str {
-    return '${apiURL}/manga?title=${terms}';
+fun searchApiURL(terms) {
+    return Http.ensureURL('${BASE_API_URL}/manga?title=${terms}');
 }
 
-fun mangaApiURL(id: str) -> str {
-    return '${apiURL}/manga/${id}';
+fun mangaApiURL(id) {
+    return Http.ensureURL('${BASE_API_URL}/manga/${id}');
 }
 
-fun mangaFeedApiURL(id: str, locale: str, limit: num, offset: num) -> str {
-    return '${apiURL}/manga/${id}/feed?limit=${limit}&offset=${offset}&order[chapter]=asc&translatedLanguage[]=${locale}';
+fun mangaFeedApiURL(id, locale, limit, offset) {
+    return Http.ensureURL('${BASE_API_URL}/manga/${id}/feed?limit=${limit}&offset=${offset}&order[chapter]=asc&translatedLanguage[]=${locale}');
 }
 
-fun mangaChapterOverviewURL(id: str, chapter: int, volume: int, limit: int) -> str {
-    return '${apiURL}/chapter?manga=${id}&chapter=${chapter}&volume=${volume}&limit=${limit}&order[chapter]=asc';
+fun mangaChapterOverviewURL(id, chapter, volume, limit) {
+    return Http.ensureURL('${BASE_API_URL}/chapter?manga=${id}&chapter=${chapter}&volume=${volume}&limit=${limit}&order[chapter]=asc');
 }
 
-fun mangaServerApiURL(id: str) -> str {
-    return '${apiURL}/at-home/server/${id}';
+fun mangaServerApiURL(id) {
+    return Http.ensureURL('${BASE_API_URL}/at-home/server/${id}');
 }
 
-fun chapterApiURL(serverURL: str, quality: str, hash: str) -> str {
-    return '${serverURL}/${quality}/${hash}';
+fun chpaterApiURL(serverURL, quality, hash) {
+    return Http.ensureURL('${serverURL}/${quality}/${hash}');
 }
 
-fun pageSourceURL(chapterApiURL: str, filename: str) -> str {
-    return '${chapterApiURL}/${filename}';
+fun pageSourceURL(chapterApiURL, filename) {
+    return Http.ensureURL('${chapterApiURL}/${filename}');
 }
 
-fun coverAPIURL(coverID: str) -> str {
-    return '${apiURL}/cover/${coverID}';
+fun coverApiURL(coverID) {
+    return Http.ensureURL('${BASE_API_URL}/cover/${coverID}');
 }
 
-fun coverURL(mangaID: str, coverFile: str) -> str {
-    return '${uploadsURL}/covers/${mangaID}/${coverFile}';
+fun coverURL(mangaID, coverFile) {
+    return Http.ensureURL('${BASE_UPLOADS_URL}/covers/${mangaID}/${coverFile}');
 }
 
-fun extractIdFromURL(url: str) -> str {
-    return regexMatch('https?:\\/\\/api\\.mangadex\\.org\\/manga\\/([^\\/]+)', url).group(1);
+fun extractIdFromURL(url) {
+    return Regex('https?:\\/\\/api\\.mangadex\\.org\\/manga\\/([^\\/]+)').firstMatch(url).group(1);
 }
 
-const GetCoverImageCallback: type = fun(cover: str);
-fun getCoverImageURL(manga: str, cover: str, cb: GetCoverImageCallback) {
-    return resolveFuture(fetch({
-        'method': 'get',
-        'url': coverAPIURL(cover),
-        'headers': defaultHeaders,
-    }), fun (err, resp) {
-        if (err != null) return throwError(err);
+fun getCoverImageURL(manga, cover, cb) {
+    return Promise.resolve(
+        () => Http.fetch(
+            method: 'get',
+            url: coverApiURL(cover),
+            headers: defaultHeaders,
+        ),
+        onDone: fun (resp) {
+            final parsed = Converter.jsonDecode(resp.body);
 
-        const parsed: Map = jsonDecode(resp['body']);
-
-        return cb({
-            'url': ensureURL(coverURL(manga, parsed['data']['attributes']['fileName'])),
-            'headers': defaultHeaders
-        });
-    });
+            return cb(
+                ImageDescriber(
+                    url: coverURL(manga, parsed['data']['attributes']['fileName']),
+                    headers: defaultHeaders
+                )
+            );
+        }
+    );
 }
 
-const _allLanguagesCache: List<str> = allLanguages();
-const GetAvailableLanguagesCallback: type = fun(langs: List<str>);
-fun getAvailableLanguages(manga: str, cb: GetAvailableLanguagesCallback) {
-    return resolveFuture(fetch({
-        'method': 'get',
-        'url': ensureURL(mangaChapterOverviewURL(manga, 1, 1, 100)),
-        'headers': defaultHeaders,
-    }), fun (err, resp) {
-        if (err != null) return throwError(err);
-        
-        const parsed: Map = jsonDecode(resp['body']);
-        const langs: List<str> = filterList(mapList(parsed['data'], fun (i: num, x: Map) {
-            const code = regexMatch('\\w+', x['attributes']['translatedLanguage']);
-            return code != null ? code.group(0) : null;
-        }), fun (i: num, x) {
-            return x != null && _allLanguagesCache.contains(x);
-        });
+final _allLanguagesCache = Languages.all;
 
-        return cb(langs);
-    });
+fun getAvailableLanguages(manga, cb) {
+    return Promise.resolve(
+        () => Http.fetch(
+            method: 'get',
+            url: mangaChapterOverviewURL(manga, 1, 1, 100),
+            headers: defaultHeaders,
+        ),
+        onDone: fun (resp) {
+            final parsed = Converter.jsonDecode(resp.body);
+
+            final langs = Collection.filterList(
+                Collection.mapList(
+                    parsed['data'],
+                    fun (i, x) {
+                        return Regex('\\w+').firstMatch(x['attributes']['translatedLanguage'])?.group(0);
+                    }
+                ),
+                (i, x) => x != null && _allLanguagesCache.contains(x),
+            );
+
+            return cb(langs);
+        }
+    );
 }
 
-fun defaultLocale() -> str {
+fun defaultLocale() {
     return "en";
 }
 
-fun search(terms: str, locale: str) {
-    return resolveFuture(fetch({
-        'method': 'get',
-        'url': searchApiURL(terms),
-        'headers': defaultHeaders,
-    }), fun (err, resp) {
-        if (err != null) return throwError(err);
+fun search(terms, locale) {
+    return Promise.resolve(
+        () => Http.fetch(
+            method: 'get',
+            url: searchApiURL(terms),
+            headers: defaultHeaders,
+        ),
+        onDone: fun (resp) {
+            final data = Converter.jsonDecode(resp.body)['data'];
 
-        const data = jsonDecode(resp['body'])['data'];
+            return Promise.resolveAll(
+                Collection.mapList(
+                    data.sublist(0, data.length > 10 ? 10 : data.length),
+                    fun (i, x) {
+                        final coverArt = Collection.findList(x['relationships'], fun (i, x) {
+                            return x['type'] == 'cover_art';
+                        });
 
-        return resolveFutureAll(
-            mapList(data.sublist(0, data.length > 10 ? 10 : data.length), fun (i: num, x: Map) {
-                const coverArt = findList(x['relationships'], fun (i: num, x: Map) {
-                    return x['type'] == 'cover_art';
-                });
+                        fun finish(cover) {
+                            return SearchInfo(
+                                title: x['attributes']['title'][defaultLocale()],
+                                url: mangaApiURL(x['id']),
+                                thumbnail: cover,
+                                locale: locale,
+                            );
+                        }
 
-                fun finish(cover) -> Map {
-                    return {
-                        'title': x['attributes']['title'][defaultLocale()],
-                        'url': mangaApiURL(x['id']),
-                        'thumbnail': cover,
-                        'locale': locale,
-                    };
+                        return fun () {
+                            return coverArt != null
+                                ? getCoverImageURL(x['id'], coverArt['id'], finish)
+                                : finish(null);
+                        }
+                    }
+                ),
+                onDone: (res) => res,
+            );
+        }
+    );
+}
+
+final _chapterLimit = 500;
+
+fun getInfo(url, locale) {
+    final id = extractIdFromURL(url);
+    final mangaURL = mangaApiURL(id);
+
+    return Promise.resolve(
+        () => Http.fetch(
+            method: 'get',
+            url: mangaURL,
+            headers: defaultHeaders
+        ),
+        onDone: fun (resp) {
+            final parsed = Converter.jsonDecode(resp.body);
+            final coverArt = Collection.findList(parsed['data']['relationships'], fun (i, x) {
+                return x['type'] == 'cover_art';
+            });
+
+            return getAvailableLanguages(id, fun (langs) {
+                fun finish(cover) {
+                    fun resolveChapters(info, offset) {
+                        return Promise.resolve(
+                            () => Http.fetch(
+                                method: 'get',
+                                url: mangaFeedApiURL(id, locale, _chapterLimit, offset),
+                                headers: defaultHeaders
+                            ),
+                            onDone: fun (resp) {
+                                var wasEmpty = true;
+
+                                Collection.eachList(
+                                    Converter.jsonDecode(resp.body)['data'],
+                                    fun (i, x) {
+                                        final id = x['id'];
+                                        final title = x['attributes']['title'];
+
+                                        info.chapters.add(
+                                            ChapterInfo(
+                                                title: (title?.isNotEmpty ?? false) ? title : null,
+                                                url: 'id:${id}',
+                                                chapter: x['attributes']['chapter'],
+                                                volume: x['attributes']['volume'],
+                                                locale: locale,
+                                            ),
+                                        );
+
+                                        wasEmpty = false;
+                                    }
+                                );
+
+                                return !wasEmpty
+                                    ? resolveChapters(info, offset + _chapterLimit)
+                                    : info;
+                            }
+                        );
+                    }
+
+                    final localeTitle = parsed['data']['attributes']['title'][locale];
+                    final defaultLocaleTitle = parsed['data']['attributes']['title'][defaultLocale()];
+
+                    return resolveChapters(
+                        MangaInfo(
+                            title: localeTitle ?? defaultLocaleTitle,
+                            url: mangaURL,
+                            thumbnail: cover,
+                            chapters: [],
+                            locale: locale,
+                            availableLocales: langs
+                        ),
+                        0,
+                    );
                 }
 
                 return coverArt != null
-                    ? getCoverImageURL(x['id'], coverArt['id'], finish)
+                    ? getCoverImageURL(parsed['data']['id'], coverArt['id'], finish)
                     : finish(null);
-            }),
-            fun (err, res) {
-                if (err != null) return throwError(err);
-                return res;
-            }
-        );
-    });
+            });
+        }
+    );
 }
 
-const _chapterLimit = 500;
-const _chapterInfoCache: Map = {};
-const _serverURLPlaceholder: str = '{&server_url&}';
-fun getInfo(url: str, locale: str) {
-    const id: str = extractIdFromURL(url);
-    const mangaURL: str = ensureURL(mangaApiURL(id));
+fun getChapter(chapter) {
+    final id = chapter.url.replaceFirst('id:', '');
 
-    return resolveFuture(fetch({
-        'method': 'get',
-        'url': mangaURL,
-        'headers': defaultHeaders
-    }), fun (err, resp) {
-        if (err != null) return throwError(err);
+    return Promise.resolve(
+        () => Http.fetch(
+            method: 'get',
+            url: mangaServerApiURL(id),
+            headers: defaultHeaders
+        ),
+        onDone: fun (resp) {
+            final parsed = Converter.jsonDecode(resp.body);
+            final chapterURL = chpaterApiURL(parsed['baseUrl'], 'data', parsed['chapter']['hash']);
 
-        const parsed = jsonDecode(resp['body']);
-        const coverArt = findList(parsed['data']['relationships'], fun (i: num, x: Map) {
-            return x['type'] == 'cover_art';
-        });
-
-        return getAvailableLanguages(id, fun (langs: List<str>) {
-            fun finish(cover) {
-                fun resolveChapters(info: Map, offset: num) {
-                    return resolveFuture(fetch({
-                        'method': 'get',
-                        'url': ensureURL(mangaFeedApiURL(id, locale, _chapterLimit, offset)),
-                        'headers': defaultHeaders
-                    }), fun (err, resp) {
-                        if (err != null) return throwError(err);
-
-
-                        const chapters: List<Map> = mapList(jsonDecode(resp['body'])['data'], fun (i: num, x: Map) {
-                            const title = x['attributes']['title'];
-                            const url = chapterApiURL(_serverURLPlaceholder, 'data', x['attributes']['hash']);
-
-                            _chapterInfoCache[url] = {
-                                'id': x['id'],
-                                'files': x['attributes']['data'],
-                            };
-
-                            return {
-                                'title': title != null && title.isNotEmpty ? title : null,
-                                'url': url,
-                                'chapter': x['attributes']['chapter'],
-                                'volume': x['attributes']['volume'],
-                                'locale': locale,
-                            };
-                        });
-
-                        const nInfo = mergeMap(info, {
-                            'chapters': mergeList(info['chapters'], chapters)
-                        });
-
-                        return chapters.isNotEmpty
-                            ? resolveChapters(nInfo, offset + _chapterLimit)
-                            : nInfo;
-                    });
+            return Collection.mapList(
+                parsed['chapter']['data'],
+                fun (i, x) {
+                    return PageInfo(
+                        url: pageSourceURL(chapterURL, x),
+                        locale: chapter.locale
+                    );
                 }
-
-                const localeTitle = parsed['data']['attributes']['title'][locale];
-                const defaultLocaleTitle = parsed['data']['attributes']['title'][defaultLocale()];
-
-                return resolveChapters({
-                    'title': localeTitle != null ? localeTitle : defaultLocaleTitle,
-                    'url': mangaURL,
-                    'thumbnail': cover,
-                    'chapters': [],
-                    'locale': locale,
-                    'availableLocales': langs
-                }, 0);
-            }
-
-            return coverArt != null
-                ? getCoverImageURL(parsed['data']['id'], coverArt['id'], finish)
-                : finish(null);
-        });
-    });
+            );
+        }
+    );
 }
 
-fun getChapter(chapter: Map) {
-    const cache = _chapterInfoCache[chapter['url']];
-
-    return resolveFuture(fetch({
-        'method': 'get',
-        'url': ensureURL(mangaServerApiURL(cache['id'])),
-        'headers': defaultHeaders
-    }), fun (err, resp) {
-        if (err != null) return throwError(err);
-
-        const chapterURL: str = chapter['url'].replaceFirst(_serverURLPlaceholder, jsonDecode(resp['body'])['baseUrl']);
-
-        return mapList(
-            cache['files'],
-            fun (i: num, x: Map) {
-                return {
-                    'url': ensureURL(pageSourceURL(chapterURL, x)),
-                    'locale': chapter['locale']
-                };
-            }
-        );
-    });
-}
-
-fun getPage(page: Map) {
-    return {
-        'url': page['url'],
-        'headers': defaultHeaders
-    };
+fun getPage(page) {
+    return ImageDescriber(
+        url: page.url,
+        headers: defaultHeaders
+    );
 }

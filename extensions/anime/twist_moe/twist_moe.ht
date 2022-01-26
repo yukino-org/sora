@@ -1,161 +1,214 @@
-const baseURL = 'https://twist.moe';
-const apiURL = 'https://api.twist.moe/api';
+const BASE_URL = 'https://twist.moe';
+const BASE_API_URL = 'https://api.twist.moe/api';
 
-const _twistDecryptKey = '267041df55ca2b36f2e322d05ee2c9cf';
-const _twistAccessToken = '0df14814b9e590a1f26d3071a4ed7974';
+const SECRET_KEY = '267041df55ca2b36f2e322d05ee2c9cf';
+const ACCESS_TOKEN = '0df14814b9e590a1f26d3071a4ed7974';
 
-const defaultHeaders: Map<str> = {
-    'User-Agent': httpUserAgent(),
-    'Referer': baseURL,
-    'x-access-token': _twistAccessToken,
+final defaultHeaders = {
+    'User-Agent': Http.defaultUserAgent,
+    'Referer': BASE_URL,
+    'x-access-token': ACCESS_TOKEN,
 }
 
-fun searchApiURL() -> str {
-    return '${apiURL}/anime';
+fun searchApiURL() {
+    return '${BASE_API_URL}/anime';
 }
 
-fun animeURL(slug: str) -> str {
-    return ensureURL('${baseURL}/a/${slug}');
+fun animeURL(slug) {
+    return Http.ensureURL('${BASE_URL}/a/${slug}');
 }
 
-fun animeApiURL(slug: str) -> str {
-    return ensureURL('${apiURL}/anime/${slug}');
+fun animeApiURL(slug) {
+    return Http.ensureURL('${BASE_API_URL}/anime/${slug}');
 }
 
-fun animeSourcesURL(slug: str) -> str {
+fun animeSourcesURL(slug) {
     return'${animeApiURL(slug)}/sources';
 }
 
-fun extractSlugFromURL(url: str) {
-    const match = regexMatch('https?:\\/\\/twist\\.moe\\/a\\/([^\\/]+)', url);
-    return match != null ? match.group(1) : null;
+fun extractSlugFromURL(url) {
+    return Regex('https?:\\/\\/twist\\.moe\\/a\\/([^\\/]+)').firstMatch(url).group(1);
 }
 
-fun defaultLocale() -> str {
+fun defaultLocale() {
     return "en";
 }
 
-let searcher = null;
-fun search(terms: str, locale: str) {
+var searcher;
+
+fun search(terms, locale) {
     if (searcher != null) {
-        return searcher(terms, 10);
+        return searcher(terms);
     }
 
-    return resolveFuture(fetch({
-        'method': 'get',
-        'url': searchApiURL(),
-        'headers': defaultHeaders
-    }), fun (err, resp) {
-        if (err != null) return throwError(err);
+    return Promise.resolve(
+        () => Http.fetch(
+            method: 'get',
+            url: searchApiURL(),
+            headers: defaultHeaders
+        ),
+        onDone: fun (resp) {
+            final parsed = Converter.jsonDecode(resp.body);
 
-        const data: List<Map> = mapList(jsonDecode(resp['body']), fun (i: num, x: Map) {
-            return {
-                'title': x['title'],
-                'altTitle': x['altTitle'] != null ? x['altTitle'] : '',
-                'url': ensureURL(animeURL(x['slug']['slug'])),
-                'locale': locale,
-            };
-        });
-
-        searcher = createFuzzy(data, [{
-            'key': 'title',
-            'weight': 2
-        }, {
-            'key': 'altTitle',
-            'weight': 1
-        }]);
-
-        return searcher(terms, 10);
-    });
-}
-
-fun getInfo(url: str, locale: str) {
-    const slug = extractSlugFromURL(url);
-    if (slug == null) {
-        return throwError('Failed to parse "slug"');
-    }
-
-    return resolveFuture(fetch({
-        'method': 'get',
-        'url': animeApiURL(slug),
-        'headers': defaultHeaders
-    }), fun (err, resp) {
-        if (err != null) return throwError(err);
-
-        const parsed: Map = jsonDecode(resp['body']);
-        const animeURLP = animeURL(slug);
-
-        return {
-            'title': parsed['title'],
-            'url': animeURLP,
-            'episodes': mapList(parsed['episodes'], fun (i: num, x: Map) {
-                const epNum = x['number'].toString();
+            final items = Collection.mapList(parsed, fun (i, x) {
                 return {
-                    'episode': epNum,
-                    'url': ensureURL('${animeURLP}/${epNum}'),
+                    'title': x['title'],
+                    'altTitle': x['altTitle'] ?? '',
+                    'url': Http.ensureURL(animeURL(x['slug']['slug'])),
                     'locale': locale,
                 };
-            }),
-            'locale': locale,
-            'availableLocales': [
-                locale
-            ]
-        };
-    });
+            });
+
+            searcher = fun (terms) {
+                final fuzzy = FuzzySearch(
+                    items: items,
+                    keys: [
+                        FuzzySearchKey(
+                            getter: (x) => x['title'],
+                            weight: 2.0,
+                        ),
+                        FuzzySearchKey(
+                            getter: (x) => x['altTitle'],
+                        ),
+                    ]
+                );
+
+                return Collection.mapList(
+                    fuzzy.search(terms, 10),
+                    (i, x) => SearchInfo(
+                        title: x.item['title'],
+                        url: x.item['url'],
+                        locale: x.item['locale'],
+                    ),
+                );
+            };
+
+            return searcher(terms);
+        },
+    );
 }
 
-const sourceCache: Map<List<Map>> = {};
-fun getSources(episode: Map) {
-    const slug = extractSlugFromURL(episode['url']);
-    if (slug == null) {
-        return throwError('Failed to parse "slug"');
+fun getInfo(url, locale) {
+    final slug = extractSlugFromURL(url);
+
+    return Promise.resolve(
+        () => Http.fetch(
+            method: 'get',
+            url: animeApiURL(slug),
+            headers: defaultHeaders,
+        ),
+        onDone: fun (resp) {
+            final parsed = Converter.jsonDecode(resp.body);
+            final animeURLP = animeURL(slug);
+
+            return AnimeInfo(
+                title: parsed['title'],
+                url: animeURLP,
+                episodes: Collection.mapList(parsed['episodes'], fun (i, x) {
+                    final epNum = x['number'].toString();
+
+                    return EpisodeInfo(
+                        episode: epNum,
+                        url: Http.ensureURL('${animeURLP}/${epNum}'),
+                        locale: locale,
+                    );
+                }),
+                locale: locale,
+                availableLocales: [
+                    locale
+                ]
+            );
+        },
+    );
+}
+
+final sourceCache = {};
+
+fun generateSourceKey(salt) {
+    const limit = 48;
+
+    final data = Converter.utf8Encode(SECRET_KEY).add(salt);
+    var key = Crypto.md5Convert(data);
+    var outputKey = key.clone();
+
+    while (outputKey.length < limit) {
+        key = Crypto.md5Convert(key.add(data));
+        outputKey = outputKey.add(key);
     }
 
-    const ep: num = int.parse(episode['episode']);
+    return outputKey.sublist(0, limit);
+}
 
-    fun returnFromCache() {
-        const src = findList(sourceCache[slug], fun (i: num, x: Map) {
-            return x['episode'] == ep;
-        });
-        if (src == null) {
-            return throwError('Unknown episode: ${ep}');
-        }
+fun decryptSourceURL(url) {
+    final encrypted = Converter.base64Decode(url);
+    final key = generateSourceKey(encrypted.sublist(8, 16));
 
-        if (src['url'] == null) {
-            const decrypted = decryptCryptoJsAES(src['source'], _twistDecryptKey, 48);
-            src['url'] = ensureURL('https://cdn.twist.moe${decrypted}');
-        }
+    return Converter.utf8Decode(
+        Crypto.aesDecrypt(
+            encrypted: encrypted.sublist(16),
+            key: key.sublist(0, 32),
+            iv: key.sublist(32),
+            aesMode: 'cbc',
+        ),
+    );
+}
 
-        return [src];
+fun getSourcesFromCache(slug, episode) {
+    final src = Collection.findList(sourceCache[slug], fun (i, x) {
+        return x['episode'] == episode;
+    });
+
+    if (src == null) {
+        return Flaw.throwFlaw('Unknown episode: ${episode}');
     }
+
+    if (src['url'] == null) {
+        final decrypted = decryptSourceURL(src['source']);
+        src['url'] = Http.ensureURL('https://cdn.twist.moe${decrypted}');
+    }
+
+    return [
+        EpisodeSource(
+            url: src['url'],
+            headers: src['headers'],
+            quality: 'unknown',
+            locale: src['locale'],
+        ),
+    ];
+}
+
+fun getSources(episode) {
+    final slug = extractSlugFromURL(episode.url);
 
     if (sourceCache[slug] != null) {
-        return returnFromCache();
+        return getSourcesFromCache(slug, episode.episode);
     }
 
-    return resolveFuture(fetch({
-        'method': 'get',
-        'url': animeSourcesURL(slug),
-        'headers': defaultHeaders
-    }), fun (err, resp) {
-        if (err != null) return throwError(err);
+    return Promise.resolve(
+        () => Http.fetch(
+            method: 'get',
+            url: animeSourcesURL(slug),
+            headers: defaultHeaders,
+        ),
+        onDone: fun (resp) {
+            final parsed = Converter.jsonDecode(resp.body);
 
-        const parsed: List<Map> = jsonDecode(resp['body']);
+            sourceCache[slug] = Collection.mapList(parsed, fun (i, x) {
+                final currentEpisode = x['number'].toString();
 
-        sourceCache[slug] = mapList(parsed, fun (i: num, x: Map) {
-            const ep: num = x['number'];
-            return {
-                'episode': ep,
-                'quality': 'unknown',
-                'source': x['source'],
-                'headers': {
-                  'Referer': ensureURL('${baseURL}/a/${slug}/${ep}'),
-                  'User-Agent': httpUserAgent()
-                },
-                'locale': episode['locale']
-            };
-        });
+                return {
+                    'episode': currentEpisode,
+                    'quality': 'unknown',
+                    'source': x['source'],
+                    'headers': {
+                        'Referer': Http.ensureURL('${BASE_URL}/a/${slug}/${currentEpisode}'),
+                        'User-Agent': Http.defaultUserAgent,
+                    },
+                    'locale': episode.locale,
+                };
+            });
 
-        return returnFromCache();
-    });
+            return getSourcesFromCache(slug, episode.episode);
+        }
+    );
 }

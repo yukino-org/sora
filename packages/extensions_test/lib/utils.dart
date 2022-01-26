@@ -35,13 +35,19 @@ String prettify(
         isList ? '- ' : '',
       ).darkGray().toString();
 
-      final String key = prettify(entry.key, isKey: true);
+      final String key = prettify(
+        entry.key,
+        isKey: true,
+        tabSpace: tabSpace,
+      );
+
       final String center =
           Colorize(':${isValueKindOfMap ? '\n' : ' '}').darkGray().toString();
 
       final String value = prettify(
         entry.value,
         spacing: isValueKindOfMap ? spacing + tabSpace : '',
+        tabSpace: tabSpace,
       );
 
       lines.add('$spacing$prefix$key$center$value');

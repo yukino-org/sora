@@ -6,20 +6,21 @@ Future<void> main() async {
   await AnimeExtractorTest.testFile(
     path.join(
       Directory.current.path,
-      'extensions/anime/tenshi_moe/tenshi_moe.ht',
+      'extensions/anime/zoro_to/zoro_to.ht',
     ),
     search: (final AnimeExtractorTest ext) => ext.search(
-      'mayo chiki',
+      'bunny girl',
       TestEnvironmentManager.defaultLocale,
     ),
     getInfo: (final AnimeExtractorTest ext) => ext.getInfo(
-      'https://tenshi.moe/anime/1kwzf88a',
+      'https://zoro.to/rascal-does-not-dream-of-bunny-girl-senpai-149?ref=search',
       TestEnvironmentManager.defaultLocale,
     ),
     getSources: (final AnimeExtractorTest ext) => ext.getSources(
       const EpisodeInfo(
         episode: '1',
-        url: 'https://tenshi.moe/anime/1kwzf88a/1',
+        url:
+            'https://zoro.to/watch/rascal-does-not-dream-of-bunny-girl-senpai-149?ep=4008',
         locale: TestEnvironmentManager.defaultLocale,
       ),
     ),

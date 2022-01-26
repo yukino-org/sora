@@ -1,0 +1,144 @@
+const BASE_URL = 'https://hanime.tv';
+const BASE_SEARCH_API_URL = 'https://search.htv-services.com';
+final BASE_API_URL = '${BASE_URL}/api/v8';
+
+final defaultHeaders = {
+    'User-Agent': Http.defaultUserAgent,
+    'Referer': BASE_URL,
+}
+
+fun animeURL(slug) {
+    return Http.ensureURL('${BASE_URL}/videos/hentai/${slug}');
+}
+
+fun animeApiURL(slug) {
+    return Http.ensureURL('${BASE_API_URL}/video?id=${slug}');
+}
+
+fun extractSlugFromURL(url) {
+    return Regex('\\/videos\\/hentai\\/([^?]+)').firstMatch(url).group(1);
+}
+
+fun defaultLocale() {
+    return "en";
+}
+
+fun search(terms, locale) {
+    return Promise.resolve(
+        () => Http.fetch(
+            method: 'post',
+            url: BASE_SEARCH_API_URL,
+            headers: Collection.mergeMap(defaultHeaders, {
+                'Content-Type': 'application/json;charset=UTF-8',
+            }),
+            body: Converter.jsonEncode({
+                'search_text': 'overflow',
+                'tags': [],
+                'tags_mode': 'AND',
+                'brands': [],
+                'blacklist': [],
+                'order_by': 'created_at_unix',
+                'ordering': 'desc',
+                'page': 0
+            }),
+        ),
+        onDone: fun (resp) {
+            final parsed = Converter.jsonDecode(resp.body);
+            final hits = Converter.jsonDecode(parsed['hits']);
+
+            return Collection.mapList(hits, fun (i, x) {
+                final title = x['name'];
+                final censored = x['is_censored'];
+
+                return SearchInfo(
+                    title: '${title}${censored ? ' (Censored)' : ''}',
+                    url: animeURL(x['slug']),
+                    thumbnail: ImageDescriber(
+                        url: Http.ensureURL(x['cover_url']),
+                        headers: defaultHeaders,
+                    ),
+                    locale: defaultLocale(),
+                );
+            });
+        },
+    );
+}
+
+final infoCache = {};
+
+fun _getInfo(slug) {
+    return infoCache[slug] ?? Promise.resolve(
+        () => Http.fetch(
+            method: 'get',
+            url: animeApiURL(slug),
+            headers: defaultHeaders,
+        ),
+        onDone: fun (resp) {
+            final parsed = Converter.jsonDecode(resp.body);
+            infoCache[slug] = parsed;
+            return parsed;
+        },
+    );
+}
+
+fun getInfo(url, locale) {
+    final slug = extractSlugFromURL(url);
+
+    return Promise.resolve(
+        () => _getInfo(slug),
+        onDone: fun (resp) {
+            final title = resp['hentai_video']['name'];
+            final censored = resp['hentai_video']['is_censored'];
+            final url = animeURL(slug);
+
+            return AnimeInfo(
+                title: '${title}${censored ? ' (Censored)' : ''}',
+                url: url,
+                thumbnail: ImageDescriber(
+                    url: Http.ensureURL(resp['hentai_video']['cover_url']),
+                    headers: defaultHeaders,
+                ),
+                episodes: [
+                    EpisodeInfo(
+                        episode: '1',
+                        url: url,
+                        locale: locale,
+                    ),
+                ],
+                locale: locale,
+                availableLocales: [
+                    locale
+                ]
+            );
+        },
+    );
+}
+
+fun getSources(episode) {
+    final slug = extractSlugFromURL(episode.url);
+
+    return Promise.resolve(
+        () => _getInfo(slug),
+        onDone: fun (resp) {
+            return Collection.flattenList(
+                Collection.mapList(resp['videos_manifest']['servers'], fun (i, x) {
+                    return Collection.mapList(
+                        Collection.filterList(
+                            x['streams'],
+                            (i, x) => x['kind'] == 'hls',
+                        ),
+                        fun (i, x) {
+                            return EpisodeSource(
+                                url: x['url'],
+                                headers: defaultHeaders,
+                                quality: Regex('\d+$').firstMatch(x['slug'])?.group(0) ?? 'unknown',
+                                locale: defaultLocale(),
+                            );
+                        }
+                    );
+                }),
+                1,
+            );
+        }
+    );
+}

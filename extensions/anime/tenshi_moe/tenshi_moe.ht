@@ -1,153 +1,202 @@
-const baseURL = 'https://tenshi.moe';
+const BASE_URL = 'https://tenshi.moe';
 
-const defaultHeaders: Map<str> = {
-    'User-Agent': httpUserAgent(),
-    'Referer': baseURL,
+final defaultHeaders = {
+    'User-Agent': Http.defaultUserAgent,
+    'Referer': BASE_URL,
 }
 
-var dom = null;
+var webview;
 
-fun getDOM(trace: TaskTrace) {
-    if (dom != null && !dom.disposed) {
+fun getWebview(trace) {
+    if (webview != null && !webview.disposed) {
         trace.add('Returning previous DOM');
-        return dom;
+        return webview;
     }
 
     trace.add('Creating new DOM');
-    return resolveFuture(createDOM(), fun (err, res) {
-        if (err != null) return throwError(err);
-        dom = res;
-        return dom;
-    });
+
+    return Promise.resolve(
+        () => Webview.create(),
+        trace: trace,
+        onDone: fun (res) {
+            webview = res;
+            return webview;
+        },
+    );
 }
 
-fun getSite(url: str, trace: TaskTrace) {
+fun getSite(url, trace) {
     trace.add('Preparing DOM');
-    return resolveFuture(getDOM(trace), fun (err, tab) {
-        if (err != null) return throwError(err, trace);
 
-        trace.add('Opening URL: "${url}"');
-        return resolveFuture(tab.open(url, 'domContentLoaded'), fun (err, mt) {
-            if (err != null) return throwError(err, trace);
+    return Promise.resolve(
+        () => getWebview(trace),
+        trace: trace,
+        onDone: fun (_) {
+            trace.add('Opening URL: "${url}"');
 
-            trace.add('Trying to bypass browser check');
-            return resolveFuture(tryBypassBrowserChecks(tab, fun (html) {
-                return html.contains('href="https://ddos-guard.net"');
-            }), fun (err, bypassed) {
-                if (err != null) return throwError(err, trace);
-                if (!bypassed) return throwError('Failed to bypass browser check', trace);
+            return Promise.resolve(
+                () => webview.open(url, 'domContentLoaded'),
+                onDone: fun (_) {
+                    trace.add('Trying to bypass browser check');
 
-                return tab;
-            });
-        });
-    });
+                    return Promise.resolve(
+                        () => webview.tryBypassBrowserVerification(fun (html) {
+                            return html.contains('href="https://ddos-guard.net"');
+                        }),
+                        trace: trace,
+                        onDone: fun (bypassed) {
+                            if (!bypassed) return Flaw.throwFlaw('Failed to bypass browser check', null, trace);
+                            return webview;
+                        },
+                    );
+                }
+            );
+        }
+    );
 }
 
-fun searchURL(terms: str) -> str {
-    return ensureURL('${baseURL}/anime?q=${terms}');
+fun searchURL(terms) {
+    return Http.ensureURL('${BASE_URL}/anime?q=${terms}');
 }
 
-fun defaultLocale() -> str {
+fun defaultLocale() {
     return "en";
 }
 
-fun search(terms: str, locale: str) {
-    const trace = TaskTrace();
-    const url: str = searchURL(terms);
+fun search(terms, locale) {
+    final trace = TaskTrace();
+    final url = searchURL(terms);
 
-    return resolveFuture(getSite(url, trace), fun (err, tab) {
-        if (err != null) return throwError(err, trace);
+    return Promise.resolve(
+        () => getSite(url, trace),
+        trace: trace,
+        onDone: fun (_) {
+            return Promise.resolve(
+                () => webview.getHtml(),
+                trace: trace,
+                onDone: fun (html) {
+                    final document = HtmlElement.parse(html);
 
-        return resolveFuture(tab.getHtml(), fun (err, html) {
-            if (err != null) return throwError(err, trace);
+                    return Collection.mapList(
+                        document.querySelectorAll('.anime-loop li'),
+                        fun (i, x) {
+                            final link = x.querySelector('a');
+                            final title = link.querySelector('.label .text-primary').text.trim();
+                            final url = link.attributes['href'].trim();
 
-            const document: HtmlElement = parseHtml(html);
-
-            return mapList(document.querySelectorAll('.anime-loop li'), fun (i: num, x: HtmlElement) {
-                const link: HtmlElement = x.querySelector('a');
-                const title: str = link.querySelector('.label .text-primary').text.trim();
-                const url: str = link.attributes['href'].trim();
-
-                return {
-                    'title': title,
-                    'url': ensureURL(url),
-                    'locale': locale,
-                };
-            });
-        });
-    });
-}
-
-fun getInfo(url: str, locale: str) {
-    const trace = TaskTrace();
-    const url: str = ensureURL(url);
-
-    return resolveFuture(getSite(url, trace), fun (err, tab) {
-        if (err != null) return throwError(err, trace);
-
-        return resolveFuture(tab.getHtml(), fun (err, html) {
-            if (err != null) return throwError(err, trace);
-
-            const document: HtmlElement = parseHtml(html);
-
-            const estimated: str = document.querySelector('.entry-episodes .badge.badge-secondary.align-top').text.trim();
-            const trimmedURL: str = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
-            const episodes: Map = mapList(rangeList(0, int.parse(estimated)), fun (i: num, x: num) {
-                const epNum: num = '${x + 1}';
-                return {
-                    'episode': epNum,
-                    'url': ensureURL('${trimmedURL}/${epNum}'),
-                    'locale': locale
+                            return SearchInfo(
+                                title: title,
+                                url: Http.ensureURL(url),
+                                locale: locale,
+                            );
+                        }
+                    );
                 }
-            });
-
-            return {
-                'title': document.querySelector('.entry-header').text.trim(),
-                'url': ensureURL(url),
-                'thumbnail': {
-                    'url': ensureURL(document.querySelector('img.cover-image').attributes['src'].trim()),
-                    'headers': defaultHeaders,
-                },
-                'episodes': episodes,
-                'locale': locale,
-                'availableLocales': [
-                    locale
-                ]
-            };
-        });
-    });
+            );
+        }
+    );
 }
 
-fun getSources(episode: Map) {
-    const trace = TaskTrace();
-    const url: str = episode['url'];
+fun getInfo(url, locale) {
+    final trace = TaskTrace();
+    final url = Http.ensureURL(url);
 
-    return resolveFuture(getSite(url, trace), fun (err, tab) {
-        if (err != null) return throwError(err, trace);
+    return Promise.resolve(
+        () => getSite(url, trace),
+        trace: trace,
+        onDone: fun (_) {
+            return Promise.resolve(
+                () => webview.getHtml(),
+                trace: trace,
+                onDone: fun (html) {
+                    final document = HtmlElement.parse(html);
 
-        return resolveFuture(tab.getHtml(), fun (err, html) {
-            if (err != null) return throwError(err, trace);
+                    final estimated = document.querySelector('.entry-episodes .badge.badge-secondary.align-top').text.trim();
+                    final trimmedURL = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
 
-            const iframeURL: str = regexMatch('<iframe src="([^"]+)"', html).group(1);
-            const epHeaders: Map = mergeMap(defaultHeaders, {
-                'Referer': episode['url'],
-            });
+                    final episodes = Collection.mapList(
+                        Collection.rangeList(0, int.parse(estimated)),
+                        fun (i: num, x: num) {
+                            final epNum = '${x + 1}';
+                            
+                            return EpisodeInfo(
+                                episode: epNum,
+                                url: Http.ensureURL('${trimmedURL}/${epNum}'),
+                                locale: locale
+                            );
+                        }
+                    );
 
-            return resolveFuture(getSite(iframeURL, trace), fun (err, tab2) {
-                if (err != null) return throwError(err, trace);
+                    return AnimeInfo(
+                        title: document.querySelector('.entry-header').text.trim(),
+                        url: Http.ensureURL(url),
+                        thumbnail: ImageDescriber(
+                            url: Http.ensureURL(document.querySelector('img.cover-image').attributes['src'].trim()),
+                            headers: defaultHeaders,
+                        ),
+                        episodes: episodes,
+                        locale: locale,
+                        availableLocales: [
+                            locale
+                        ]
+                    );
+                }
+            );
+        }
+    );
+}
 
-                return resolveFuture(tab2.getHtml(), fun (err, html2) {
-                    const sources: str = regexMatch('sources:[\\s]+\\[([^\\]]+)', html2).group(1);
-                    return mapList(regexMatchAll('src:[\\s]+["\']([^\'"]+)[\\S\\s]+size:[\\s]+(\\d+)', sources), fun (i: num, x: RegExpMatchResult) {
-                        return {
-                            'url': ensureURL(x.group(1)),
-                            'quality': x.group(2),
-                            'headers': epHeaders,
-                            'locale': episode['locale']
-                        };
-                    });  
-                });
-            });
-        });
-    });
+fun getSources(episode) {
+    final trace = TaskTrace();
+    final url = episode.url;
+
+    return Promise.resolve(
+        () => getSite(url, trace),
+        trace: trace,
+        onDone: fun (_) {
+            return Promise.resolve(
+                () => webview.getHtml(),
+                trace: trace,
+                onDone: fun (html) {
+                    final iframeURL = Regex('<iframe src="([^"]+)"').firstMatch(html).group(1);
+
+                    webview.addExtraHeaders({
+                        'Referer': url,
+                    });
+
+                    return Promise.resolve(
+                        () => getSite(iframeURL, trace),
+                        trace: trace,
+                        onDone: fun (_) {
+                            webview.addExtraHeaders({
+                                'Referer': null,
+                            });
+
+                            return Promise.resolve(
+                                () => webview.getHtml(),
+                                trace: trace,
+                                onDone: fun (html2) {
+                                    final sources = Regex('sources:[\\s]+\\[([^\\]]+)').firstMatch(html2).group(1);
+
+                                    return Collection.mapList(
+                                        Regex('src:[\\s]+?["\']([^\'"]+)[\\S\\s]+?size:[\\s]+?(\\d+)').allMatches(sources),
+                                        fun (i, x) {
+                                            return EpisodeSource(
+                                                url: Http.ensureURL(x.group(1)),
+                                                quality: x.group(2),
+                                                headers: Collection.mergeMap(defaultHeaders, {
+                                                    'Referer': url,
+                                                }),
+                                                locale: episode.locale,
+                                            );
+                                        }
+                                    );  
+                                }
+                            );
+                        }
+                    );
+                }
+            );
+        }
+    );
 }

@@ -1,0 +1,313 @@
+const BASE_URL = 'https://zoro.to';
+
+final defaultHeaders = {
+    'User-Agent': Http.defaultUserAgent,
+    'Referer': BASE_URL,
+}
+
+var webview;
+
+fun getWebview(trace) {
+    if (webview != null && !webview.disposed) {
+        trace.add('Returning previous webview');
+
+        return webview;
+    }
+
+    trace.add('Creating new webview');
+
+    return Promise.resolve(
+        () => Webview.create(),
+        trace: trace,
+        onDone: fun (res) {
+            webview = res;
+
+            return webview;
+        }
+    );
+}
+
+fun getSite(url, trace) {
+    trace.add('Preparing webview');
+
+    return Promise.resolve(
+        () => getWebview(trace),
+        trace: trace,
+        onDone: fun (_) {
+            trace.add('Opening URL: "${url}"');
+
+            return Promise.resolve(
+                () => webview.open(url, 'domContentLoaded'),
+                trace: trace,
+                onDone: fun (_) {
+                    trace.add('Trying to bypass cloudflare');
+
+                    return Promise.resolve(
+                        () => webview.tryBypassCloudfareBrowserVerification(),
+                        trace: trace,
+                        onDone: fun (bypassed) {
+                            if (!bypassed) return Flaw.throwFlaw('Failed to bypass cloudflare', null, trace);
+
+                            return webview;
+                        }
+                    );
+                }
+            );
+        }
+    );
+}
+
+fun searchURL(terms) {
+    return Http.ensureURL('${BASE_URL}/search?keyword=${terms}');
+}
+
+fun episodesApiURL(id) {
+    return Http.ensureURL('${BASE_URL}/ajax/v2/episode/list/${id}');
+}
+
+fun episodeApiURL(url) {
+    final id = Regex('\\?ep=(\\d+)').firstMatch(url).group(1);
+    return Http.ensureURL('${BASE_URL}/ajax/v2/episode/servers?episodeId=${id}');
+}
+
+fun sourcesApiURL(id) {
+    return Http.ensureURL('${BASE_URL}/ajax/v2/episode/sources?id=${id}');
+}
+
+fun defaultLocale() {
+    return "en";
+}
+
+fun search(terms, locale) {
+    final trace = TaskTrace();
+    final url = searchURL(terms);
+    
+    trace.add('Getting URL: "${url}"');
+
+    return Promise.resolve(
+        () => Http.fetch(
+            method: 'get',
+            url: url,
+            headers: defaultHeaders,
+        ),
+        trace: trace,
+        onDone: fun (resp) {
+            trace.add('Parsing HTML of "${url}"');
+
+            final document = HtmlElement.parse(resp.body);
+
+            return Collection.mapList(
+                document.querySelectorAll('#main-content .tab-content .flw-item'),
+                fun (i, x) {
+                    final title = x.querySelector('.film-name a');
+                    final url = title.attributes['href'].trim();
+                    final thumbnail = x.querySelector('.film-poster-img').attributes['data-src'].trim();
+
+                    return SearchInfo(
+                        title: title.text.trim(),
+                        url: Http.ensureURL('${BASE_URL}${url}'),
+                        thumbnail: ImageDescriber(
+                            url: Http.ensureURL(thumbnail),
+                            headers: defaultHeaders,
+                        ),
+                        locale: locale,
+                    );
+                }
+            );
+        }
+    );
+}
+
+fun getInfo(url, locale) {
+    final trace = TaskTrace();
+    final url = Http.ensureURL(url);
+
+    trace.add('Getting URL: "${url}"');
+
+    return Promise.resolve(
+        () => Http.fetch(
+            method: 'get',
+            url: url,
+            headers: defaultHeaders,
+        ),
+        trace: trace,
+        onDone: fun (resp) {
+            trace.add('Getting HTML of "${url}"');
+
+            final document = HtmlElement.parse(resp.body);
+
+            final id = document.querySelector('#wrapper').attributes['data-id'].trim();
+            final epURL = episodesApiURL(id);
+
+            trace.add('Getting URL: "${epURL}"');
+            
+            return Promise.resolve(
+                () => Http.fetch(
+                    method: 'get',
+                    url: epURL,
+                    headers: Collection.mergeMap(defaultHeaders, {
+                        'Referer': url,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }),
+                ),
+                trace: trace,
+                onDone: fun (epResp) {
+                    trace.add('Parsing HTML of "${epURL}"');
+
+                    final epParsed = Converter.jsonDecode(epResp.body);
+                    final epDocument = HtmlElement.parse(epParsed['html']);
+
+                    final episodes = Collection.mapList(
+                        epDocument.querySelectorAll('.ss-list > .ep-item'),
+                        fun (i, x) {
+                            final episode = x.attributes['data-number'].trim();
+                            final epURL = x.attributes['href'].trim();
+
+                            return EpisodeInfo(
+                                episode: episode,
+                                url: Http.ensureURL('${BASE_URL}${epURL}'),
+                                locale: locale
+                            );
+                        }
+                    );
+
+                    return AnimeInfo(
+                        title: document.querySelector('#ani_detail .film-name').text.trim(),
+                        url: url,
+                        thumbnail: ImageDescriber(
+                            url: Http.ensureURL(document.querySelector('#ani_detail .film-poster-img').attributes['src'].trim()),
+                            headers: defaultHeaders,
+                        ),
+                        episodes: episodes,
+                        locale: locale,
+                        availableLocales: [
+                            locale
+                        ]
+                    );
+                }
+            );
+        }
+    );
+}
+
+fun getSources(episode) {
+    final trace = TaskTrace();
+    final url = episodeApiURL(episode.url);
+
+    trace.add('Getting URL: "${url}"');
+
+    return Promise.resolve(
+        () => Http.fetch(
+            method: 'get',
+            url: url,
+            headers: defaultHeaders,
+        ),
+        trace: trace,
+        onDone: fun (resp) {
+            trace.add('Parsing HTML of "${url}"');
+
+            final parsed = Converter.jsonDecode(resp.body);
+            final defaultSourceProps = {
+                'quality': 'unknown',
+                'locale': episode.locale
+            };
+
+            return Promise.resolveAll(
+                Collection.mapList(
+                    Regex('data-id="(\\d+)"').allMatches(parsed['html']),
+                    fun (i, x) {
+                        final id = x.group(1);
+                        final srcURL = sourcesApiURL(id);
+
+                        trace.add('Getting URL: "${srcURL}"');
+
+                        return () => Promise.resolve(
+                            () => Http.fetch(
+                                method: 'get',
+                                url: srcURL,
+                                headers: Collection.mergeMap(defaultHeaders, {
+                                    'Referer': url,
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                }),
+                            ),
+                            trace: trace,
+                            onDone: fun (srcResp) {
+                                trace.add('Parsing HTML of "${srcURL}"');
+
+                                final srcParsed = Converter.jsonDecode(srcResp.body);
+                                final embedURL = srcParsed['link'];
+
+                                if (embedURL.contains('rapid-cloud')) {
+                                    return _parseRapidCloud(embedURL, trace, defaultSourceProps);
+                                }
+
+                                return null;
+                            }
+                        ); 
+                    },
+                ),
+                trace: trace,
+                onDone: (res) => Collection.flattenList(
+                    Collection.filterList(res, (i, x) => x != null),
+                    1,
+                ),
+            );
+        }
+    );
+}
+
+fun _parseRapidCloud(url, trace, defaultResult) {
+    final id = Regex('\\/embed-6\\/([^?]+)\\?z=').firstMatch(url).group(1);
+    final apiURL = Http.ensureURL('https://rapid-cloud.ru/ajax/embed-6/getSources?id=${id}');
+
+    trace.add('Getting URL: ${apiURL}');
+
+    return Promise.resolve(
+        () => Http.fetch(
+            method: 'get',
+            url: apiURL,
+            headers: defaultHeaders,
+        ),
+        trace: trace,
+        onDone: fun (resp) {
+            final parsed = Converter.jsonDecode(resp.body);
+
+            return Promise.resolveAll(
+                Collection.mapList(
+                    parsed['sources'],
+                    fun (i, x) {
+                        final m3u8URL = x['file'];
+                        final m3u8ParentURL = Regex('(.*)\\/[^\\/]+$').firstMatch(m3u8URL).group(1);
+
+                        return () => Promise.resolve(
+                            () => Http.fetch(
+                                method: 'get',
+                                url: m3u8URL,
+                                headers: defaultHeaders,
+                            ),
+                            trace: trace,
+                            onDone: fun (resp) {
+                                return Collection.mapList(
+                                    Regex('#EXT-X-STREAM-INF:.*?,RESOLUTION=\\d+x(\\d+),.*?\\n([^\\n]+)').allMatches(resp.body),
+                                    fun (i, x) {
+                                        final resHeight = x.group(1);
+                                        final route = x.group(2);
+
+                                        return EpisodeSource(
+                                            url: Http.ensureURL('${m3u8ParentURL}/${route}'),
+                                            headers: defaultHeaders,
+                                            quality: '${resHeight}p',
+                                            locale: defaultResult['locale'],
+                                        );
+                                    }
+                                );
+                            },
+                        );
+                    }
+                ),
+                trace: trace,
+                onDone: (res) => Collection.flattenList(res, 1),
+            );
+        },
+    );
+}

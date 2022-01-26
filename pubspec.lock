@@ -125,7 +125,7 @@ packages:
     description:
       path: "packages/devx"
       ref: next
-      resolved-ref: "85f32a2ee82fc78bc2102c05ad61242e43341ac1"
+      resolved-ref: d77510dd682e1199867a09b826975cf361b286c1
       url: "https://github.com/yukino-app/yukino.git"
     source: git
     version: "0.0.0"
@@ -141,7 +141,7 @@ packages:
     description:
       path: "packages/extensions"
       ref: next
-      resolved-ref: "85f32a2ee82fc78bc2102c05ad61242e43341ac1"
+      resolved-ref: d77510dd682e1199867a09b826975cf361b286c1
       url: "git://github.com/yukino-app/yukino.git"
     source: git
     version: "1.0.3"
@@ -475,7 +475,7 @@ packages:
     description:
       path: "packages/utilx"
       ref: HEAD
-      resolved-ref: "85f32a2ee82fc78bc2102c05ad61242e43341ac1"
+      resolved-ref: d77510dd682e1199867a09b826975cf361b286c1
       url: "https://github.com/yukino-app/yukino.git"
     source: git
     version: "0.0.0"

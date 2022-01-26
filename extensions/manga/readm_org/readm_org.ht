@@ -1,116 +1,128 @@
-const baseURL = 'https://readm.org';
+const BASE_URL = 'https://readm.org';
 
-const defaultHeaders: Map<str> = {
-    'User-Agent': httpUserAgent(),
-    'Referer': baseURL,
+final defaultHeaders = {
+    'User-Agent': Http.defaultUserAgent,
+    'Referer': BASE_URL,
 }
 
-fun searchURL() -> str {
-    return ensureURL('${baseURL}/service/search');
+fun searchURL() {
+    return Http.ensureURL('${BASE_URL}/service/search');
 }
 
-fun defaultLocale() -> str {
+fun defaultLocale() {
     return "en";
 }
 
-fun search(terms: str, locale: str) {
-    return resolveFuture(fetch({
-        'method': 'post',
-        'url': searchURL(),
-        'headers': mergeMap(defaultHeaders, {
-            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-            'x-requested-with': 'XMLHttpRequest'
-        }),
-        'body': qsEncode({
-            'dataType': 'json',
-            'phrase': terms,
-        }),
-    }), fun (err, resp) {
-        if (err != null) return throwError(err);
+fun search(terms, locale) {
+    return Promise.resolve(
+        () => Http.fetch(
+            method: 'post',
+            url: searchURL(),
+            headers: Collection.mergeMap(defaultHeaders, {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'x-requested-with': 'XMLHttpRequest'
+            }),
+            body: Converter.queryStringEncode({
+                'dataType': 'json',
+                'phrase': terms,
+            }),
+        ),
+        onDone: fun (resp) {
+            final parsed = Converter.jsonDecode(resp.body);
 
-        const parsed = jsonDecode(resp['body']);
-
-        return mapList(parsed['manga'], fun (i: num, x: Map) {
-            const url: str = x['url'];
-            const thumbnail: str = x['image'];
-            return {
-                'title': x['title'],
-                'url': ensureURL('${baseURL}${url}'),
-                'thumbnail': {
-                    'url': ensureURL('${baseURL}${thumbnail}'),
-                    'headers': defaultHeaders,
-                },
-                'locale': locale,
-            };
-        });
-    });
+            return Collection.mapList(parsed['manga'], fun (i, x) {
+                final url = x['url'];
+                final thumbnail = x['image'];
+                
+                return SearchInfo(
+                    title: x['title'],
+                    url: Http.ensureURL('${BASE_URL}${url}'),
+                    thumbnail: ImageDescriber(
+                        url: Http.ensureURL('${BASE_URL}${thumbnail}'),
+                        headers: defaultHeaders,
+                    ),
+                    locale: locale,
+                );
+            });
+        }
+    );
 }
 
-fun getInfo(url: str, locale: str) {
-    return resolveFuture(fetch({
-        'method': 'get',
-        'url': ensureURL(url),
-        'headers': defaultHeaders
-    }), fun (err, resp) {
-        if (err != null) return throwError(err);
+fun getInfo(url, locale) {
+    return Promise.resolve(
+        () => Http.fetch(
+            method: 'get',
+            url: Http.ensureURL(url),
+            headers: defaultHeaders
+        ),
+        onDone: fun (resp) {
+            final document = HtmlElement.parse(resp.body);
+            
+            final chapters = Collection.mapList(
+                document.querySelectorAll('.episodes-list .table-episodes-title a'),
+                fun (i, x) {
+                    final sep = x.text.replaceFirst('Chapter', '').trim().split(':');
+                    final url = x.attributes['href'].trim();
+                    final cvMatch = Regex('Chapter (\\d+\\.?\\d*)(v(\\d+))?').firstMatch(sep[0]);
 
-        const document: HtmlElement = parseHtml(resp['body']);
-        
-        const chapters: List<Map> = mapList(document.querySelectorAll('.episodes-list .table-episodes-title a'), fun (i: num, x: HtmlElement) {
-            const sep: str = x.text.replaceFirst('Chapter', '').trim().split(':');
-            const url: str = x.attributes['href'].trim();
-            const cvMatch = regexMatch('Chapter (\\d+\\.?\\d*)(v(\\d+))?', sep[0]);
+                    return ChapterInfo(
+                        title: sep.length > 1 ? sep[1].trim() : null,
+                        url: Http.ensureURL('${BASE_URL}${url}'),
+                        chapter: cvMatch?.group(1) ?? sep[0].replaceFirst('Chapter', '').trim(),
+                        volume: cvMatch?.group(3),
+                        locale: locale,
+                    );
+                }
+            );
 
-            return {
-                'title': sep.length > 1 ? sep[1].trim() : null,
-                'url': ensureURL('${baseURL}${url}'),
-                'chapter': cvMatch != null ? cvMatch.group(1) : sep[0].replaceFirst('Chapter', '').trim(),
-                'volume': cvMatch != null ? cvMatch.group(3) : null,
-                'locale': locale,
-            };
-        });
+            final title = document.querySelector('.page-title').text.trim();
+            final thumbnail = document.querySelector('.series-profile-thumb').attributes['src'].trim();
 
-        const thumbnail: str = document.querySelector('.series-profile-thumb').attributes['src'].trim();
-        return {
-            'title': document.querySelector('.page-title').text,
-            'url': ensureURL(url),
-            'thumbnail': {
-                'url': ensureURL('${baseURL}${thumbnail}'),
-                'headers': defaultHeaders
-            },
-            'chapters': chapters,
-            'locale': locale,
-            'availableLocales': [
-                locale
-            ]
-        };
-    });
+            return MangaInfo(
+                title: title,
+                url: Http.ensureURL(url),
+                thumbnail: ImageDescriber(
+                    url: Http.ensureURL('${BASE_URL}${thumbnail}'),
+                    headers: defaultHeaders
+                ),
+                chapters: chapters,
+                locale: locale,
+                availableLocales: [
+                    locale
+                ]
+            );
+        }
+    );
 }
 
-fun getChapter(chapter: Map) {
-    return resolveFuture(fetch({
-        'method': 'get',
-        'url': ensureURL(chapter['url']),
-        'headers': defaultHeaders
-    }), fun (err, resp) {
-        if (err != null) return throwError(err);
+fun getChapter(chapter) {
+    return Promise.resolve(
+        () => Http.fetch(
+            method: 'get',
+            url: Http.ensureURL(chapter.url),
+            headers: defaultHeaders
+        ),
+        onDone: fun (resp) {
+            final document = HtmlElement.parse(resp.body);
 
-        return mapList(
-            parseHtml(resp['body']).querySelectorAll('.ch-images img'),
-            fun (i: num, x: Map) {
-                const url: str = x.attributes['src'].trim();
-                return {
-                    'url': ensureURL('${baseURL}${url}'),
-                    'locale': chapter['locale']
-                };
-            }
-        );
-    });
+            return Collection.mapList(
+                document.querySelectorAll('.ch-images img'),
+                fun (i, x) {
+                    final url = x.attributes['src'].trim();
+
+                    return PageInfo(
+                        url: Http.ensureURL('${BASE_URL}${url}'),
+                        locale: chapter.locale
+                    );
+                }
+            );
+        }
+    );
 }
 
-fun getPage(page: Map) {
-    return {
-        'url': page['url'],
-        'headers': defaultHeaders
-    };
+fun getPage(page) {
+    return ImageDescriber(
+        url: page.url,
+        headers: defaultHeaders
+    );
 }
