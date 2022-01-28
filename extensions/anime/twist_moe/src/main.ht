@@ -1,0 +1,151 @@
+import './utils.ht';
+
+var _searcher;
+
+final extractor = AnimeExtractor(
+    defaultLocale: $.defaultLocale,
+    search: fun (terms, locale) {
+        if (_searcher != null) {
+            return _searcher(terms);
+        }
+
+        return Promise.resolve(
+            () => Http.fetch(
+                method: 'get',
+                url: $.getSearchApiURL(),
+                headers: $.defaultHeaders,
+            ),
+            onDone: fun (resp) {
+                final parsed = Converter.jsonDecode(resp.body);
+
+                final items = Collection.mapList(parsed, fun (i, x) {
+                    return {
+                        'title': x['title'],
+                        'altTitle': x['altTitle'] ?? '',
+                        'url': Http.ensureURL($.getAnimeURL(x['slug']['slug'])),
+                        'locale': $.defaultLocale,
+                    };
+                });
+
+                _searcher = fun (terms) {
+                    final fuzzy = FuzzySearch(
+                        items: items,
+                        keys: [
+                            FuzzySearchKey(
+                                getter: (x) => x['title'],
+                                weight: 2.0,
+                            ),
+                            FuzzySearchKey(
+                                getter: (x) => x['altTitle'],
+                            ),
+                        ]
+                    );
+
+                    return Collection.mapList(
+                        fuzzy.search(terms, 10),
+                        (i, x) => SearchInfo(
+                            title: x.item['title'],
+                            url: x.item['url'],
+                            locale: x.item['locale'],
+                        ),
+                    );
+                };
+
+                return _searcher(terms);
+            },
+        );
+    },
+    getInfo: fun (url, locale) {
+        final slug = $.parseSlug(url);
+
+        return Promise.resolve(
+            () => Http.fetch(
+                method: 'get',
+                url: $.getAnimeApiURL(slug),
+                headers: $.defaultHeaders,
+            ),
+            onDone: fun (resp) {
+                final parsed = Converter.jsonDecode(resp.body);
+                final animeURLP = $.getAnimeURL(slug);
+
+                return AnimeInfo(
+                    title: parsed['title'],
+                    url: animeURLP,
+                    episodes: Collection.mapList(parsed['episodes'], fun (i, x) {
+                        final epNum = x['number'].toString();
+
+                        return EpisodeInfo(
+                            episode: epNum,
+                            url: Http.ensureURL('${animeURLP}/${epNum}'),
+                            locale: $.defaultLocale,
+                        );
+                    }),
+                    locale: $.defaultLocale,
+                    availableLocales: [
+                        $.defaultLocale,
+                    ]
+                );
+            },
+        );
+    },
+    getSources: fun (episode) {
+        final slug = $.parseSlug(episode.url);
+
+        if (_sourceCache[slug] != null) {
+            return _getSources(slug, episode.episode);
+        }
+
+        return Promise.resolve(
+            () => Http.fetch(
+                method: 'get',
+                url: $.getAnimeSourcesURL(slug),
+                headers: $.defaultHeaders,
+            ),
+            onDone: fun (resp) {
+                final parsed = Converter.jsonDecode(resp.body);
+
+                _sourceCache[slug] = Collection.mapList(parsed, fun (i, x) {
+                    final currentEpisode = x['number'].toString();
+
+                    return {
+                        'episode': currentEpisode,
+                        'quality': 'unknown',
+                        'source': x['source'],
+                        'headers': {
+                            'Referer': $.appendBaseURL('/a/${slug}/${currentEpisode}'),
+                            'User-Agent': Http.defaultUserAgent,
+                        },
+                        'locale': $.defaultLocale,
+                    };
+                });
+
+                return _getSources(slug, episode.episode);
+            }
+        );
+    },
+);
+
+final _sourceCache = {};
+
+fun _getSources(slug, episode) {
+    final src = Collection.findList(_sourceCache[slug], fun (i, x) {
+        return x['episode'] == episode;
+    });
+
+    if (src == null) {
+        return Flaw.throwFlaw('Unknown episode: ${episode}');
+    }
+
+    if (src['url'] == null) {
+        src['url'] = $.getCdnURL($.decryptSourceURL(src['source']));
+    }
+
+    return [
+        EpisodeSource(
+            url: src['url'],
+            headers: src['headers'],
+            quality: 'unknown',
+            locale: src['locale'],
+        ),
+    ];
+}

@@ -1,0 +1,32 @@
+class $ {
+    static const baseURL = 'https://zoro.to';
+    static const baseAjaxURL = 'https://zoro.to/ajax/v2';
+
+    static final defaultHeaders = {
+        'User-Agent': Http.defaultUserAgent,
+        'Referer': baseURL,
+    }
+
+    static final defaultLocale = Locale.parse('en');
+
+    static fun getSearchURL(terms) {
+        return Http.ensureURL('${baseURL}/search?keyword=${terms}');
+    }
+
+    static fun getEpisodesApiURL(id) {
+        return Http.ensureURL('${baseAjaxURL}/episode/list/${id}');
+    }
+
+    static fun getEpisodeApiURL(url) {
+        final id = Regex('\\?ep=(\\d+)').firstMatch(url).group(1);
+        return Http.ensureURL('${baseAjaxURL}/episode/servers?episodeId=${id}');
+    }
+
+    static fun getSourcesApiURL(id) {
+        return Http.ensureURL('${baseAjaxURL}/episode/sources?id=${id}');
+    }
+
+    static fun appendBaseURL(route) {
+        return Http.ensureURL('${baseURL}${route}');
+    }
+}

@@ -1,0 +1,73 @@
+class $ {
+    static const baseURL = 'https://twist.moe';
+    static const baseApiURL = 'https://api.twist.moe/api';
+    static const baseCdnURL = 'https://cdn.twist.moe';
+
+    static const secretKey = '267041df55ca2b36f2e322d05ee2c9cf';
+    static const accessToken = '0df14814b9e590a1f26d3071a4ed7974';
+
+    static final defaultHeaders = {
+        'User-Agent': Http.defaultUserAgent,
+        'Referer': baseURL,
+        'x-access-token': accessToken,
+    }
+
+    static final defaultLocale = Locale.parse('en');
+
+    static fun getSearchApiURL() {
+        return '${baseApiURL}/anime';
+    }
+
+    static fun getAnimeURL(slug) {
+        return Http.ensureURL('${baseURL}/a/${slug}');
+    }
+
+    static fun getAnimeApiURL(slug) {
+        return Http.ensureURL('${baseApiURL}/anime/${slug}');
+    }
+
+    static fun getAnimeSourcesURL(slug) {
+        return'${getAnimeApiURL(slug)}/sources';
+    }
+
+    static fun parseSlug(url) {
+        return Regex('https?:\\/\\/twist\\.moe\\/a\\/([^\\/]+)').firstMatch(url).group(1);
+    }
+    
+    static fun appendBaseURL(route) {
+        return Http.ensureURL('${baseURL}${route}');
+    }
+
+    static fun getCdnURL(file) {
+        return Http.ensureURL('${baseCdnURL}${file}');
+    }
+
+    static fun generateSourceKey(salt) {
+        const limit = 48;
+
+        final data = Converter.utf8Encode(secretKey).add(salt);
+        var key = Crypto.md5Convert(data);
+        var outputKey = key.clone();
+
+        while (outputKey.length < limit) {
+            key = Crypto.md5Convert(key.add(data));
+            outputKey = outputKey.add(key);
+        }
+
+        return outputKey.sublist(0, limit);
+    }
+
+    static fun decryptSourceURL(url) {
+        final encrypted = Converter.base64Decode(url);
+        final key = generateSourceKey(encrypted.sublist(8, 16));
+
+        return Converter.utf8Decode(
+            Crypto.aesDecrypt(
+                encrypted: encrypted.sublist(16),
+                key: key.sublist(0, 32),
+                iv: key.sublist(32),
+                aesMode: 'cbc',
+            ),
+        );
+    }
+}

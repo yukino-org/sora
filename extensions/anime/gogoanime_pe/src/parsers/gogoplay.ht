@@ -1,0 +1,83 @@
+import '../utils.ht';
+
+class GogoPlay {
+    static const baseURL = 'https://gogoplay.io';
+    
+    static final defaultHeaders = {
+        'User-Agent': Http.defaultUserAgent,
+        'Referer': baseURL,
+    };
+
+    static fun ajaxApiURL(id) {
+        return Http.ensureURL('${baseURL}/encrypt-ajax.php?id=${id}&time=00000000000000000000');
+    }
+
+    static fun tryGetQuality(url) {
+        for (final x in ['360p', '480p', '720p', '1080p']) {
+            if (url.contains(x)) return x;
+        }
+
+        return null;
+    }
+
+    // Source:
+    //  - https://github.com/saikou-app/saikou/blob/master/app/src/main/java/ani/saikou/anime/source/extractors/GogoCDN.kt
+    //  - https://github.com/justfoolingaround/animdl/blob/master/animdl/core/codebase/extractors/gogoplay/__init__.py
+    static fun parse(url) {
+        return Promise.resolve(
+            () => Http.fetch(
+                method: 'get',
+                url: Http.ensureURL(url),
+                headers: defaultHeaders
+            ),
+            onDone: fun (resp) {
+                final document = HtmlElement.parse(resp.body);
+                
+                final id = Regex('id=([^&]+)').firstMatch(url).group(1);
+                final encrypted = document.querySelector('script[data-name="crypto"]').attributes['data-value'];
+                final iv = document.querySelector('script[data-name="ts"]').attributes['data-value'];
+
+                final secretKey = Crypto.aesDecrypt(
+                    encrypted: Converter.base64Decode(encrypted),
+                    key: Converter.utf8Encode('${iv}${iv}'),
+                    iv: Converter.utf8Encode(iv),
+                    aesMode: 'cbc',
+                );
+
+                final encryptedId = Crypto.aesEncrypt(
+                    input: Converter.utf8Encode(id),
+                    key: secretKey,
+                    iv: Converter.utf8Encode('0000000000000000'),
+                    aesMode: 'cbc',
+                );
+
+                return Promise.resolve(
+                    () => Http.fetch(
+                        method: 'get',
+                        url: ajaxApiURL(Converter.base64Encode(encryptedId)),
+                        headers: Collection.mergeMap(defaultHeaders, {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        }),
+                    ),
+                    onDone: fun (resp) {
+                        final parsed = Converter.jsonDecode(resp.body);
+
+                        return Collection.mapList(
+                            Collection.filterList(parsed['source'], (i, x) => x['type'] == 'mp4'),
+                            fun (i, x) {
+                                final srcURL = Http.ensureURL(x['file']);
+                                
+                                return EpisodeSource(
+                                    url: srcURL,
+                                    headers: defaultHeaders,
+                                    quality: tryGetQuality(srcURL) ?? 'unknown',
+                                    locale: $.defaultLocale,
+                                );
+                            },
+                        );
+                    },
+                );
+            }
+        );
+    }
+}

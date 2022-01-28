@@ -1,0 +1,18 @@
+class $ {
+    static const baseURL = 'https://readm.org';
+
+    static final defaultHeaders = {
+        'User-Agent': Http.defaultUserAgent,
+        'Referer': baseURL,
+    }
+
+    static final defaultLocale = Locale.parse('en');
+
+    static fun getSearchURL() {
+        return Http.ensureURL('${baseURL}/service/search');
+    }
+
+    static fun appendBaseURL(route) {
+        return Http.ensureURL('${baseURL}${route}');
+    }
+}

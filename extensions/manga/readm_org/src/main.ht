@@ -1,0 +1,115 @@
+import './utils.ht';
+
+final extractor = MangaExtractor(
+    defaultLocale: $.defaultLocale,
+    search: fun (terms, locale) {
+        return Promise.resolve(
+            () => Http.fetch(
+                method: 'post',
+                url: $.getSearchURL(),
+                headers: Collection.mergeMap($.defaultHeaders, {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    'x-requested-with': 'XMLHttpRequest'
+                }),
+                body: Converter.queryStringEncode({
+                    'dataType': 'json',
+                    'phrase': terms,
+                }),
+            ),
+            onDone: fun (resp) {
+                final parsed = Converter.jsonDecode(resp.body);
+
+                return Collection.mapList(parsed['manga'], fun (i, x) {
+                    final url = x['url'];
+                    final thumbnail = x['image'];
+                    
+                    return SearchInfo(
+                        title: x['title'],
+                        url: $.appendBaseURL(url),
+                        thumbnail: ImageDescriber(
+                            url: $.appendBaseURL(thumbnail),
+                            headers: $.defaultHeaders,
+                        ),
+                        locale: $.defaultLocale,
+                    );
+                });
+            }
+        );
+    },
+    getInfo: fun (url, locale) {
+        return Promise.resolve(
+            () => Http.fetch(
+                method: 'get',
+                url: Http.ensureURL(url),
+                headers: $.defaultHeaders,
+            ),
+            onDone: fun (resp) {
+                final document = HtmlElement.parse(resp.body);
+                
+                final chapters = Collection.mapList(
+                    document.querySelectorAll('.episodes-list .table-episodes-title a'),
+                    fun (i, x) {
+                        final sep = x.text.replaceFirst('Chapter', '').trim().split(':');
+                        final url = x.attributes['href'].trim();
+                        final cvMatch = Regex('Chapter (\\d+\\.?\\d*)(v(\\d+))?').firstMatch(sep[0]);
+
+                        return ChapterInfo(
+                            title: sep.length > 1 ? sep[1].trim() : null,
+                            url: $.appendBaseURL(url),
+                            chapter: cvMatch?.group(1) ?? sep[0].replaceFirst('Chapter', '').trim(),
+                            volume: cvMatch?.group(3),
+                            locale: $.defaultLocale,
+                        );
+                    }
+                );
+
+                final title = document.querySelector('.page-title').text.trim();
+                final thumbnail = document.querySelector('.series-profile-thumb').attributes['src'].trim();
+
+                return MangaInfo(
+                    title: title,
+                    url: Http.ensureURL(url),
+                    thumbnail: ImageDescriber(
+                        url: $.appendBaseURL(thumbnail),
+                        headers: $.defaultHeaders,
+                    ),
+                    chapters: chapters,
+                    locale: $.defaultLocale,
+                    availableLocales: [
+                        $.defaultLocale,
+                    ]
+                );
+            }
+        );
+    },
+    getChapter: fun (chapter) {
+        return Promise.resolve(
+            () => Http.fetch(
+                method: 'get',
+                url: Http.ensureURL(chapter.url),
+                headers: $.defaultHeaders,
+            ),
+            onDone: fun (resp) {
+                final document = HtmlElement.parse(resp.body);
+
+                return Collection.mapList(
+                    document.querySelectorAll('.ch-images img'),
+                    fun (i, x) {
+                        final url = x.attributes['src'].trim();
+
+                        return PageInfo(
+                            url: $.appendBaseURL(url),
+                            locale: $.defaultLocale,
+                        );
+                    }
+                );
+            }
+        );
+    },
+    getPage: fun (page) {
+        return ImageDescriber(
+            url: page.url,
+            headers: $.defaultHeaders,
+        );
+    },
+);

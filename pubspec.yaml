@@ -1,21 +1,31 @@
 name: official_extensions
-description: Yukino official extensions
+description: Officially supported extensions of Yukino.
 version: 0.0.0
 
 publish_to: none
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+    sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
-  extensions_test:
-    path: ./packages/extensions_test
+    extensions:
+        git:
+            url: git://github.com/yukino-app/packages.git
+            ref: extensions
+    extensions_test:
+        git:
+            url: git://github.com/yukino-app/packages.git
+            ref: extensions_test
+    test: ^1.20.1
+    utilx:
+        git:
+            url: git://github.com/yukino-app/packages.git
+            ref: utilx
 
 dev_dependencies:
-  devx:
-    git:
-      url: https://github.com/yukino-app/yukino.git
-      ref: next
-      path: packages/devx
-  lint: ^1.0.0
-  path: ^1.8.0
+    devx:
+        git:
+            url: git://github.com/yukino-app/packages.git
+            ref: devx
+    lint: ^1.0.0
+    path: ^1.8.0

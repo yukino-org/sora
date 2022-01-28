@@ -1,0 +1,149 @@
+import './parsers/rapidcloud.ht';
+import './utils.ht';
+import './webview.ht';
+
+final extractor = AnimeExtractor(
+    defaultLocale: $.defaultLocale,
+    search: fun (terms, locale) {
+        final url = $.getSearchURL(terms);
+        
+        return Promise.resolve(
+            () => Http.fetch(
+                method: 'get',
+                url: url,
+                headers: $.defaultHeaders,
+            ),
+            onDone: fun (resp) {
+                final document = HtmlElement.parse(resp.body);
+
+                return Collection.mapList(
+                    document.querySelectorAll('#main-content .tab-content .flw-item'),
+                    fun (i, x) {
+                        final title = x.querySelector('.film-name a');
+                        final url = title.attributes['href'].trim();
+                        final thumbnail = x.querySelector('.film-poster-img').attributes['data-src'].trim();
+
+                        return SearchInfo(
+                            title: title.text.trim(),
+                            url: $.appendBaseURL(url),
+                            thumbnail: ImageDescriber(
+                                url: Http.ensureURL(thumbnail),
+                                headers: $.defaultHeaders,
+                            ),
+                            locale: $.defaultLocale,
+                        );
+                    }
+                );
+            }
+        );
+    },
+    getInfo: fun (_url, locale) {
+        final url = Http.ensureURL(_url);
+
+        return Promise.resolve(
+            () => Http.fetch(
+                method: 'get',
+                url: url,
+                headers: $.defaultHeaders,
+            ),
+            onDone: fun (resp) {
+                final document = HtmlElement.parse(resp.body);
+
+                final id = document.querySelector('#wrapper').attributes['data-id'].trim();
+                final epURL = $.getEpisodesApiURL(id);
+                
+                return Promise.resolve(
+                    () => Http.fetch(
+                        method: 'get',
+                        url: epURL,
+                        headers: Collection.mergeMap($.defaultHeaders, {
+                            'Referer': url,
+                            'X-Requested-With': 'XMLHttpRequest',
+                        }),
+                    ),
+                    onDone: fun (epResp) {
+                        final epParsed = Converter.jsonDecode(epResp.body);
+                        final epDocument = HtmlElement.parse(epParsed['html']);
+
+                        final episodes = Collection.mapList(
+                            epDocument.querySelectorAll('.ss-list > .ep-item'),
+                            fun (i, x) {
+                                final episode = x.attributes['data-number'].trim();
+                                final epURL = x.attributes['href'].trim();
+
+                                return EpisodeInfo(
+                                    episode: episode,
+                                    url: $.appendBaseURL(epURL),
+                                    locale: $.defaultLocale,
+                                );
+                            }
+                        );
+
+                        return AnimeInfo(
+                            title: document.querySelector('#ani_detail .film-name').text.trim(),
+                            url: url,
+                            thumbnail: ImageDescriber(
+                                url: Http.ensureURL(document.querySelector('#ani_detail .film-poster-img').attributes['src'].trim()),
+                                headers: $.defaultHeaders,
+                            ),
+                            episodes: episodes,
+                            locale: $.defaultLocale,
+                            availableLocales: [
+                                $.defaultLocale,
+                            ]
+                        );
+                    }
+                );
+            }
+        );
+    },
+    getSources: fun (episode) {
+        final url = $.getEpisodeApiURL(episode.url);
+
+        return Promise.resolve(
+            () => Http.fetch(
+                method: 'get',
+                url: url,
+                headers: $.defaultHeaders,
+            ),
+            onDone: fun (resp) {
+                final parsed = Converter.jsonDecode(resp.body);
+
+                return Promise.resolveAll(
+                    Collection.mapList(
+                        Regex('data-id="(\\d+)"').allMatches(parsed['html']),
+                        fun (i, x) {
+                            final id = x.group(1);
+                            final srcURL = $.getSourcesApiURL(id);
+
+                            return () => Promise.resolve(
+                                () => Http.fetch(
+                                    method: 'get',
+                                    url: srcURL,
+                                    headers: Collection.mergeMap($.defaultHeaders, {
+                                        'Referer': url,
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                    }),
+                                ),
+                                onDone: fun (srcResp) {
+                                    final srcParsed = Converter.jsonDecode(srcResp.body);
+                                    final embedURL = srcParsed['link'];
+
+                                    if (embedURL.contains('rapid-cloud')) {
+                                        return RapidCloud.parse(embedURL);
+                                    }
+
+                                    return null;
+                                }
+                            ); 
+                        },
+                    ),
+                    onDone: (res) => Collection.flattenList(
+                        Collection.filterList(res, (i, x) => x != null),
+                        1,
+                    ),
+                );
+            }
+        );
+    },
+);

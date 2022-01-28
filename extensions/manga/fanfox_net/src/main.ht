@@ -1,0 +1,129 @@
+import './utils.ht';
+
+final extractor = MangaExtractor(
+    defaultLocale: $.defaultLocale,
+    search: fun (terms, locale) {
+        return Promise.resolve(
+            () => Http.fetch(
+                method: 'get',
+                url: $.getSearchURL(terms),
+                headers: $.defaultHeaders,
+            ),
+            onDone: fun (resp) {
+                final document = HtmlElement.parse(resp.body);
+
+                return Collection.mapList(document.querySelectorAll('.line-list li'), fun (i, x) {
+                    final link = x.querySelector('.manga-list-4-item-title a');
+                    final url = link.attributes['href'];
+                    final image = x.querySelector('img').attributes['src'];
+
+                    return SearchInfo(
+                        title: link.text.trim(),
+                        url: $.appendBaseURL(url),
+                        thumbnail: ImageDescriber(
+                            url: Http.ensureURL(image),
+                            headers: $.defaultHeaders,
+                        ),
+                        locale: $.defaultLocale,
+                    );
+                });
+            }
+        );
+    },
+    getInfo: fun (_url, locale) {
+        final url = Http.ensureURL(_url);
+        
+        return Promise.resolve(
+            () => Http.fetch(
+                method: 'get',
+                url: url,
+                headers: $.defaultHeaders
+            ),
+            onDone: fun (resp) {
+                final document = HtmlElement.parse(resp.body);
+                
+                final chapters = Collection.filterList(
+                    Collection.mapList(
+                        document.querySelectorAll('#chapterlist li a'),
+                        fun (i, x) {
+                            final title = x.querySelector('.title3').text;
+                            final shortTitle = Regex('-(.*)').firstMatch(title)?.group(1);
+                            final route = x.attributes['href'];
+                            final vol = Regex('Vol.(\\d+)').firstMatch(title)?.group(1);
+                            final chap = Regex('Ch.([\\d.]+)').firstMatch(title)?.group(1);
+
+                            if (chap != null) {
+                                return ChapterInfo(
+                                    title: shortTitle ?? title,
+                                    url: $.appendBaseURL(route),
+                                    chapter: chap,
+                                    volume: vol,
+                                    locale: locale,
+                                );
+                            }
+
+                            return null;
+                        }
+                    ),
+                    (i, x) => x != null,
+                );
+
+                return MangaInfo(
+                    title: document.querySelector('.detail-info-right-title-font').text,
+                    url: url,
+                    thumbnail: ImageDescriber(
+                        url: Http.ensureURL(document.querySelector('img.detail-info-cover-img').attributes['src']),
+                        headers: $.defaultHeaders,
+                    ),
+                    chapters: chapters,
+                    locale: $.defaultLocale,
+                    availableLocales: [
+                        $.defaultLocale,
+                    ]
+                );
+            }
+        );
+    },
+    getChapter: fun (chapter) {
+        final url = $.getMobileURL(chapter.url);
+
+        return Promise.resolve(
+            () => Http.fetch(
+                method: 'get',
+                url: url,
+                headers: $.defaultHeaders,
+            ),
+            onDone: fun (resp) {
+                return Collection.mapList(
+                    HtmlElement.parse(resp.body).querySelector('select.mangaread-page').querySelectorAll('option'),
+                    fun (i, x) {
+                        return PageInfo(
+                            url: Http.ensureURL(x.attributes['value']),
+                            locale: $.defaultLocale,
+                        );
+                    }
+                );
+            }
+        );
+    },
+    getPage: fun (page) {
+        final url = $.getMobileURL(page.url);
+
+        return Promise.resolve(
+            () => Http.fetch(
+                method: 'get',
+                url: url,
+                headers: $.defaultHeaders,
+            ),
+            onDone: fun (resp) {
+                final img = Regex('<img src="(.*?)".*id="image".*>').firstMatch(resp.body)?.group(1);
+                if (img == null) return Flaw.throwFlaw('Failed to parse image URL');
+
+                return ImageDescriber(
+                    url: Http.ensureURL(img),
+                    headers: $.defaultHeaders,
+                );
+            }
+        );
+    },
+);

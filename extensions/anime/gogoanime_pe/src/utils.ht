@@ -1,0 +1,22 @@
+class $ {
+    static const baseURL = 'https://www2.gogoanime.cm';
+
+    static final defaultHeaders = {
+        'User-Agent': Http.defaultUserAgent,
+        'Referer': baseURL,
+    }
+
+    static final defaultLocale = Locale.parse('en');
+
+    static fun getSearchURL(terms) {
+        return Http.ensureURL('${baseURL}/search.html?keyword=${terms}');
+    }
+
+    static fun getEpisodeApiURL(id, start, end) {
+        return Http.ensureURL('https://ajax.gogo-load.com/ajax/load-list-episode?ep_start=${start}&ep_end=${end}&id=${id}');
+    }
+
+    static fun appendBaseURL(route) {
+        return Http.ensureURL('${baseURL}${route}');
+    }
+}

@@ -1,0 +1,38 @@
+var webview;
+
+fun getWebview() {
+    if (webview != null && !webview.disposed) {
+        return webview;
+    }
+
+    return Promise.resolve(
+        () => Webview.create(),
+        onDone: fun (res) {
+            webview = res;
+            return webview;
+        },
+    );
+}
+
+fun getSite(url) {
+    return Promise.resolve(
+        () => getWebview(),
+        onDone: fun (_) {
+            return Promise.resolve(
+                () => webview.open(url, 'domContentLoaded'),
+                onDone: fun (_) {
+                    return Promise.resolve(
+                        () => webview.tryBypassBrowserVerification(fun (html) {
+                            return html.contains('href="https://ddos-guard.net"');
+                        }),
+                        onDone: fun (bypassed) {
+                            if (!bypassed) return Flaw.throwFlaw('Failed to bypass browser check');
+
+                            return webview;
+                        },
+                    );
+                }
+            );
+        }
+    );
+}

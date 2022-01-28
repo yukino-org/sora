@@ -1,0 +1,209 @@
+import './utils.ht';
+
+final extractor = MangaExtractor(
+    defaultLocale: Locale.parse('en'),
+    search: fun (terms, locale) {
+        return Promise.resolve(
+            () => Http.fetch(
+                method: 'get',
+                url: $.getSearchApiURL(terms),
+                headers: $.defaultHeaders,
+            ),
+            onDone: fun (resp) {
+                final data = Converter.jsonDecode(resp.body)['data'];
+
+                return Promise.resolveAll(
+                    Collection.mapList(
+                        data.sublist(0, data.length > 10 ? 10 : data.length),
+                        fun (i, x) {
+                            final coverArt = Collection.findList(x['relationships'], fun (i, x) {
+                                return x['type'] == 'cover_art';
+                            });
+
+                            return () => Promise.resolve(
+                                fun () {
+                                    if (coverArt == null) return null;
+                                    return _getCoverImageURL(x['id'], coverArt['id'])
+                                },
+                                onDone: fun (cover) {
+                                    return SearchInfo(
+                                        title: x['attributes']['title'][$.defaultLocale.code],
+                                        url: $.getMangaApiURL(x['id']),
+                                        thumbnail: cover,
+                                        locale: $.defaultLocale,
+                                    );
+                                },
+                            );
+                        }
+                    ),
+                    onDone: (res) => res,
+                );
+            }
+        );
+    },
+    getInfo: fun (url, locale) {
+        final id = $.parseId(url);
+        final mangaURL = $.getMangaApiURL(id);
+
+        return Promise.resolve(
+            () => Http.fetch(
+                method: 'get',
+                url: mangaURL,
+                headers: $.defaultHeaders
+            ),
+            onDone: fun (resp) {
+                final parsed = Converter.jsonDecode(resp.body);
+                final coverArt = Collection.findList(parsed['data']['relationships'], fun (i, x) {
+                    return x['type'] == 'cover_art';
+                });
+
+                return Promise.resolve(
+                    () => _getAvailableLanguages(id),
+                    onDone: (langs) => Promise.resolve(
+                        fun () {
+                            if (coverArt == null) return null;
+                            return _getCoverImageURL(parsed['data']['id'], coverArt['id']);
+                        },
+                        onDone: fun (cover) {
+                            final localeTitle = parsed['data']['attributes']['title'][locale.code];
+                            final defaultLocaleTitle = parsed['data']['attributes']['title'][$.defaultLocale.code];
+
+                            return Promise.resolve(
+                                () => _getChapters(id, locale, 0, []),
+                                onDone: fun (chapters) {
+                                    return MangaInfo(
+                                        title: localeTitle ?? defaultLocaleTitle,
+                                        url: mangaURL,
+                                        thumbnail: cover,
+                                        chapters: chapters,
+                                        locale: locale,
+                                        availableLocales: langs
+                                    );
+                                },
+                            );
+                        },
+                    ),
+                );
+            },
+        );
+    },
+    getChapter: fun (chapter) {
+        final id = chapter.url.replaceFirst('id:', '');
+
+        return Promise.resolve(
+            () => Http.fetch(
+                method: 'get',
+                url: $.getMangaServerApiURL(id),
+                headers: $.defaultHeaders
+            ),
+            onDone: fun (resp) {
+                final parsed = Converter.jsonDecode(resp.body);
+                final chapterURL = $.getChapterApiURL(parsed['baseUrl'], 'data', parsed['chapter']['hash']);
+
+                return Collection.mapList(
+                    parsed['chapter']['data'],
+                    fun (i, x) {
+                        return PageInfo(
+                            url: $.getPageSourceURL(chapterURL, x),
+                            locale: chapter.locale,
+                        );
+                    }
+                );
+            }
+        );
+    },
+    getPage: fun (page) {
+        return ImageDescriber(
+            url: page.url,
+            headers: $.defaultHeaders,
+        );
+    },
+);
+
+const _chapterLimit = 500;
+fun _getChapters(id, locale, offset, chapters) {
+    return Promise.resolve(
+        () => Http.fetch(
+            method: 'get',
+            url: $.getMangaFeedApiURL(id, locale.code, _chapterLimit, offset),
+            headers: $.defaultHeaders,
+        ),
+        onDone: fun (resp) {
+            var wasEmpty = true;
+
+            Collection.eachList(
+                Converter.jsonDecode(resp.body)['data'],
+                fun (i, x) {
+                    final id = x['id'];
+                    final title = x['attributes']['title'];
+
+                    chapters.add(
+                        ChapterInfo(
+                            title: (title?.isNotEmpty ?? false) ? title : null,
+                            url: 'id:${id}',
+                            chapter: x['attributes']['chapter'],
+                            volume: x['attributes']['volume'],
+                            locale: locale,
+                        ),
+                    );
+
+                    wasEmpty = false;
+                },
+            );
+
+            if (wasEmpty) return chapters;
+
+            return Promise.resolve(
+                () => _getChapters(id, locale, offset + _chapterLimit, chapters),
+                onDone: (res) => res,
+            );
+        }
+    );
+}
+
+fun _getCoverImageURL(manga, cover) {
+    return Promise.resolve(
+        () => Http.fetch(
+            method: 'get',
+            url: $.getCoverApiURL(cover),
+            headers: $.defaultHeaders,
+        ),
+        onDone: fun (resp) {
+            final parsed = Converter.jsonDecode(resp.body);
+
+            return ImageDescriber(
+                url: $.getCoverURL(manga, parsed['data']['attributes']['fileName']),
+                headers: $.defaultHeaders,
+            );
+        }
+    );
+}
+
+final _allLanguagesCache = Languages.all;
+fun _getAvailableLanguages(manga) {
+    return Promise.resolve(
+        () => Http.fetch(
+            method: 'get',
+            url: $.getMangaChapterOverviewURL(manga, 1, 1, 100),
+            headers: $.defaultHeaders,
+        ),
+        onDone: fun (resp) {
+            final parsed = Converter.jsonDecode(resp.body);
+
+            final langs = [];
+
+            Collection.eachList(
+                parsed['data'],
+                fun (i, x) {
+                    final lang = Regex('\\w+').firstMatch(x['attributes']['translatedLanguage'])?.group(0);
+
+                    if (lang != null && _allLanguagesCache.contains(lang)) {
+                        langs.add(Locale.parse(lang));
+                    }
+                },
+            );
+
+            return langs;
+        }
+    );
+}

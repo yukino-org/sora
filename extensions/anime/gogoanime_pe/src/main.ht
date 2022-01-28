@@ -1,0 +1,145 @@
+import './parsers/gogoplay.ht';
+import './utils.ht';
+import './webview.ht';
+
+final extractor = AnimeExtractor(
+    defaultLocale: $.defaultLocale,
+    search: fun (terms, locale) {
+        final url = $.getSearchURL(terms);
+
+        return Promise.resolve(
+            () => getSite(url),
+            onDone: fun (_) {
+                return Promise.resolve(
+                    () => webview.getHtml(),
+                    onDone: fun (html) {
+                        if (html == null) return Flaw.throwFlaw('No html was received');
+
+                        final document = HtmlElement.parse(html);
+
+                        return Collection.mapList(
+                            document.querySelectorAll('.items li'),
+                            fun (i, x) {
+                                final titleElement = x.querySelector('.name a');
+                                final url = titleElement.attributes['href'].trim();
+                                final thumbnail = x.querySelector('.img img').attributes['src'].trim();
+
+                                return SearchInfo(
+                                    title: titleElement.text.trim(),
+                                    url: $.appendBaseURL(url),
+                                    thumbnail: ImageDescriber(
+                                        url: Http.ensureURL(thumbnail),
+                                        headers: $.defaultHeaders,
+                                    ),
+                                    locale: $.defaultLocale,
+                                );
+                            }
+                        );
+                    },
+                );
+            }
+        );
+    },
+    getInfo: fun (_url, locale) {
+        final url = Http.ensureURL(_url);
+
+        return Promise.resolve(
+            () => getSite(url),
+            onDone: fun (_) {
+                return Promise.resolve(
+                    () => webview.getHtml(),
+                    onDone: fun (html) {
+                        if (html == null) return Flaw.throwFlaw('No html was received');
+
+                        final document = HtmlElement.parse(html);
+
+                        final epPagesElement = document.querySelectorAll('#episode_page a');
+                        final epURL = $.getEpisodeApiURL(
+                            document.querySelector('input#movie_id').attributes['value'].trim(),
+                            epPagesElement.first.attributes['ep_start'].trim(),
+                            epPagesElement.last.attributes['ep_end'].trim(),
+                        );
+
+                        return Promise.resolve(
+                            () => getSite(epURL),
+                            onDone: fun (_) {
+                                return Promise.resolve(
+                                    () => webview.getHtml(),
+                                    onDone: fun (epHtml) {
+                                        if (epHtml == null) return Flaw.throwFlaw('No html was received');
+
+                                        final episodes = Collection.mapList(
+                                            HtmlElement.parse(epHtml).querySelectorAll('#episode_related a'),
+                                            fun (i, x) {
+                                                final episode = x.querySelector('.name').text.replaceFirst('EP', '').trim();
+                                                final url = x.attributes['href'].trim();
+                                                
+                                                return EpisodeInfo(
+                                                    episode: episode,
+                                                    url: $.appendBaseURL(url),
+                                                    locale: $.defaultLocale,
+                                                );
+                                            }
+                                        );
+
+                                        return AnimeInfo(
+                                            title: document.querySelector('.anime_info_body_bg h1').text.trim(),
+                                            url: Http.ensureURL(url),
+                                            thumbnail: ImageDescriber(
+                                                url: Http.ensureURL(document.querySelector('.anime_info_body_bg img').attributes['src'].trim()),
+                                                headers: $.defaultHeaders,
+                                            ),
+                                            episodes: episodes,
+                                            locale: $.defaultLocale,
+                                            availableLocales: [
+                                                $.defaultLocale,
+                                            ]
+                                        );
+                                    }
+                                );
+                            }
+                        );
+                    }
+                );
+            }
+        );
+    },
+    getSources: fun (episode) {
+        final url = episode.url;
+
+        return Promise.resolve(
+            () => getSite(url),
+            onDone: fun (_) {
+                return Promise.resolve(
+                    () => webview.getHtml(),
+                    onDone: fun (html) {
+                        if (html == null) return Flaw.throwFlaw('No html was received');
+
+                        return Promise.resolveAll(
+                            Collection.filterList(
+                                Collection.mapList(
+                                    HtmlElement.parse(html).querySelectorAll('.anime_muti_link ul > li'),
+                                    fun (i, x) {
+                                        final link = x.querySelector('a').attributes['data-video'];
+
+                                        if (link != null) {
+                                            if (x.classes.contains('anime') || x.classes.contains('vidcdn')) {
+                                                return () => GogoPlay.parse(link);
+                                            }
+                                        }
+
+                                        return null;
+                                    }
+                                ),
+                                (i, x) => x != null,
+                            ),
+                            onDone: fun (res) {
+                                return Collection.flattenList(res, 1);
+                            }
+                        );
+                    }
+                );
+            }
+        );
+    },
+);

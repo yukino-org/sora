@@ -1,0 +1,26 @@
+class $ {
+    static const baseURL = 'https://hanime.tv';
+
+    static const baseSearchApiURL = 'https://search.htv-services.com';
+
+    static final baseApiURL = '${baseURL}/api/v8';
+
+    static final defaultHeaders = {
+        'User-Agent': Http.defaultUserAgent,
+        'Referer': baseURL,
+    }
+
+    static final defaultLocale = Locale.parse('en');
+
+    static fun parseSlug(url) {
+        return Regex('\\/videos\\/hentai\\/([^?]+)').firstMatch(url).group(1);
+    }
+
+    static fun getAnimeURL(slug) {
+        return Http.ensureURL('${baseURL}/videos/hentai/${slug}');
+    }
+
+    static fun getAnimeApiURL(slug) {
+        return Http.ensureURL('${baseApiURL}/video?id=${slug}');
+    }
+}

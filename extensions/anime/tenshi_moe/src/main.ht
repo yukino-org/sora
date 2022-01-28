@@ -1,0 +1,130 @@
+import './utils.ht';
+import './webview.ht';
+
+final extractor = AnimeExtractor(
+    defaultLocale: $.defaultLocale,
+    search: fun (terms, locale) {
+        final url = $.getSearchURL(terms);
+
+        return Promise.resolve(
+            () => getSite(url),
+            onDone: fun (_) {
+                return Promise.resolve(
+                    () => webview.getHtml(),
+                    onDone: fun (html) {
+                        final document = HtmlElement.parse(html);
+
+                        return Collection.mapList(
+                            document.querySelectorAll('.anime-loop li'),
+                            fun (i, x) {
+                                final link = x.querySelector('a');
+                                final title = link.querySelector('.label .text-primary').text.trim();
+                                final url = link.attributes['href'].trim();
+
+                                return SearchInfo(
+                                    title: title,
+                                    url: Http.ensureURL(url),
+                                    locale: $.defaultLocale,
+                                );
+                            }
+                        );
+                    }
+                );
+            }
+        );
+    },
+    getInfo: fun (url, locale) {
+        final url = Http.ensureURL(url);
+
+        return Promise.resolve(
+            () => getSite(url),
+            onDone: fun (_) {
+                return Promise.resolve(
+                    () => webview.getHtml(),
+                    onDone: fun (html) {
+                        final document = HtmlElement.parse(html);
+
+                        final estimated = document.querySelector('.entry-episodes .badge.badge-secondary.align-top').text.trim();
+                        final trimmedURL = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+
+                        final episodes = Collection.mapList(
+                            Collection.rangeList(0, int.parse(estimated)),
+                            fun (i: num, x: num) {
+                                final epNum = '${x + 1}';
+                                
+                                return EpisodeInfo(
+                                    episode: epNum,
+                                    url: Http.ensureURL('${trimmedURL}/${epNum}'),
+                                    locale: $.defaultLocale,
+                                );
+                            }
+                        );
+
+                        return AnimeInfo(
+                            title: document.querySelector('.entry-header').text.trim(),
+                            url: Http.ensureURL(url),
+                            thumbnail: ImageDescriber(
+                                url: Http.ensureURL(document.querySelector('img.cover-image').attributes['src'].trim()),
+                                headers: $.defaultHeaders,
+                            ),
+                            episodes: episodes,
+                            locale: $.defaultLocale,
+                            availableLocales: [
+                                $.defaultLocale,
+                            ]
+                        );
+                    }
+                );
+            }
+        );
+    },
+    getSources: fun (episode) {
+        final url = episode.url;
+
+        return Promise.resolve(
+            () => getSite(url),
+            onDone: fun (_) {
+                return Promise.resolve(
+                    () => webview.getHtml(),
+                    onDone: fun (html) {
+                        final iframeURL = Regex('<iframe src="([^"]+)"').firstMatch(html).group(1);
+
+                        webview.addExtraHeaders({
+                            'Referer': url,
+                        });
+
+                        return Promise.resolve(
+                            () => getSite(iframeURL),
+                            onDone: fun (_) {
+                                webview.addExtraHeaders({
+                                    'Referer': null,
+                                });
+
+                                return Promise.resolve(
+                                    () => webview.getHtml(),
+                                    onDone: fun (html2) {
+                                        final sources = Regex('sources:[\\s]+\\[([^\\]]+)').firstMatch(html2).group(1);
+
+                                        return Collection.mapList(
+                                            Regex('src:[\\s]+?["\']([^\'"]+)[\\S\\s]+?size:[\\s]+?(\\d+)').allMatches(sources),
+                                            fun (i, x) {
+                                                return EpisodeSource(
+                                                    url: Http.ensureURL(x.group(1)),
+                                                    quality: x.group(2),
+                                                    headers: Collection.mergeMap($.defaultHeaders, {
+                                                        'Referer': url,
+                                                    }),
+                                                    locale: $.defaultLocale,
+                                                );
+                                            }
+                                        );  
+                                    }
+                                );
+                            }
+                        );
+                    }
+                );
+            }
+        );
+    },
+);

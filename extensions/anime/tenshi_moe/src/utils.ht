@@ -1,0 +1,14 @@
+class $ {
+    static const baseURL = 'https://tenshi.moe';
+
+    static final defaultHeaders = {
+        'User-Agent': Http.defaultUserAgent,
+        'Referer': baseURL,
+    }
+
+    static final defaultLocale = Locale.parse('en');
+
+    static fun getSearchURL(terms) {
+        return Http.ensureURL('${baseURL}/anime?q=${terms}');
+    }
+}

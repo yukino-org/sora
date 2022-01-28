@@ -1,0 +1,36 @@
+var webview;
+
+fun getWebview() {
+    if (webview != null && !webview.disposed) {
+        return webview;
+    }
+
+    return Promise.resolve(
+        () => Webview.create(),
+        onDone: fun (res) {
+            webview = res;
+            return webview;
+        }
+    );
+}
+
+fun getSite(url) {
+    return Promise.resolve(
+        () => getWebview(),
+        onDone: fun (webview) {
+            return Promise.resolve(
+                () => webview.open(url, 'domContentLoaded'),
+                onDone: fun (_) {
+                    return Promise.resolve(
+                        () => webview.tryBypassCloudfareBrowserVerification(),
+                        onDone: fun (bypassed) {
+                            if (!bypassed) return Flaw.throwFlaw('Failed to bypass cloudflare');
+
+                            return webview;
+                        }
+                    );
+                }
+            );
+        }
+    );
+}

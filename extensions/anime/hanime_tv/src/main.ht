@@ -1,0 +1,124 @@
+import './utils.ht';
+
+final extractor = AnimeExtractor(
+    defaultLocale: $.defaultLocale,
+    search: fun (terms, locale) {
+        return Promise.resolve(
+            () => Http.fetch(
+                method: 'post',
+                url: $.baseSearchApiURL,
+                headers: Collection.mergeMap($.defaultHeaders, {
+                    'Content-Type': 'application/json;charset=UTF-8',
+                }),
+                body: Converter.jsonEncode({
+                    'search_text': 'overflow',
+                    'tags': [],
+                    'tags_mode': 'AND',
+                    'brands': [],
+                    'blacklist': [],
+                    'order_by': 'created_at_unix',
+                    'ordering': 'desc',
+                    'page': 0
+                }),
+            ),
+            onDone: fun (resp) {
+                final parsed = Converter.jsonDecode(resp.body);
+                final hits = Converter.jsonDecode(parsed['hits']);
+
+                return Collection.mapList(hits, fun (i, x) {
+                    final title = x['name'];
+                    final censored = x['is_censored'];
+
+                    return SearchInfo(
+                        title: '${title}${censored ? ' (Censored)' : ''}',
+                        url: $.getAnimeURL(x['slug']),
+                        thumbnail: ImageDescriber(
+                            url: Http.ensureURL(x['cover_url']),
+                            headers: $.defaultHeaders,
+                        ),
+                        locale: $.defaultLocale,
+                    );
+                });
+            },
+        );
+    },
+    getInfo: fun (url, locale) {
+        final slug = $.parseSlug(url);
+
+        return Promise.resolve(
+            () => _getInfo(slug),
+            onDone: fun (resp) {
+                final title = resp['hentai_video']['name'];
+                final censored = resp['hentai_video']['is_censored'];
+                final url = $.getAnimeURL(slug);
+
+                return AnimeInfo(
+                    title: '${title}${censored ? ' (Censored)' : ''}',
+                    url: url,
+                    thumbnail: ImageDescriber(
+                        url: Http.ensureURL(resp['hentai_video']['cover_url']),
+                        headers: $.defaultHeaders,
+                    ),
+                    episodes: [
+                        EpisodeInfo(
+                            episode: '1',
+                            url: url,
+                            locale: $.defaultLocale,
+                        ),
+                    ],
+                    locale: $.defaultLocale,
+                    availableLocales: [
+                        $.defaultLocale,
+                    ]
+                );
+            },
+        );
+    },
+    getSources: fun(episode) {
+        final slug = $.parseSlug(episode.url);
+
+        return Promise.resolve(
+            () => _getInfo(slug),
+            onDone: fun (resp) {
+                return Collection.flattenList(
+                    Collection.mapList(resp['videos_manifest']['servers'], fun (i, x) {
+                        return Collection.mapList(
+                            Collection.filterList(
+                                x['streams'],
+                                (i, x) => x['kind'] == 'hls',
+                            ),
+                            fun (i, x) {
+                                return EpisodeSource(
+                                    url: x['url'],
+                                    headers: $.defaultHeaders,
+                                    quality: Regex('\d+$').firstMatch(x['slug'])?.group(0) ?? 'unknown',
+                                    locale: $.defaultLocale,
+                                );
+                            }
+                        );
+                    }),
+                    1,
+                );
+            }
+        );
+    },
+);
+
+final _infoCache = {};
+
+fun _getInfo(slug) {
+    final url = $.getAnimeApiURL(slug);
+
+    return _infoCache[slug] ?? Promise.resolve(
+        () => Http.fetch(
+            method: 'get',
+            url: url,
+            headers: $.defaultHeaders,
+        ),
+        onDone: fun (resp) {
+            final parsed = Converter.jsonDecode(resp.body);
+            _infoCache[slug] = parsed;
+            return parsed;
+        },
+    );
+}
