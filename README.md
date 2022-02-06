@@ -10,13 +10,14 @@ Officially supported extensions of Yukino.
 
 ## Anime
 
-* [Gogoanime.pe (https://gogoanime.pe)](./extensions/anime/gogoanime_pe/gogoanime_pe.ht)
-* [Kawaiifu.com (https://kawaiifu.com)](./extensions/anime/kawaiifu_com/kawaiifu_com.ht)
-* [Tenshi.moe (https://tenshi.moe)](./extensions/anime/tenshi_moe/tenshi_moe.ht)
-* [Twist.moe (https://twist.moe)](./extensions/anime/twist_moe/twist_moe.ht)
+-   [Gogoanime.pe (https://gogoanime.cm)](./extensions/anime/gogoanime_pe)
+-   [HAnime.tv (https://hanime.tv)](./extensions/anime/kawaiifu_com)
+-   [Tenshi.moe (https://tenshi.moe)](./extensions/anime/tenshi_moe)
+-   [Twist.moe (https://twist.moe)](./extensions/anime/twist_moe)
+-   [Zoro.to (https://zoro.to)](./extensions/anime/zoro_to)
 
 ## Manga
 
-* [FanFox.net (https://fanfox.net)](./extensions/manga/fanfox_net/fanfox_net.ht)
-* [MangaDex.org (https://mangadex.org)](./extensions/manga/mangadex_org/mangadex_org.ht)
-* [ReadM.org (https://readm.org)](./extensions/manga/readm_org/readm_org.ht)
+-   [FanFox.net (https://fanfox.net)](./extensions/manga/fanfox_net)
+-   [MangaDex.org (https://mangadex.org)](./extensions/manga/mangadex_org)
+-   [ReadM.org (https://readm.org)](./extensions/manga/readm_org)
