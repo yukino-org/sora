@@ -21,7 +21,7 @@ packages:
       name: archive
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.1.9"
+    version: "3.1.11"
   args:
     dependency: transitive
     description:
@@ -141,25 +141,34 @@ packages:
     description:
       path: "."
       ref: extensions
-      resolved-ref: "64a5e92caf42cec26d107567dc8dff813699c1ef"
+      resolved-ref: ca2a2e4c3cb94983f1f165eeba7426a08d3519e0
       url: "git://github.com/yukino-app/packages.git"
     source: git
     version: "1.0.3"
+  extensions_dev_tools:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: extensions_dev_tools
+      resolved-ref: "24fc1a9db88309fd7028dbb1020934eda099385d"
+      url: "git://github.com/yukino-app/packages.git"
+    source: git
+    version: "0.0.0"
+  extensions_metadata:
+    dependency: transitive
+    description:
+      path: "."
+      ref: extensions_metadata
+      resolved-ref: "03a53f86e9c262f6de38273c8e55061b5d2498ba"
+      url: "git://github.com/yukino-app/packages.git"
+    source: git
+    version: "0.0.0"
   extensions_runtime:
     dependency: transitive
     description:
       path: "."
       ref: extensions_runtime
-      resolved-ref: "8af50e8c463ec97f319a57315efacd84e04fb859"
-      url: "git://github.com/yukino-app/packages.git"
-    source: git
-    version: "0.0.0"
-  extensions_test:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: extensions_test
-      resolved-ref: f87f9e284e29b7ecc13b942268a529716be31dae
+      resolved-ref: cea8a883bcb3317f79c6ace62504e5dcf92a41ae
       url: "git://github.com/yukino-app/packages.git"
     source: git
     version: "0.0.0"
@@ -493,7 +502,16 @@ packages:
     description:
       path: "."
       ref: utilx
-      resolved-ref: "3d40c9f0aadc6fa927a36863dabfb00cc8af190c"
+      resolved-ref: aa764d1702ca57dfdba7dc8667d599ffd3f33bf0
+      url: "git://github.com/yukino-app/packages.git"
+    source: git
+    version: "0.0.0"
+  utilx_desktop:
+    dependency: transitive
+    description:
+      path: "."
+      ref: utilx_desktop
+      resolved-ref: f9e07658ccd8894938f64b016c2a4e925ddfd34d
       url: "git://github.com/yukino-app/packages.git"
     source: git
     version: "0.0.0"

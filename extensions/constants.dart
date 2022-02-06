@@ -1,0 +1,1 @@
+const String author = 'Zyrouge';
