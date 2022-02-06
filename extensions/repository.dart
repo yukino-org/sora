@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:extensions/metadata.dart';
 import 'package:extensions_dev_tools/tools.dart';
 import 'package:path/path.dart' as path;
 import './anime/gogoanime_pe/config.dart' as gogoanime_pe;
@@ -24,5 +25,18 @@ final EConfigRepository repository = EConfigRepository(<EConfig>[
 ]);
 
 Future<void> main() async {
-  await repository.compileAll(ECompileAllOptions(outputDir: _dirname));
+  final DateTime startedAt = DateTime.now();
+
+  final List<EMetadata> results =
+      await repository.compileAll(ECompileAllOptions(outputDir: _dirname));
+
+  final DateTime endedAt = DateTime.now();
+
+  await File(path.join(_dirname, 'README.md')).writeAsString(
+    '''
+${results.length} extensions compiled.
+Built @ ${endedAt.toIso8601String()} in ${endedAt.millisecondsSinceEpoch - startedAt.millisecondsSinceEpoch}ms.
+'''
+        .trim(),
+  );
 }
