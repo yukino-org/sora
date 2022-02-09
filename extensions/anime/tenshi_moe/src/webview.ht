@@ -26,7 +26,7 @@ fun getSite(url) {
                             return html.contains('href="https://ddos-guard.net"');
                         }),
                         onDone: fun (bypassed) {
-                            if (!bypassed) return Flaw.throwFlaw('Failed to bypass browser check');
+                            if (!bypassed) throw 'Failed to bypass browser check';
 
                             return webview;
                         },

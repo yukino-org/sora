@@ -24,7 +24,7 @@ fun getSite(url) {
                     return Promise.resolve(
                         () => webview.tryBypassCloudfareBrowserVerification(),
                         onDone: fun (bypassed) {
-                            if (!bypassed) return Flaw.throwFlaw('Failed to bypass cloudflare');
+                            if (!bypassed) throw 'Failed to bypass cloudflare';
 
                             return webview;
                         }

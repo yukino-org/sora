@@ -117,7 +117,7 @@ final extractor = MangaExtractor(
             ),
             onDone: fun (resp) {
                 final img = Regex('<img src="(.*?)".*id="image".*>').firstMatch(resp.body)?.group(1);
-                if (img == null) return Flaw.throwFlaw('Failed to parse image URL');
+                if (img == null) throw 'Failed to parse image URL';
 
                 return ImageDescriber(
                     url: Http.ensureURL(img),

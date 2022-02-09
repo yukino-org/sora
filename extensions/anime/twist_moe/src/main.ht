@@ -131,10 +131,7 @@ fun _getSources(slug, episode) {
     final src = Collection.findList(_sourceCache[slug], fun (i, x) {
         return x['episode'] == episode;
     });
-
-    if (src == null) {
-        return Flaw.throwFlaw('Unknown episode: ${episode}');
-    }
+    if (src == null) throw 'Unknown episode: ${episode}';
 
     if (src['url'] == null) {
         src['url'] = $.getCdnURL($.decryptSourceURL(src['source']));

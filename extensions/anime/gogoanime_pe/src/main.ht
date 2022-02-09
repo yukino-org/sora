@@ -13,7 +13,7 @@ final extractor = AnimeExtractor(
                 return Promise.resolve(
                     () => webview.getHtml(),
                     onDone: fun (html) {
-                        if (html == null) return Flaw.throwFlaw('No html was received');
+                        if (html == null) throw 'No html was received';
 
                         final document = HtmlElement.parse(html);
 
@@ -49,7 +49,7 @@ final extractor = AnimeExtractor(
                 return Promise.resolve(
                     () => webview.getHtml(),
                     onDone: fun (html) {
-                        if (html == null) return Flaw.throwFlaw('No html was received');
+                        if (html == null) throw 'No html was received';
 
                         final document = HtmlElement.parse(html);
 
@@ -66,7 +66,7 @@ final extractor = AnimeExtractor(
                                 return Promise.resolve(
                                     () => webview.getHtml(),
                                     onDone: fun (epHtml) {
-                                        if (epHtml == null) return Flaw.throwFlaw('No html was received');
+                                        if (epHtml == null) throw 'No html was received';
 
                                         final episodes = Collection.mapList(
                                             HtmlElement.parse(epHtml).querySelectorAll('#episode_related a'),
@@ -113,7 +113,7 @@ final extractor = AnimeExtractor(
                 return Promise.resolve(
                     () => webview.getHtml(),
                     onDone: fun (html) {
-                        if (html == null) return Flaw.throwFlaw('No html was received');
+                        if (html == null) throw 'No html was received';
 
                         return Promise.resolveAll(
                             Collection.filterList(
