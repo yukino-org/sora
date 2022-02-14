@@ -1,12 +1,12 @@
 import 'package:extensions/extensions.dart';
 import 'package:extensions_dev_tools/tools.dart';
 import 'package:utilx/utilities/locale.dart';
-import './config.dart';
+import '../../utils.dart';
 
 const Locale locale = Locale(LanguageCodes.en);
 
 Future<void> main() async {
-  await config.test(
+  await TAnimeExtractor(
     TAnimeExtractorOptions(
       search: (final AnimeExtractor ext) => ext.search('overflow', locale),
       getInfo: (final AnimeExtractor ext) => ext.getInfo(
@@ -21,5 +21,5 @@ Future<void> main() async {
         ),
       ),
     ),
-  );
+  ).run(Utils.getAnimeDS('hanime_tv'));
 }

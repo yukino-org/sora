@@ -1,12 +1,12 @@
 import 'package:extensions/extensions.dart';
 import 'package:extensions_dev_tools/tools.dart';
 import 'package:utilx/utilities/locale.dart';
-import './config.dart';
+import '../../utils.dart';
 
 const Locale locale = Locale(LanguageCodes.en);
 
 Future<void> main() async {
-  await config.test(
+  await TMangaExtractor(
     TMangaExtractorOptions(
       search: (final MangaExtractor ext) => ext.search(
         'bunny girl',
@@ -32,5 +32,5 @@ Future<void> main() async {
         ),
       ),
     ),
-  );
+  ).run(Utils.getMangaDS('fanfox_net'));
 }

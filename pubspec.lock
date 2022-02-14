@@ -7,7 +7,7 @@ packages:
       name: archive
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.1.11"
+    version: "3.2.0"
   args:
     dependency: transitive
     description:
@@ -106,7 +106,7 @@ packages:
     description:
       path: "."
       ref: extensions
-      resolved-ref: "6f84c66112bca226fe42d85c93ce1598993c2a13"
+      resolved-ref: "22d1a47638fe113c68704f80c536ac6a7e401985"
       url: "git://github.com/yukino-app/packages.git"
     source: git
     version: "1.0.5"
@@ -115,7 +115,7 @@ packages:
     description:
       path: "."
       ref: extensions_dev_tools
-      resolved-ref: "94a14f64eed238dd4607f32408a2c457701167e5"
+      resolved-ref: "5111faf25649377807437398e775f930098c95e6"
       url: "git://github.com/yukino-app/packages.git"
     source: git
     version: "0.0.0"
@@ -124,7 +124,7 @@ packages:
     description:
       path: "."
       ref: extensions_metadata
-      resolved-ref: "7c9d38cc7ce87ce919c1da57469c247e0e29388c"
+      resolved-ref: "72187a44ffa0db4e7217c95fe2591831f4240a84"
       url: "git://github.com/yukino-app/packages.git"
     source: git
     version: "0.0.0"
@@ -133,7 +133,7 @@ packages:
     description:
       path: "."
       ref: extensions_runtime
-      resolved-ref: f4910bbb43df9a7ae5c4dd3bd21143601d04cd5e
+      resolved-ref: acb44cf948ac06f4366e02e1b30d6e347888e401
       url: "git://github.com/yukino-app/packages.git"
     source: git
     version: "0.0.0"
@@ -317,7 +317,7 @@ packages:
     description:
       path: "."
       ref: utilx
-      resolved-ref: b9dbd0fd27b9bdcdf71baa40d7b48f650de790c2
+      resolved-ref: fa10d947ad86c504ff63c350dfa91523ff271780
       url: "git://github.com/yukino-app/packages.git"
     source: git
     version: "0.0.0"
@@ -330,5 +330,12 @@ packages:
       url: "git://github.com/yukino-app/packages.git"
     source: git
     version: "0.0.0"
+  yaml:
+    dependency: transitive
+    description:
+      name: yaml
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.1.0"
 sdks:
   dart: ">=2.16.0-144.0.dev <3.0.0"
