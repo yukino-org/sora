@@ -6,8 +6,8 @@ on:
         - cron: "0 * * * *"
 
 env:
-    GIT_CONFIG_NAME: Snow Boat
-    GIT_CONFIG_EMAIL: yukino-org@users.noreply.github.com
+    GIT_CONFIG_NAME: [Automated] Yui
+    GIT_CONFIG_EMAIL: yukino-org@hotmail.com
     GIT_INPUT_DIR: dist/summary
     GIT_OUTPUT_BRANCH: summary
 
