@@ -14,12 +14,13 @@ jobs:
             - uses: dart-lang/setup-dart@v1
 
             - name: Install dependencies
-              run: dart pub get
+              run: |
+                  dart pub get
 
-            - name: Test extensions
+            - name: Test modules
               run: dart run ./test/all.dart --ci
 
-            - name: Deploy site
+            - name: Upload summary
               uses: JamesIves/github-pages-deploy-action@4.1.0
               with:
                   branch: dist
