@@ -30,7 +30,7 @@ jobs:
               working-directory: ${{ env.GIT_INPUT_DIR }}
               run: |
                   git init
-                  git remote add origin git remote add gh-token "https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+                  git remote add origin "https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
                   git config --local user.name "${{ env.GIT_CONFIG_NAME }}"
                   git config --local user.email "${{ env.GIT_CONFIG_EMAIL }}"
                   git add .
