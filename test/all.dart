@@ -157,19 +157,42 @@ $mangaTable
   }
 }
 
-Future<void> main() async {
+Future<void> main(final List<String> args) async {
+  final bool ci = args.contains('--ci');
+
   await Procedure.run(() async {
     final TestAll tester = TestAll();
     await tester.init();
 
-    for (final MapEntry<TenkaLocalFileDS, MockedAnimeExtractor> x
-        in TestFiles.anime.entries) {
-      await tester.run(TenkaType.anime, x.key, () => x.value.run(x.key));
-    }
+    final List<Future<void> Function()> fns = <Future<void> Function()>[
+      ...TestFiles.anime.entries.map(
+        (final MapEntry<TenkaLocalFileDS, MockedAnimeExtractor> x) =>
+            () => tester.run(
+                  TenkaType.anime,
+                  x.key,
+                  () => x.value.run(
+                    x.key,
+                    verbose: !ci,
+                  ),
+                ),
+      ),
+      ...TestFiles.manga.entries.map(
+        (final MapEntry<TenkaLocalFileDS, MockedMangaExtractor> x) =>
+            () => tester.run(
+                  TenkaType.manga,
+                  x.key,
+                  () => x.value.run(
+                    x.key,
+                    verbose: !ci,
+                  ),
+                ),
+      ),
+    ];
 
-    for (final MapEntry<TenkaLocalFileDS, MockedMangaExtractor> x
-        in TestFiles.manga.entries) {
-      await tester.run(TenkaType.manga, x.key, () => x.value.run(x.key));
+    if (ci) {
+      await Utils.parallel(fns);
+    } else {
+      await Utils.sequencial(fns);
     }
 
     await tester.finish();

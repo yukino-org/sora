@@ -2,6 +2,8 @@ name: Test
 
 on:
     workflow_dispatch:
+    schedule:
+        - cron: "0 * * * *"
 
 jobs:
     build:
@@ -15,7 +17,7 @@ jobs:
               run: dart pub get
 
             - name: Test extensions
-              run: dart run ./test/all.dart
+              run: dart run ./test/all.dart --ci
 
             - name: Deploy site
               uses: JamesIves/github-pages-deploy-action@4.1.0

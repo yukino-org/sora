@@ -36,4 +36,19 @@ abstract class Utils {
 
   static String prettyPath(final String p) =>
       path.normalize(p).replaceAll(RegExp(r'[\\/]'), '/');
+
+  static Future<List<T>> sequencial<T>(
+    final List<Future<T> Function()> fns,
+  ) async {
+    final List<T> results = <T>[];
+    for (final Future<T> Function() x in fns) {
+      results.add(await x());
+    }
+    return results;
+  }
+
+  static Future<List<T>> parallel<T>(
+    final List<Future<T> Function()> fns,
+  ) async =>
+      Future.wait(fns.map((final Future<T> Function() x) => x()));
 }
