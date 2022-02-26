@@ -35,5 +35,5 @@ jobs:
                   git config --local user.email "${{ env.GIT_CONFIG_EMAIL }}"
                   git switch -C ${{ env.GIT_OUTPUT_BRANCH }}
                   git add .
-                  git commit --allow-empty -m "chore: push summary"
+                  git commit --allow-empty -m "[automated] update summary"
                   git push origin -u ${{ env.GIT_OUTPUT_BRANCH }} --force
