@@ -36,7 +36,7 @@ class GogoPlay {
                 final id = Regex('id=([^&]+)').firstMatch(url)?.group(1);
                 final encrypted = document.querySelector('script[data-name="crypto"]')?.attributes['data-value'];
                 final iv = document.querySelector('script[data-name="ts"]')?.attributes['data-value'];
-                if (id == null || encrypted == null || iv == null) return null;
+                if (id == null || encrypted == null || iv == null) return [];
 
                 final secretKey = Crypto.aesDecrypt(
                     encrypted: Converter.base64Decode(encrypted),

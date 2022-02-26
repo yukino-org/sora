@@ -4,6 +4,14 @@ import 'package:tenka/tenka.dart';
 
 export 'procedure.dart';
 
+abstract class Emojis {
+  static const String tick = '✔️';
+  static const String cross = '❌';
+
+  // ignore: avoid_positional_boolean_parameters
+  static String fromBool(final bool value) => value ? tick : cross;
+}
+
 abstract class Utils {
   static const String mainScriptFile = 'main.ht';
 
@@ -13,8 +21,8 @@ abstract class Utils {
   static final String mangaDir =
       path.join(Directory.current.path, 'extensions/manga');
 
-  static final String testResultOutput =
-      path.join(Directory.current.path, 'dist/test_all.txt');
+  static final String summaryOutput =
+      path.join(Directory.current.path, 'dist/checkup.md');
 
   static TenkaLocalFileDS getAnimeDS(final String dir) => TenkaLocalFileDS(
         root: path.join(animeDir, '$dir/src'),

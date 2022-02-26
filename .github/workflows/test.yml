@@ -16,3 +16,9 @@ jobs:
 
             - name: Test extensions
               run: dart run ./test/all.dart
+
+            - name: Deploy site
+              uses: JamesIves/github-pages-deploy-action@4.1.0
+              with:
+                  branch: dist
+                  folder: dist
