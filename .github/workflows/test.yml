@@ -5,6 +5,12 @@ on:
     schedule:
         - cron: "0 * * * *"
 
+env:
+    GIT_CONFIG_NAME: Snow Boat
+    GIT_CONFIG_EMAIL: yukino-org@users.noreply.github.com
+    GIT_INPUT_DIR: dist
+    GIT_OUTPUT_BRANCH: summary
+
 jobs:
     build:
         runs-on: windows-latest
@@ -21,7 +27,12 @@ jobs:
               run: dart run ./test/all.dart --ci
 
             - name: 🚀 Upload summary
-              uses: JamesIves/github-pages-deploy-action@4.1.0
-              with:
-                  branch: dist
-                  folder: dist
+              working-directory: ${{ env.GIT_INPUT_DIR }}
+              run: |
+                  git init
+                  git remote add origin git remote add gh-token "https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+                  git config --local user.name "${{ env.GIT_CONFIG_NAME }}"
+                  git config --local user.email "${{ env.GIT_CONFIG_EMAIL }}"
+                  git add .
+                  git commit --allow-empty -m "chore: push summary"
+                  git push origin -u ${{ env.GIT_OUTPUT_BRANCH }} --force
