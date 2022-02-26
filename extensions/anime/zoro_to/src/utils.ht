@@ -29,4 +29,72 @@ class $ {
     static fun appendBaseURL(route) {
         return Http.ensureURL('${baseURL}${route}');
     }
+
+    static fun getRecaptchaToken(url) {
+        return AsyncTask.resolve(
+            () => Http.fetch(
+                method: 'get',
+                url: url,
+                headers: defaultHeaders,
+            ),
+            onDone: (mockRes) {
+                final rKey = Regex('recaptchaSiteKey\\s+=\\s+[\'"]([^\'"]+)[\'"]').firstMatch(mockRes.body).group(1);
+                final rNumber = Regex('recaptchaNumber\\s+=\\s+[\'"](\\d+)[\'"]').firstMatch(mockRes.body).group(1);
+
+                final _domain = Regex('(https?:\\/\\/[^/]+)').firstMatch(url).group(1);
+                final domain = Converter.base64Encode(Converter.utf8Encode('${_domain}:433')).replaceAll('=', '') + '.';
+
+                return AsyncTask.resolve(
+                    () => Http.fetch(
+                        method: 'get',
+                        url: Http.ensureURL('https://www.google.com/recaptcha/api.js?render=${rKey}'),
+                        headers: Collection.mergeMap(defaultHeaders, {
+                            'Referrer': '${_domain}/',
+                        }),
+                    ),
+                    onDone: (vTokenResp) {
+                        final vToken = Regex('releases/([^/]+)').firstMatch(vTokenResp.body).group(1);
+
+                        return AsyncTask.resolve(
+                            () => Http.fetch(
+                                method: 'get',
+                                url: Http.ensureURL('https://www.google.com/recaptcha/api2/anchor?ar=1&hl=en&size=invisible&cb=kr60249sk&k=${rKey}&co=${domain}&v=${vToken}'),
+                                headers: Collection.mergeMap(defaultHeaders, {
+                                    'Referrer': '${_domain}/',
+                                }),
+                            ),
+                            onDone: (rTokenResp) {
+                                final rToken = Regex('id="recaptcha-token" value="([^"]+)"').firstMatch(rTokenResp.body).group(1);
+
+                                return AsyncTask.resolve(
+                                    () => Http.fetch(
+                                        method: 'post',
+                                        url: Http.ensureURL('https://www.google.com/recaptcha/api2/reload?k=${rKey}'),
+                                        headers: Collection.mergeMap(defaultHeaders, {
+                                            'Referrer': '${_domain}/',
+                                            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                                        }),
+                                        body: Converter.queryStringEncode({
+                                            'v': vToken,
+                                            'reason': 'q',
+                                            'k': rKey,
+                                            'c': rToken,
+                                            'sa': '',
+                                            'co': domain,
+                                        })
+                                    ),
+                                    onDone: (fTokenResp) {                                       
+                                        return {
+                                            'token': Regex('rresp","(.+?)"').firstMatch(fTokenResp.body).group(1),
+                                            'number': rNumber,
+                                        };
+                                    }
+                                );
+                            }
+                        );
+                    }
+                );
+            }
+        );
+    }
 }
