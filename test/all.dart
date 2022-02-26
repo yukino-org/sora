@@ -5,7 +5,7 @@ import 'package:path/path.dart' as path;
 import 'package:tenka/tenka.dart';
 import 'package:tenka_dev_tools/tenka_dev_tools.dart';
 import 'package:utilx/utilities/utils.dart';
-import '../extensions/utils.dart';
+import '../tools/utils.dart';
 import 'files.dart';
 
 class TestAll {
@@ -197,7 +197,7 @@ Future<void> main(final List<String> args) async {
     ];
 
     if (ci) {
-      await Utils.parallel(fns);
+      await Utils.parallel(fns, concurrent: 3);
     } else {
       await Utils.sequencial(fns);
     }

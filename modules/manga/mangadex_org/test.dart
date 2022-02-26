@@ -1,7 +1,7 @@
 import 'package:tenka/tenka.dart';
 import 'package:tenka_dev_tools/tenka_dev_tools.dart';
 import 'package:utilx/utilities/locale.dart';
-import '../../utils.dart';
+import '../../../tools/utils.dart';
 
 const Locale locale = Locale(LanguageCodes.en);
 final TenkaLocalFileDS source = Utils.getMangaDS('mangadex_org');

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:tenka/tenka.dart';
+import 'package:utilx/utilities/utils.dart';
 
 export 'procedure.dart';
 
@@ -16,10 +17,10 @@ abstract class Utils {
   static const String mainScriptFile = 'main.ht';
 
   static final String animeDir =
-      path.join(Directory.current.path, 'extensions/anime');
+      path.join(Directory.current.path, 'modules/anime');
 
   static final String mangaDir =
-      path.join(Directory.current.path, 'extensions/manga');
+      path.join(Directory.current.path, 'modules/manga');
 
   static final String summaryOutput =
       path.join(Directory.current.path, 'dist/checkup.md');
@@ -48,7 +49,25 @@ abstract class Utils {
   }
 
   static Future<List<T>> parallel<T>(
-    final List<Future<T> Function()> fns,
-  ) async =>
-      Future.wait(fns.map((final Future<T> Function() x) => x()));
+    final List<Future<T> Function()> fns, {
+    final int concurrent = -1,
+  }) async {
+    final List<List<Future<T> Function()>> chunks = concurrent > 0
+        ? ListUtils.chunk(fns, concurrent)
+        : <List<Future<T> Function()>>[fns];
+
+    final List<List<T>> results = await sequencial(
+      chunks
+          .map(
+            (final List<Future<T> Function()> x) =>
+                () => Future.wait(x.map((final Future<T> Function() y) => y())),
+          )
+          .toList(),
+    );
+
+    return results.fold<List<T>>(
+      <T>[],
+      (final List<T> value, final List<T> x) => value..addAll(x),
+    );
+  }
 }
