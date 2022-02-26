@@ -13,14 +13,14 @@ jobs:
             - uses: actions/checkout@v2
             - uses: dart-lang/setup-dart@v1
 
-            - name: Install dependencies
+            - name: 🚧 Do prerequisites
               run: |
                   dart pub get
 
-            - name: Test modules
+            - name: 🧪 Test modules
               run: dart run ./test/all.dart --ci
 
-            - name: Upload summary
+            - name: 🚀 Upload summary
               uses: JamesIves/github-pages-deploy-action@4.1.0
               with:
                   branch: dist

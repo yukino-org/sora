@@ -9,6 +9,12 @@ import '../extensions/utils.dart';
 import 'files.dart';
 
 class TestAll {
+  TestAll({
+    required this.verbose,
+  });
+
+  final bool verbose;
+
   final Map<String, Map<String, bool>> animeResults =
       <String, Map<String, bool>>{};
 
@@ -38,7 +44,8 @@ class TestAll {
         break;
     }
 
-    print('Tested: $k\n');
+    print('Tested: $k');
+    if (verbose) print(' ');
   }
 
   Future<void> finish() async {
@@ -161,7 +168,7 @@ Future<void> main(final List<String> args) async {
   final bool ci = args.contains('--ci');
 
   await Procedure.run(() async {
-    final TestAll tester = TestAll();
+    final TestAll tester = TestAll(verbose: !ci);
     await tester.init();
 
     final List<Future<void> Function()> fns = <Future<void> Function()>[
