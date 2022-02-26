@@ -3,7 +3,7 @@ import 'utils.ht';
 final extractor = MangaExtractor(
     defaultLocale: $.defaultLocale,
     search: fun (terms, locale) {
-        return Promise.resolve(
+        return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'post',
                 url: $.getSearchURL(),
@@ -37,7 +37,7 @@ final extractor = MangaExtractor(
         );
     },
     getInfo: fun (url, locale) {
-        return Promise.resolve(
+        return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
                 url: Http.ensureURL(url),
@@ -83,7 +83,7 @@ final extractor = MangaExtractor(
         );
     },
     getChapter: fun (chapter) {
-        return Promise.resolve(
+        return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
                 url: Http.ensureURL(chapter.url),

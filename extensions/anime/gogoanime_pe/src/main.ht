@@ -7,10 +7,10 @@ final extractor = AnimeExtractor(
     search: fun (terms, locale) {
         final url = $.getSearchURL(terms);
 
-        return Promise.resolve(
+        return AsyncTask.resolve(
             () => getSite(url),
             onDone: fun (_) {
-                return Promise.resolve(
+                return AsyncTask.resolve(
                     () => webview.getHtml(),
                     onDone: fun (html) {
                         if (html == null) throw 'No html was received';
@@ -43,10 +43,10 @@ final extractor = AnimeExtractor(
     getInfo: fun (_url, locale) {
         final url = Http.ensureURL(_url);
 
-        return Promise.resolve(
+        return AsyncTask.resolve(
             () => getSite(url),
             onDone: fun (_) {
-                return Promise.resolve(
+                return AsyncTask.resolve(
                     () => webview.getHtml(),
                     onDone: fun (html) {
                         if (html == null) throw 'No html was received';
@@ -60,10 +60,10 @@ final extractor = AnimeExtractor(
                             epPagesElement.last.attributes['ep_end'].trim(),
                         );
 
-                        return Promise.resolve(
+                        return AsyncTask.resolve(
                             () => getSite(epURL),
                             onDone: fun (_) {
-                                return Promise.resolve(
+                                return AsyncTask.resolve(
                                     () => webview.getHtml(),
                                     onDone: fun (epHtml) {
                                         if (epHtml == null) throw 'No html was received';
@@ -107,15 +107,15 @@ final extractor = AnimeExtractor(
     getSources: fun (episode) {
         final url = episode.url;
 
-        return Promise.resolve(
+        return AsyncTask.resolve(
             () => getSite(url),
             onDone: fun (_) {
-                return Promise.resolve(
+                return AsyncTask.resolve(
                     () => webview.getHtml(),
                     onDone: fun (html) {
                         if (html == null) throw 'No html was received';
 
-                        return Promise.resolveAll(
+                        return AsyncTask.resolveAll(
                             Collection.filterList(
                                 Collection.mapList(
                                     HtmlElement.parse(html).querySelectorAll('.anime_muti_link ul > li'),

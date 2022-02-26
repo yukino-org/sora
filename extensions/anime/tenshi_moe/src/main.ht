@@ -6,10 +6,10 @@ final extractor = AnimeExtractor(
     search: fun (terms, locale) {
         final url = $.getSearchURL(terms);
 
-        return Promise.resolve(
+        return AsyncTask.resolve(
             () => getSite(url),
             onDone: fun (_) {
-                return Promise.resolve(
+                return AsyncTask.resolve(
                     () => webview.getHtml(),
                     onDone: fun (html) {
                         final document = HtmlElement.parse(html);
@@ -36,10 +36,10 @@ final extractor = AnimeExtractor(
     getInfo: fun (url, locale) {
         final url = Http.ensureURL(url);
 
-        return Promise.resolve(
+        return AsyncTask.resolve(
             () => getSite(url),
             onDone: fun (_) {
-                return Promise.resolve(
+                return AsyncTask.resolve(
                     () => webview.getHtml(),
                     onDone: fun (html) {
                         final document = HtmlElement.parse(html);
@@ -81,10 +81,10 @@ final extractor = AnimeExtractor(
     getSources: fun (episode) {
         final url = episode.url;
 
-        return Promise.resolve(
+        return AsyncTask.resolve(
             () => getSite(url),
             onDone: fun (_) {
-                return Promise.resolve(
+                return AsyncTask.resolve(
                     () => webview.getHtml(),
                     onDone: fun (html) {
                         final iframeURL = Regex('<iframe src="([^"]+)"').firstMatch(html).group(1);
@@ -93,14 +93,14 @@ final extractor = AnimeExtractor(
                             'Referer': url,
                         });
 
-                        return Promise.resolve(
+                        return AsyncTask.resolve(
                             () => getSite(iframeURL),
                             onDone: fun (_) {
                                 webview.addExtraHeaders({
                                     'Referer': null,
                                 });
 
-                                return Promise.resolve(
+                                return AsyncTask.resolve(
                                     () => webview.getHtml(),
                                     onDone: fun (html2) {
                                         final sources = Regex('sources:[\\s]+\\[([^\\]]+)').firstMatch(html2).group(1);

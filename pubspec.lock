@@ -7,7 +7,7 @@ packages:
       name: archive
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.2.0"
+    version: "3.2.1"
   args:
     dependency: transitive
     description:
@@ -276,7 +276,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka_dev_tools
-      resolved-ref: "17f5501c12373cce0f9046cab43d0137737f2d92"
+      resolved-ref: b7184ab1beb45cc528bc411f76606a261415a0b3
       url: "git://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"

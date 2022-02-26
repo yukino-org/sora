@@ -3,7 +3,7 @@ import 'utils.ht';
 final extractor = AnimeExtractor(
     defaultLocale: $.defaultLocale,
     search: fun (terms, locale) {
-        return Promise.resolve(
+        return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'post',
                 url: $.baseSearchApiURL,
@@ -45,7 +45,7 @@ final extractor = AnimeExtractor(
     getInfo: fun (url, locale) {
         final slug = $.parseSlug(url);
 
-        return Promise.resolve(
+        return AsyncTask.resolve(
             () => _getInfo(slug),
             onDone: fun (resp) {
                 final title = resp['hentai_video']['name'];
@@ -77,7 +77,7 @@ final extractor = AnimeExtractor(
     getSources: fun(episode) {
         final slug = $.parseSlug(episode.url);
 
-        return Promise.resolve(
+        return AsyncTask.resolve(
             () => _getInfo(slug),
             onDone: fun (resp) {
                 return Collection.flattenList(
@@ -109,7 +109,7 @@ final _infoCache = {};
 fun _getInfo(slug) {
     final url = $.getAnimeApiURL(slug);
 
-    return _infoCache[slug] ?? Promise.resolve(
+    return _infoCache[slug] ?? AsyncTask.resolve(
         () => Http.fetch(
             method: 'get',
             url: url,

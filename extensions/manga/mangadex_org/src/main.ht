@@ -3,7 +3,7 @@ import 'utils.ht';
 final extractor = MangaExtractor(
     defaultLocale: Locale.parse('en'),
     search: fun (terms, locale) {
-        return Promise.resolve(
+        return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
                 url: $.getSearchApiURL(terms),
@@ -12,7 +12,7 @@ final extractor = MangaExtractor(
             onDone: fun (resp) {
                 final data = Converter.jsonDecode(resp.body)['data'];
 
-                return Promise.resolveAll(
+                return AsyncTask.resolveAll(
                     Collection.mapList(
                         data.sublist(0, data.length > 10 ? 10 : data.length),
                         fun (i, x) {
@@ -20,7 +20,7 @@ final extractor = MangaExtractor(
                                 return x['type'] == 'cover_art';
                             });
 
-                            return () => Promise.resolve(
+                            return () => AsyncTask.resolve(
                                 fun () {
                                     if (coverArt == null) return null;
                                     return _getCoverImageURL(x['id'], coverArt['id'])
@@ -45,7 +45,7 @@ final extractor = MangaExtractor(
         final id = $.parseId(url);
         final mangaURL = $.getMangaApiURL(id);
 
-        return Promise.resolve(
+        return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
                 url: mangaURL,
@@ -57,9 +57,9 @@ final extractor = MangaExtractor(
                     return x['type'] == 'cover_art';
                 });
 
-                return Promise.resolve(
+                return AsyncTask.resolve(
                     () => _getAvailableLanguages(id),
-                    onDone: (langs) => Promise.resolve(
+                    onDone: (langs) => AsyncTask.resolve(
                         fun () {
                             if (coverArt == null) return null;
                             return _getCoverImageURL(parsed['data']['id'], coverArt['id']);
@@ -68,7 +68,7 @@ final extractor = MangaExtractor(
                             final localeTitle = parsed['data']['attributes']['title'][locale.code];
                             final defaultLocaleTitle = parsed['data']['attributes']['title'][$.defaultLocale.code];
 
-                            return Promise.resolve(
+                            return AsyncTask.resolve(
                                 () => _getChapters(id, locale, 0, []),
                                 onDone: fun (chapters) {
                                     return MangaInfo(
@@ -90,7 +90,7 @@ final extractor = MangaExtractor(
     getChapter: fun (chapter) {
         final id = chapter.url.replaceFirst('id:', '');
 
-        return Promise.resolve(
+        return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
                 url: $.getMangaServerApiURL(id),
@@ -122,7 +122,7 @@ final extractor = MangaExtractor(
 
 const _chapterLimit = 500;
 fun _getChapters(id, locale, offset, chapters) {
-    return Promise.resolve(
+    return AsyncTask.resolve(
         () => Http.fetch(
             method: 'get',
             url: $.getMangaFeedApiURL(id, locale.code, _chapterLimit, offset),
@@ -153,7 +153,7 @@ fun _getChapters(id, locale, offset, chapters) {
 
             if (wasEmpty) return chapters;
 
-            return Promise.resolve(
+            return AsyncTask.resolve(
                 () => _getChapters(id, locale, offset + _chapterLimit, chapters),
                 onDone: (res) => res,
             );
@@ -162,7 +162,7 @@ fun _getChapters(id, locale, offset, chapters) {
 }
 
 fun _getCoverImageURL(manga, cover) {
-    return Promise.resolve(
+    return AsyncTask.resolve(
         () => Http.fetch(
             method: 'get',
             url: $.getCoverApiURL(cover),
@@ -181,7 +181,7 @@ fun _getCoverImageURL(manga, cover) {
 
 final _allLanguagesCache = Languages.all;
 fun _getAvailableLanguages(manga) {
-    return Promise.resolve(
+    return AsyncTask.resolve(
         () => Http.fetch(
             method: 'get',
             url: $.getMangaChapterOverviewURL(manga, 1, 1, 100),

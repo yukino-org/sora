@@ -5,7 +5,7 @@ fun getWebview() {
         return webview;
     }
 
-    return Promise.resolve(
+    return AsyncTask.resolve(
         () => Webview.create(),
         onDone: fun (res) {
             webview = res;
@@ -14,14 +14,14 @@ fun getWebview() {
     );
 }
 
-fun getSite(url) {
-    return Promise.resolve(
+fun getSite(url, [waitUntil = 'domContentLoaded']) {
+    return AsyncTask.resolve(
         () => getWebview(),
         onDone: fun (webview) {
-            return Promise.resolve(
-                () => webview.open(url, 'domContentLoaded'),
+            return AsyncTask.resolve(
+                () => webview.open(url, waitUntil),
                 onDone: fun (_) {
-                    return Promise.resolve(
+                    return AsyncTask.resolve(
                         () => webview.tryBypassCloudfareBrowserVerification(),
                         onDone: fun (bypassed) {
                             if (!bypassed) throw 'Failed to bypass cloudflare';

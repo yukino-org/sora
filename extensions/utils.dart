@@ -2,17 +2,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:tenka/tenka.dart';
 
-enum GlobalStateMode {
-  unknown,
-  testAll,
-}
-
-abstract class GlobalState {
-  static GlobalStateMode mode = GlobalStateMode.unknown;
-
-  static bool get handleIndividualTestEnvironment =>
-      mode != GlobalStateMode.testAll;
-}
+export 'procedure.dart';
 
 abstract class Utils {
   static const String mainScriptFile = 'main.ht';
@@ -22,6 +12,9 @@ abstract class Utils {
 
   static final String mangaDir =
       path.join(Directory.current.path, 'extensions/manga');
+
+  static final String testResultOutput =
+      path.join(Directory.current.path, 'dist/test_all.txt');
 
   static TenkaLocalFileDS getAnimeDS(final String dir) => TenkaLocalFileDS(
         root: path.join(animeDir, '$dir/src'),

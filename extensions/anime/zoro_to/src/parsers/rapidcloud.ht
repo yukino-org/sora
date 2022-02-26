@@ -13,7 +13,7 @@ class RapidCloud {
         final id = parseId(url);
         final apiURL = getSourcesApiURL(id);
 
-        return Promise.resolve(
+        return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
                 url: apiURL,
@@ -22,14 +22,14 @@ class RapidCloud {
             onDone: fun (resp) {
                 final parsed = Converter.jsonDecode(resp.body);
 
-                return Promise.resolveAll(
+                return AsyncTask.resolveAll(
                     Collection.mapList(
                         parsed['sources'],
                         fun (i, x) {
                             final m3u8URL = x['file'];
                             final m3u8ParentURL = Regex('(.*)\\/[^\\/]+$').firstMatch(m3u8URL).group(1);
 
-                            return () => Promise.resolve(
+                            return () => AsyncTask.resolve(
                                 () => Http.fetch(
                                     method: 'get',
                                     url: m3u8URL,

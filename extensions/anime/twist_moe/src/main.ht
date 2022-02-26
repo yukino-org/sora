@@ -9,7 +9,7 @@ final extractor = AnimeExtractor(
             return _searcher(terms);
         }
 
-        return Promise.resolve(
+        return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
                 url: $.getSearchApiURL(),
@@ -58,7 +58,7 @@ final extractor = AnimeExtractor(
     getInfo: fun (url, locale) {
         final slug = $.parseSlug(url);
 
-        return Promise.resolve(
+        return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
                 url: $.getAnimeApiURL(slug),
@@ -95,7 +95,7 @@ final extractor = AnimeExtractor(
             return _getSources(slug, episode.episode);
         }
 
-        return Promise.resolve(
+        return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
                 url: $.getAnimeSourcesURL(slug),

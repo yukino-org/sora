@@ -24,7 +24,7 @@ class GogoPlay {
     //  - https://github.com/saikou-app/saikou/blob/master/app/src/main/java/ani/saikou/anime/source/extractors/GogoCDN.kt
     //  - https://github.com/justfoolingaround/animdl/blob/master/animdl/core/codebase/extractors/gogoplay/__init__.py
     static fun parse(url) {
-        return Promise.resolve(
+        return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
                 url: Http.ensureURL(url),
@@ -32,10 +32,11 @@ class GogoPlay {
             ),
             onDone: fun (resp) {
                 final document = HtmlElement.parse(resp.body);
-                
-                final id = Regex('id=([^&]+)').firstMatch(url).group(1);
-                final encrypted = document.querySelector('script[data-name="crypto"]').attributes['data-value'];
-                final iv = document.querySelector('script[data-name="ts"]').attributes['data-value'];
+
+                final id = Regex('id=([^&]+)').firstMatch(url)?.group(1);
+                final encrypted = document.querySelector('script[data-name="crypto"]')?.attributes['data-value'];
+                final iv = document.querySelector('script[data-name="ts"]')?.attributes['data-value'];
+                if (id == null || encrypted == null || iv == null) return null;
 
                 final secretKey = Crypto.aesDecrypt(
                     encrypted: Converter.base64Decode(encrypted),
@@ -51,7 +52,7 @@ class GogoPlay {
                     aesMode: 'cbc',
                 );
 
-                return Promise.resolve(
+                return AsyncTask.resolve(
                     () => Http.fetch(
                         method: 'get',
                         url: ajaxApiURL(Converter.base64Encode(encryptedId)),
