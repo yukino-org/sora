@@ -8,7 +8,7 @@ on:
 env:
     GIT_CONFIG_NAME: Snow Boat
     GIT_CONFIG_EMAIL: yukino-org@users.noreply.github.com
-    GIT_INPUT_DIR: dist
+    GIT_INPUT_DIR: dist/summary
     GIT_OUTPUT_BRANCH: summary
 
 jobs:
