@@ -23,7 +23,7 @@ abstract class Utils {
       path.join(Directory.current.path, 'modules/manga');
 
   static final String summaryOutput =
-      path.join(Directory.current.path, 'dist/checkup.md');
+      path.join(Directory.current.path, 'dist/summary/README.md');
 
   static TenkaLocalFileDS getAnimeDS(final String dir) => TenkaLocalFileDS(
         root: path.join(animeDir, '$dir/src'),
