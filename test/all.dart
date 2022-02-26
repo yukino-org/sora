@@ -64,26 +64,12 @@ Future<void> main() async {
 
     for (final MapEntry<TenkaLocalFileDS, MockedAnimeExtractor> x
         in TestFiles.anime.entries) {
-      await tester.run(
-        x.key,
-        () => MockedAnimeExtractorRunner(
-          x.value,
-          handleEnvironment: false,
-          setExitCode: false,
-        ).run(x.key),
-      );
+      await tester.run(x.key, () => x.value.run(x.key));
     }
 
     for (final MapEntry<TenkaLocalFileDS, MockedMangaExtractor> x
         in TestFiles.manga.entries) {
-      await tester.run(
-        x.key,
-        () => MockedMangaExtractorRunner(
-          x.value,
-          handleEnvironment: false,
-          setExitCode: false,
-        ).run(x.key),
-      );
+      await tester.run(x.key, () => x.value.run(x.key));
     }
 
     await tester.finish();

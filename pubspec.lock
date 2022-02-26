@@ -276,7 +276,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka_dev_tools
-      resolved-ref: b7184ab1beb45cc528bc411f76606a261415a0b3
+      resolved-ref: "7aa950b775f0b3e2b26088299580030013ad00d9"
       url: "git://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"

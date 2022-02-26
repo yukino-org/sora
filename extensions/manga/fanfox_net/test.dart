@@ -32,5 +32,5 @@ final MockedMangaExtractor mocked = MockedMangaExtractor(
 );
 
 Future<void> main() async {
-  await Procedure.run(() => MockedMangaExtractorRunner(mocked).run(source));
+  await Procedure.run(() => mocked.run(source));
 }

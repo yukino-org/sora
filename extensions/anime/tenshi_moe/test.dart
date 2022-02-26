@@ -24,5 +24,5 @@ final MockedAnimeExtractor mocked = MockedAnimeExtractor(
 );
 
 Future<void> main() async {
-  await Procedure.run(() => MockedAnimeExtractorRunner(mocked).run(source));
+  await Procedure.run(() => mocked.run(source));
 }
