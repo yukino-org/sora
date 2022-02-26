@@ -49,8 +49,6 @@ class TestAll {
   }
 
   Future<void> finish() async {
-    exitCode = failed == 0 ? 0 : 1;
-
     print(
       'Full Summary: [${Colorize('+$passed').green()} ${Colorize('-$failed').red()}]',
     );
