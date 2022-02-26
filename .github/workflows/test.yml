@@ -33,6 +33,7 @@ jobs:
                   git remote add origin "https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
                   git config --local user.name "${{ env.GIT_CONFIG_NAME }}"
                   git config --local user.email "${{ env.GIT_CONFIG_EMAIL }}"
+                  git switch -C ${{ env.GIT_OUTPUT_BRANCH }}
                   git add .
                   git commit --allow-empty -m "chore: push summary"
                   git push origin -u ${{ env.GIT_OUTPUT_BRANCH }} --force
