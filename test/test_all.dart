@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:path/path.dart' as path;
-import './utils.dart';
+import '../extensions/utils.dart';
 
 Future<void> main() async {
   for (final String x in <String>[Utils.animeDir, Utils.mangaDir]) {

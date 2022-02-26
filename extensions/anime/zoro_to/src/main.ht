@@ -1,6 +1,6 @@
-import './parsers/rapidcloud.ht';
-import './utils.ht';
-import './webview.ht';
+import 'parsers/rapidcloud.ht';
+import 'utils.ht';
+import 'webview.ht';
 
 final extractor = AnimeExtractor(
     defaultLocale: $.defaultLocale,

@@ -1,6 +1,18 @@
 import 'dart:io';
-import 'package:extensions/metadata.dart';
 import 'package:path/path.dart' as path;
+import 'package:tenka/tenka.dart';
+
+enum GlobalStateMode {
+  unknown,
+  testAll,
+}
+
+abstract class GlobalState {
+  static GlobalStateMode mode = GlobalStateMode.unknown;
+
+  static bool get handleIndividualTestEnvironment =>
+      mode != GlobalStateMode.testAll;
+}
 
 abstract class Utils {
   static const String mainScriptFile = 'main.ht';
@@ -11,12 +23,12 @@ abstract class Utils {
   static final String mangaDir =
       path.join(Directory.current.path, 'extensions/manga');
 
-  static ELocalFileDS getAnimeDS(final String dir) => ELocalFileDS(
+  static TenkaLocalFileDS getAnimeDS(final String dir) => TenkaLocalFileDS(
         root: path.join(animeDir, '$dir/src'),
         file: mainScriptFile,
       );
 
-  static ELocalFileDS getMangaDS(final String dir) => ELocalFileDS(
+  static TenkaLocalFileDS getMangaDS(final String dir) => TenkaLocalFileDS(
         root: path.join(mangaDir, '$dir/src'),
         file: mainScriptFile,
       );

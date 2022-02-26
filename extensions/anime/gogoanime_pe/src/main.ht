@@ -1,6 +1,6 @@
-import './parsers/gogoplay.ht';
-import './utils.ht';
-import './webview.ht';
+import 'parsers/gogoplay.ht';
+import 'utils.ht';
+import 'webview.ht';
 
 final extractor = AnimeExtractor(
     defaultLocale: $.defaultLocale,

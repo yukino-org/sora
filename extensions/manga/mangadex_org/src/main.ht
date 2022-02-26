@@ -1,4 +1,4 @@
-import './utils.ht';
+import 'utils.ht';
 
 final extractor = MangaExtractor(
     defaultLocale: Locale.parse('en'),

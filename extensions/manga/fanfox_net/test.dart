@@ -1,13 +1,13 @@
-import 'package:extensions/extensions.dart';
-import 'package:extensions_dev_tools/tools.dart';
+import 'package:tenka/tenka.dart';
+import 'package:tenka_dev_tools/tools.dart';
 import 'package:utilx/utilities/locale.dart';
 import '../../utils.dart';
 
 const Locale locale = Locale(LanguageCodes.en);
 
 Future<void> main() async {
-  await TMangaExtractor(
-    TMangaExtractorOptions(
+  await MockedMangaExtractor(
+    MockedMangaExtractorOptions(
       search: (final MangaExtractor ext) => ext.search(
         'bunny girl',
         locale,
@@ -31,6 +31,7 @@ Future<void> main() async {
           locale: locale,
         ),
       ),
+      handleEnvironment: GlobalState.handleIndividualTestEnvironment,
     ),
   ).run(Utils.getMangaDS('fanfox_net'));
 }

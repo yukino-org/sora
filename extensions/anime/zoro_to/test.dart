@@ -1,5 +1,5 @@
-import 'package:extensions/extensions.dart';
-import 'package:extensions_dev_tools/tools.dart';
+import 'package:tenka/tenka.dart';
+import 'package:tenka_dev_tools/tools.dart';
 import 'package:utilx/utilities/locale.dart';
 
 import '../../utils.dart';
@@ -7,8 +7,8 @@ import '../../utils.dart';
 const Locale locale = Locale(LanguageCodes.en);
 
 Future<void> main() async {
-  await TAnimeExtractor(
-    TAnimeExtractorOptions(
+  await MockedAnimeExtractor(
+    MockedAnimeExtractorOptions(
       search: (final AnimeExtractor ext) => ext.search(
         'bunny girl',
         locale,
@@ -25,6 +25,7 @@ Future<void> main() async {
           locale: locale,
         ),
       ),
+      handleEnvironment: GlobalState.handleIndividualTestEnvironment,
     ),
   ).run(Utils.getAnimeDS('zoro_to'));
 }

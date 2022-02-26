@@ -1,13 +1,13 @@
-import 'package:extensions/extensions.dart';
-import 'package:extensions_dev_tools/tools.dart';
+import 'package:tenka/tenka.dart';
+import 'package:tenka_dev_tools/tools.dart';
 import 'package:utilx/utilities/locale.dart';
 import '../../utils.dart';
 
 const Locale locale = Locale(LanguageCodes.en);
 
 Future<void> main() async {
-  await TAnimeExtractor(
-    TAnimeExtractorOptions(
+  await MockedAnimeExtractor(
+    MockedAnimeExtractorOptions(
       search: (final AnimeExtractor ext) => ext.search('overflow', locale),
       getInfo: (final AnimeExtractor ext) => ext.getInfo(
         'https://hanime.tv/videos/hentai/overflow-season-1',
@@ -20,6 +20,7 @@ Future<void> main() async {
           locale: locale,
         ),
       ),
+      handleEnvironment: GlobalState.handleIndividualTestEnvironment,
     ),
   ).run(Utils.getAnimeDS('hanime_tv'));
 }

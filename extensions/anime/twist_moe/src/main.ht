@@ -1,4 +1,4 @@
-import './utils.ht';
+import 'utils.ht';
 
 var _searcher;
 

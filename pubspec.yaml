@@ -1,5 +1,5 @@
-name: official_extensions
-description: Officially supported extensions of Yukino.
+name: official_tenka_modules
+description: "⚡ Officially maintained Tenka modules."
 version: 0.0.0
 
 publish_to: none
@@ -8,23 +8,22 @@ environment:
     sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
-    extensions:
-        git:
-            url: git://github.com/yukino-app/packages.git
-            ref: extensions
-    extensions_dev_tools:
-        git:
-            url: git://github.com/yukino-app/packages.git
-            ref: extensions_dev_tools
     path: ^1.8.0
+    tenka:
+        git:
+            url: git://github.com/yukino-org/packages.git
+            ref: dart_tenka
+    tenka_dev_tools:
+        git:
+            url: git://github.com/yukino-org/packages.git
+            ref: dart_tenka_dev_tools
     utilx:
         git:
-            url: git://github.com/yukino-app/packages.git
-            ref: utilx
+            url: git://github.com/yukino-org/packages.git
+            ref: dart_utilx
 
 dev_dependencies:
     devx:
         git:
-            url: git://github.com/yukino-app/packages.git
-            ref: devx
-    lint: ^1.0.0
+            url: git://github.com/yukino-org/packages.git
+            ref: dart_devx
