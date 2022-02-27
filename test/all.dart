@@ -164,7 +164,7 @@ $seperator ${data.map((final Map<String, String> x) => cols.keys.map((final Stri
     return '''
 # 👨‍⚕️ Tenka Modules Checkup
 
-Last checked at ${DateFormat('MM/dd/yyyy hh:mm a (v)').format(DateTime.now())}.
+Last checked at ${DateFormat('dd/MM/yyyy hh:mm a').format(DateTime.now().toUtc())} (UTC).
 
 ## Anime
 
