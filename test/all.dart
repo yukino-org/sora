@@ -151,7 +151,7 @@ $seperator ${data.map((final Map<String, String> x) => cols.keys.map((final Stri
           .map(
             (final MapEntry<String, Map<String, Benchmarks>> x) =>
                 <String, String>{
-              'name': _getModuleNameFromPath(x.key),
+              'name': _getMarkdownURLFromPath(x.key),
               'search': _getValueFromBenchmarks(x.value['search']!),
               'getInfo': _getValueFromBenchmarks(x.value['getInfo']!),
               'getChapter': _getValueFromBenchmarks(x.value['getChapter']!),
@@ -164,7 +164,7 @@ $seperator ${data.map((final Map<String, String> x) => cols.keys.map((final Stri
     return '''
 # 👨‍⚕️ Tenka Modules Checkup
 
-Last checked at ${DateFormat('MM/dd/yyyy hh:mm a').format(DateTime.now())}.
+Last checked at ${DateFormat('MM/dd/yyyy hh:mm a (v)').format(DateTime.now())}.
 
 ## Anime
 
