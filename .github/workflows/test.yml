@@ -37,4 +37,4 @@ jobs:
                   git switch -c ${{ env.GIT_OUTPUT_BRANCH }}
                   git add .
                   git commit --allow-empty -m "${{ env. GIT_COMMIT_MSG }}"
-                  git push origin -u ${{ env.GIT_OUTPUT_BRANCH }} --force
+                  git push -u origin ${{ env.GIT_OUTPUT_BRANCH }} --force
