@@ -143,6 +143,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.0"
+  intl:
+    dependency: "direct dev"
+    description:
+      name: intl
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.17.0"
   js:
     dependency: transitive
     description:
@@ -267,7 +274,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka
-      resolved-ref: "8bebeabdb53743af5159c57253a0ffb7b8b13887"
+      resolved-ref: "2bee13eb9823223eecc0731edd3273c148b41690"
       url: "git://github.com/yukino-org/packages.git"
     source: git
     version: "1.0.5"
@@ -276,7 +283,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka_dev_tools
-      resolved-ref: bcaccfeeac17b8d576e3598e2a9e7a58b1d9d3cc
+      resolved-ref: b166d11661f80a946f3a4efe9fe2b63c23456f1f
       url: "git://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"

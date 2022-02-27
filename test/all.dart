@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'dart:io';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 import 'package:tenka/tenka.dart';
 import 'package:tenka_dev_tools/tenka_dev_tools.dart';
@@ -15,25 +16,25 @@ class TestAll {
 
   final bool verbose;
 
-  final Map<String, Map<String, bool>> animeResults =
-      <String, Map<String, bool>>{};
+  final Map<String, Map<String, Benchmarks>> animeResults =
+      <String, Map<String, Benchmarks>>{};
 
-  final Map<String, Map<String, bool>> mangaResults =
-      <String, Map<String, bool>>{};
+  final Map<String, Map<String, Benchmarks>> mangaResults =
+      <String, Map<String, Benchmarks>>{};
 
   Future<void> init() async {}
 
   Future<void> run(
     final TenkaType type,
     final TenkaLocalFileDS source,
-    final Future<Map<String, bool>> Function() fn,
+    final Future<Map<String, Benchmarks>> Function() fn,
   ) async {
     final String k =
         '${Colorize(path.basename(path.dirname(source.root))).cyan()} ${Colorize('(${Utils.prettyPath(source.fullPath)})').darkGray()}';
 
     print('Testing: $k');
 
-    final Map<String, bool> result = await fn();
+    final Map<String, Benchmarks> result = await fn();
     switch (type) {
       case TenkaType.anime:
         animeResults[source.fullPath] = result;
@@ -53,14 +54,14 @@ class TestAll {
       'Full Summary: [${Colorize('+$passed').green()} ${Colorize('-$failed').red()}]',
     );
 
-    for (final MapEntry<String, Map<String, bool>> x in results.entries) {
+    for (final MapEntry<String, Map<String, Benchmarks>> x in results.entries) {
       print(
         ' ${Colorize('*').darkGray()} ${Colorize(_getModuleNameFromPath(x.key)).cyan()} ${Colorize('(${Utils.prettyPath(x.key)})').darkGray()}',
       );
 
-      for (final MapEntry<String, bool> y in x.value.entries) {
+      for (final MapEntry<String, Benchmarks> y in x.value.entries) {
         print(
-          '    ${Colorize('*').darkGray()} ${Colorize('${y.key}()').cyan()}: ${y.value ? Colorize('P').green() : Colorize('F').red()}',
+          '    ${Colorize('*').darkGray()} ${Colorize('${y.key}()').cyan()}: ${y.value.success ? Colorize('P').green() : Colorize('F').red()}',
         );
       }
     }
@@ -72,6 +73,9 @@ class TestAll {
 
   String _getModuleNameFromPath(final String fullPath) =>
       path.basename(path.dirname(path.dirname(fullPath)));
+
+  String _getValueFromBenchmarks(final Benchmarks result) =>
+      '${Emojis.fromBool(result.success)} (${result.time.elapsed}ms)';
 
   String _createMarkdownTable(
     final Map<String, String> cols,
@@ -88,21 +92,30 @@ $seperator ${data.map((final Map<String, String> x) => cols.keys.map((final Stri
         .trim();
   }
 
-  Map<String, Map<String, bool>> get results => <String, Map<String, bool>>{
+  String _getMarkdownURLFromPath(final String fullPath) {
+    final String name = _getModuleNameFromPath(fullPath);
+    final String rPath = path.relative(fullPath, from: Utils.baseDir);
+    final String url = '${Utils.ghMainBranchURL}/$rPath';
+
+    return '[$name]($url)';
+  }
+
+  Map<String, Map<String, Benchmarks>> get results =>
+      <String, Map<String, Benchmarks>>{
         ...animeResults,
         ...mangaResults,
       };
 
   int get passed => results.values.fold<int>(
         0,
-        (final int value, final Map<String, bool> x) =>
-            value + x.values.where((final bool x) => x).length,
+        (final int value, final Map<String, Benchmarks> x) =>
+            value + x.values.where((final Benchmarks x) => x.success).length,
       );
 
   int get failed => results.values.fold<int>(
         0,
-        (final int value, final Map<String, bool> x) =>
-            value + x.values.where((final bool x) => !x).length,
+        (final int value, final Map<String, Benchmarks> x) =>
+            value + x.values.where((final Benchmarks x) => !x.success).length,
       );
 
   String get summary {
@@ -115,11 +128,12 @@ $seperator ${data.map((final Map<String, String> x) => cols.keys.map((final Stri
       },
       animeResults.entries
           .map(
-            (final MapEntry<String, Map<String, bool>> x) => <String, String>{
-              'name': '[${_getModuleNameFromPath(x.key)}](${x.key})',
-              'search': Emojis.fromBool(x.value['search']!),
-              'getInfo': Emojis.fromBool(x.value['getInfo']!),
-              'getSources': Emojis.fromBool(x.value['getSources']!),
+            (final MapEntry<String, Map<String, Benchmarks>> x) =>
+                <String, String>{
+              'name': _getMarkdownURLFromPath(x.key),
+              'search': _getValueFromBenchmarks(x.value['search']!),
+              'getInfo': _getValueFromBenchmarks(x.value['getInfo']!),
+              'getSources': _getValueFromBenchmarks(x.value['getSources']!),
             },
           )
           .toList(),
@@ -135,12 +149,13 @@ $seperator ${data.map((final Map<String, String> x) => cols.keys.map((final Stri
       },
       mangaResults.entries
           .map(
-            (final MapEntry<String, Map<String, bool>> x) => <String, String>{
+            (final MapEntry<String, Map<String, Benchmarks>> x) =>
+                <String, String>{
               'name': _getModuleNameFromPath(x.key),
-              'search': Emojis.fromBool(x.value['search']!),
-              'getInfo': Emojis.fromBool(x.value['getInfo']!),
-              'getChapter': Emojis.fromBool(x.value['getChapter']!),
-              'getPage': Emojis.fromBool(x.value['getPage']!),
+              'search': _getValueFromBenchmarks(x.value['search']!),
+              'getInfo': _getValueFromBenchmarks(x.value['getInfo']!),
+              'getChapter': _getValueFromBenchmarks(x.value['getChapter']!),
+              'getPage': _getValueFromBenchmarks(x.value['getPage']!),
             },
           )
           .toList(),
@@ -149,7 +164,7 @@ $seperator ${data.map((final Map<String, String> x) => cols.keys.map((final Stri
     return '''
 # 👨‍⚕️ Tenka Modules Checkup
 
-Last checked at ${DateTime.now().toIso8601String()}.
+Last checked at ${DateFormat('MM/dd/yyyy hh:mm a').format(DateTime.now())}.
 
 ## Anime
 

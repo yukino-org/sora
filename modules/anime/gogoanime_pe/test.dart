@@ -15,7 +15,7 @@ final MockedAnimeExtractor mocked = MockedAnimeExtractor(
     const EpisodeInfo(
       episode: '1',
       url:
-          'https://www2.gogoanime.cm/seishun-buta-yarou-wa-bunny-girl-senpai-no-yume-wo-minai-episode-13',
+          'https://gogoanime.fi/seishun-buta-yarou-wa-bunny-girl-senpai-no-yume-wo-minai-episode-1',
       locale: locale,
     ),
   ),

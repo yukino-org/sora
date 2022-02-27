@@ -1,5 +1,5 @@
 class $ {
-    static const baseURL = 'https://www2.gogoanime.cm';
+    static const baseURL = 'https://gogoanime.fi';
 
     static final defaultHeaders = {
         'User-Agent': Http.defaultUserAgent,

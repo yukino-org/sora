@@ -16,6 +16,8 @@ abstract class Emojis {
 abstract class Utils {
   static const String mainScriptFile = 'main.ht';
 
+  static final String baseDir = path.dirname(Directory.current.path);
+
   static final String animeDir =
       path.join(Directory.current.path, 'modules/anime');
 
@@ -24,6 +26,10 @@ abstract class Utils {
 
   static final String summaryOutput =
       path.join(Directory.current.path, 'dist/summary/README.md');
+
+  static const String ghUserName = 'yukino-org';
+  static const String ghRepoName = 'official-tenka-modules';
+  static const String ghMainBranch = 'main';
 
   static TenkaLocalFileDS getAnimeDS(final String dir) => TenkaLocalFileDS(
         root: path.join(animeDir, '$dir/src'),
@@ -70,4 +76,7 @@ abstract class Utils {
       (final List<T> value, final List<T> x) => value..addAll(x),
     );
   }
+
+  static String get ghMainBranchURL =>
+      'https://github.com/$ghUserName/$ghRepoName/tree/$ghMainBranch';
 }
