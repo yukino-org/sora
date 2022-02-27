@@ -4,7 +4,7 @@
 
 # Official Tenka Modules
 
-⚡ Officially maintained Tenka modules.
+⚡ Officially maintained Tenka modules. Check module status [here](https://github.com/yukino-org/official-tenka-modules/tree/summary#readme).
 
 The developer of this application is not responsible for any content displayed and does not have any affiliation with any of the third-party sources in this repository. Use this at your own risk.
 
