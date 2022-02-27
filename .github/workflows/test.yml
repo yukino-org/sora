@@ -7,9 +7,10 @@ on:
 
 env:
     GIT_CONFIG_NAME: "[Automated] Yui"
-    GIT_CONFIG_EMAIL: yukino-org@hotmail.com
-    GIT_INPUT_DIR: dist/summary
+    GIT_CONFIG_EMAIL: yukino-org@users.noreply.github.com
+    GIT_OUTPUT_DIR: dist/summary
     GIT_OUTPUT_BRANCH: summary
+    GIT_COMMIT_MSG: "[automated] update summary (${{ github.sha }})"
 
 jobs:
     build:
@@ -27,7 +28,7 @@ jobs:
               run: dart run ./test/all.dart --ci
 
             - name: 🚀 Upload summary
-              working-directory: ${{ env.GIT_INPUT_DIR }}
+              working-directory: ${{ env.GIT_OUTPUT_DIR }}
               run: |
                   git init
                   git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
@@ -35,5 +36,5 @@ jobs:
                   git config --local user.email "${{ env.GIT_CONFIG_EMAIL }}"
                   git switch -c ${{ env.GIT_OUTPUT_BRANCH }}
                   git add .
-                  git commit --allow-empty -m "[automated] update summary"
+                  git commit --allow-empty -m "${{ env. GIT_COMMIT_MSG }}"
                   git push origin -u ${{ env.GIT_OUTPUT_BRANCH }} --force
