@@ -97,8 +97,8 @@ final extractor = AnimeExtractor(
             }
         );
     },
-    getSources: fun (episode) {
-        final url = $.getEpisodeApiURL(episode.url);
+    getSources: fun (_url, locale) {
+        final url = $.getEpisodeApiURL(_url);
 
         return AsyncTask.resolve(
             () => Http.fetch(

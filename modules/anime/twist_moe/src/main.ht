@@ -88,11 +88,12 @@ final extractor = AnimeExtractor(
             },
         );
     },
-    getSources: fun (episode) {
-        final slug = $.parseSlug(episode.url);
+    getSources: fun (url, locale) {
+        final slug = $.parseSlug(url);
+        final episode = Regex('\\d+$').firstMatch(url).group(0);
 
         if (_sourceCache[slug] != null) {
-            return _getSources(slug, episode.episode);
+            return _getSources(slug, episode);
         }
 
         return AsyncTask.resolve(
@@ -119,7 +120,7 @@ final extractor = AnimeExtractor(
                     };
                 });
 
-                return _getSources(slug, episode.episode);
+                return _getSources(slug, episode);
             }
         );
     },

@@ -87,8 +87,8 @@ final extractor = MangaExtractor(
             },
         );
     },
-    getChapter: fun (chapter) {
-        final id = chapter.url.replaceFirst('id:', '');
+    getChapter: fun (url, locale) {
+        final id = url.replaceFirst('id:', '');
 
         return AsyncTask.resolve(
             () => Http.fetch(
@@ -105,16 +105,16 @@ final extractor = MangaExtractor(
                     fun (i, x) {
                         return PageInfo(
                             url: $.getPageSourceURL(chapterURL, x),
-                            locale: chapter.locale,
+                            locale: locale,
                         );
                     }
                 );
             }
         );
     },
-    getPage: fun (page) {
+    getPage: fun (url, locale) {
         return ImageDescriber(
-            url: page.url,
+            url: url,
             headers: $.defaultHeaders,
         );
     },

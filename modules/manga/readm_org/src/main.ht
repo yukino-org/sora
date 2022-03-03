@@ -82,11 +82,13 @@ final extractor = MangaExtractor(
             }
         );
     },
-    getChapter: fun (chapter) {
+    getChapter: fun (_url, locale) {
+        final url = Http.ensureURL(_url);
+
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
-                url: Http.ensureURL(chapter.url),
+                url: Http.ensureURL(url),
                 headers: $.defaultHeaders,
             ),
             onDone: fun (resp) {
@@ -106,9 +108,9 @@ final extractor = MangaExtractor(
             }
         );
     },
-    getPage: fun (page) {
+    getPage: fun (url, locale) {
         return ImageDescriber(
-            url: page.url,
+            url: url,
             headers: $.defaultHeaders,
         );
     },

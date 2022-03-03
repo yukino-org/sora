@@ -74,8 +74,8 @@ final extractor = AnimeExtractor(
             },
         );
     },
-    getSources: fun(episode) {
-        final slug = $.parseSlug(episode.url);
+    getSources: fun(url, locale) {
+        final slug = $.parseSlug(url);
 
         return AsyncTask.resolve(
             () => _getInfo(slug),

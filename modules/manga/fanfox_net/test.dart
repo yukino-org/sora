@@ -15,19 +15,12 @@ final MockedMangaExtractor mocked = MockedMangaExtractor(
     locale,
   ),
   getChapter: (final MangaExtractor ext) => ext.getChapter(
-    const ChapterInfo(
-      chapter: '1',
-      url:
-          'https://fanfox.net/manga/seishun_buta_yarou_wa_bunny_girl_senpai_no_yume_o_minai/c001/1.html',
-      locale: locale,
-    ),
+    'https://fanfox.net/manga/seishun_buta_yarou_wa_bunny_girl_senpai_no_yume_o_minai/c001/1.html',
+    locale,
   ),
   getPage: (final MangaExtractor ext) => ext.getPage(
-    const PageInfo(
-      url:
-          'https://m.fanfox.net/manga/seishun_buta_yarou_wa_bunny_girl_senpai_no_yume_o_minai/c001/31.html',
-      locale: locale,
-    ),
+    'https://m.fanfox.net/manga/seishun_buta_yarou_wa_bunny_girl_senpai_no_yume_o_minai/c001/31.html',
+    locale,
   ),
 );
 

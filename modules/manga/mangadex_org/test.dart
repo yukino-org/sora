@@ -15,19 +15,12 @@ final MockedMangaExtractor mocked = MockedMangaExtractor(
     locale,
   ),
   getChapter: (final MangaExtractor ext) => ext.getChapter(
-    const ChapterInfo(
-      volume: '2',
-      chapter: '21',
-      url: 'id:21089a43-60f3-4b75-abaa-17596f321ba1',
-      locale: locale,
-    ),
+    'id:21089a43-60f3-4b75-abaa-17596f321ba1',
+    locale,
   ),
   getPage: (final MangaExtractor ext) => ext.getPage(
-    const PageInfo(
-      url:
-          'https://uploads.mangadex.org/data/c67bf16d31edf36be6b321b44b7dd41a/S19-2ca73f816c6ce0ed93b7e63126798856f970f58f6693eaf1a9458687732503a8.png',
-      locale: locale,
-    ),
+    'https://uploads.mangadex.org/data/c67bf16d31edf36be6b321b44b7dd41a/S19-2ca73f816c6ce0ed93b7e63126798856f970f58f6693eaf1a9458687732503a8.png',
+    locale,
   ),
 );
 

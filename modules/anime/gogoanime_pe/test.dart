@@ -12,12 +12,8 @@ final MockedAnimeExtractor mocked = MockedAnimeExtractor(
     locale,
   ),
   getSources: (final AnimeExtractor ext) => ext.getSources(
-    const EpisodeInfo(
-      episode: '1',
-      url:
-          'https://gogoanime.fi/seishun-buta-yarou-wa-bunny-girl-senpai-no-yume-wo-minai-episode-1',
-      locale: locale,
-    ),
+    'https://gogoanime.fi/seishun-buta-yarou-wa-bunny-girl-senpai-no-yume-wo-minai-episode-1',
+    locale,
   ),
 );
 

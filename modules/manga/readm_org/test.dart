@@ -15,17 +15,12 @@ final MockedMangaExtractor mocked = MockedMangaExtractor(
     locale,
   ),
   getChapter: (final MangaExtractor ext) => ext.getChapter(
-    const ChapterInfo(
-      chapter: '1',
-      url: 'https://readm.org/manga/16381/1/all-pages',
-      locale: locale,
-    ),
+    'https://readm.org/manga/16381/1/all-pages',
+    locale,
   ),
   getPage: (final MangaExtractor ext) => ext.getPage(
-    const PageInfo(
-      url: 'https://readm.org/uploads/chapter_files/16381/6/1.jpg',
-      locale: locale,
-    ),
+    'https://readm.org/uploads/chapter_files/16381/6/1.jpg',
+    locale,
   ),
 );
 

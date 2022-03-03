@@ -15,11 +15,8 @@ final MockedAnimeExtractor mocked = MockedAnimeExtractor(
     locale,
   ),
   getSources: (final AnimeExtractor ext) => ext.getSources(
-    const EpisodeInfo(
-      episode: '1',
-      url: 'https://tenshi.moe/anime/1kwzf88a/1',
-      locale: locale,
-    ),
+    'https://tenshi.moe/anime/1kwzf88a/1',
+    locale,
   ),
 );
 

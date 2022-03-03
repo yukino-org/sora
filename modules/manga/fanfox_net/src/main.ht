@@ -84,8 +84,8 @@ final extractor = MangaExtractor(
             }
         );
     },
-    getChapter: fun (chapter) {
-        final url = $.getMobileURL(chapter.url);
+    getChapter: fun (_url, locale) {
+        final url = $.getMobileURL(_url);
 
         return AsyncTask.resolve(
             () => Http.fetch(
@@ -106,8 +106,8 @@ final extractor = MangaExtractor(
             }
         );
     },
-    getPage: fun (page) {
-        final url = $.getMobileURL(page.url);
+    getPage: fun (_url, locale) {
+        final url = $.getMobileURL(_url);
 
         return AsyncTask.resolve(
             () => Http.fetch(

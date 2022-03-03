@@ -5,10 +5,9 @@ class GogoPlay {
     
     static final defaultHeaders = {
         'User-Agent': Http.defaultUserAgent,
-        'Referer': baseURL,
     };
 
-    static fun ajaxApiURL(id) {
+    static fun ajaxApiURL(baseURL, id) {
         return Http.ensureURL('${baseURL}/encrypt-ajax.php?id=${id}&time=00000000000000000000');
     }
 
@@ -17,13 +16,12 @@ class GogoPlay {
             if (url.contains(x)) return x;
         }
 
-        return null;
+        return 'unknown';
     }
 
-    // Source:
-    //  - https://github.com/saikou-app/saikou/blob/master/app/src/main/java/ani/saikou/anime/source/extractors/GogoCDN.kt
-    //  - https://github.com/justfoolingaround/animdl/blob/master/animdl/core/codebase/extractors/gogoplay/__init__.py
-    static fun parse(url) {
+    static fun parse(_url) {
+        final url = Http.ensureURL(_url);
+
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
@@ -31,54 +29,95 @@ class GogoPlay {
                 headers: defaultHeaders
             ),
             onDone: fun (resp) {
-                final document = HtmlElement.parse(resp.body);
+                if (url.contains('streaming')) {
+                    return parseStreaming(url, resp);
+                } else if (url.contains('embedplus')) {
+                    return parseEmbed(url, resp);
+                } else {
+                    return [];
+                }
+            }
+        );
+    }
 
-                final id = Regex('id=([^&]+)').firstMatch(url)?.group(1);
-                final encrypted = document.querySelector('script[data-name="crypto"]')?.attributes['data-value'];
-                final iv = document.querySelector('script[data-name="ts"]')?.attributes['data-value'];
-                if (id == null || encrypted == null || iv == null) return [];
+    // Source:
+    //  - https://github.com/justfoolingaround/animdl/blob/master/animdl/core/codebase/extractors/gogoplay/__init__.py
+    //  - https://github.com/saikou-app/saikou/blob/master/app/src/main/java/ani/saikou/anime/source/extractors/GogoCDN.kt
+    static fun parseStreaming(url, resp) {
+        final baseURL = getBaseURL(url);
+        final document = HtmlElement.parse(resp.body);
 
-                final secretKey = Crypto.aesDecrypt(
-                    encrypted: Converter.base64Decode(encrypted),
-                    key: Converter.utf8Encode('${iv}${iv}'),
-                    iv: Converter.utf8Encode(iv),
-                    aesMode: 'cbc',
-                );
+        final id = Regex('id=([^&]+)').firstMatch(url)?.group(1);
+        final encrypted = document.querySelector('script[data-name="crypto"]')?.attributes['data-value'];
+        if (id == null || encrypted == null) return [];
 
-                final encryptedId = Crypto.aesEncrypt(
-                    input: Converter.utf8Encode(id),
-                    key: secretKey,
-                    iv: Converter.utf8Encode('0000000000000000'),
-                    aesMode: 'cbc',
-                );
+        final key = '25716538522938396164662278833288';
+        final iv = '1285672985238393';
+        final secretKey = Crypto.aesDecrypt(
+            encrypted: Converter.base64Decode(encrypted),
+            key: Converter.utf8Encode(key),
+            iv: Converter.utf8Encode(iv),
+            aesMode: 'cbc',
+        );
 
-                return AsyncTask.resolve(
-                    () => Http.fetch(
-                        method: 'get',
-                        url: ajaxApiURL(Converter.base64Encode(encryptedId)),
-                        headers: Collection.mergeMap(defaultHeaders, {
-                            'X-Requested-With': 'XMLHttpRequest',
-                        }),
-                    ),
-                    onDone: fun (resp) {
-                        final parsed = Converter.jsonDecode(resp.body);
+        final encryptedId = Crypto.aesEncrypt(
+            input: Converter.utf8Encode(Converter.utf8Decode(secretKey).split('&').first),
+            key: Converter.utf8Encode(key),
+            iv: Converter.utf8Encode(iv),
+            aesMode: 'cbc',
+        );
 
-                        return Collection.mapList(
-                            Collection.filterList(parsed['source'], (i, x) => x['type'] == 'mp4'),
-                            fun (i, x) {
-                                final srcURL = Http.ensureURL(x['file']);
-                                
-                                return EpisodeSource(
-                                    url: srcURL,
-                                    headers: defaultHeaders,
-                                    quality: tryGetQuality(srcURL) ?? 'unknown',
-                                    locale: $.defaultLocale,
-                                );
-                            },
+        print(ajaxApiURL(baseURL, Converter.base64Encode(encryptedId)));
+        return AsyncTask.resolve(
+            () => Http.fetch(
+                method: 'get',
+                url: ajaxApiURL(baseURL, Converter.base64Encode(encryptedId)),
+                headers: Collection.mergeMap(defaultHeaders, {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }),
+            ),
+            onDone: fun (resp) {
+                final parsed = Converter.jsonDecode(resp.body);
+
+                return Collection.mapList(
+                    Collection.filterList(parsed['source'], (i, x) => x['type'] == 'mp4'),
+                    fun (i, x) {
+                        final srcURL = Http.ensureURL(x['file']);
+                        
+                        return EpisodeSource(
+                            url: srcURL,
+                            headers: defaultHeaders,
+                            quality: tryGetQuality(srcURL),
+                            locale: $.defaultLocale,
                         );
                     },
                 );
-            }
+            },
         );
+    }
+
+    static fun parseEmbed(url, resp) {
+        return Collection.mapList(
+            Regex('file:\\s+[\'"]([^\'"]+)[\'"]').allMatches(resp.body) ?? [],
+            fun (i, x) {
+                final srcURL = Http.ensureURL(x.group(1));
+                
+                return EpisodeSource(
+                    url: srcURL,
+                    headers: defaultHeaders,
+                    quality: tryGetQuality(srcURL),
+                    locale: $.defaultLocale,
+                );
+            },
+        );
+    }
+
+    static final _customPadder = '\x08\x0e\x03\x08\t\x03\x04\t';
+    static fun pad(data) {
+        return '${data}${_customPadder.substring(_customPadder.length - data.length % 16, _customPadder.length)}';
+    }
+
+    static fun getBaseURL(url) {
+        return Regex('https?:\\/\\/[^/]+').firstMatch(url).group(0);
     }
 }
