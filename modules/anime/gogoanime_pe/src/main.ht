@@ -108,35 +108,34 @@ final extractor = AnimeExtractor(
         final url = Http.ensureURL(_url);
 
         return AsyncTask.resolve(
-            () => getSite(url),
-            onDone: fun (_) {
-                return AsyncTask.resolve(
-                    () => webview.getHtml(),
-                    onDone: fun (html) {
-                        if (html == null) throw 'No html was received';
+            () => Http.fetch(
+                method: 'get',
+                url: url,
+                headers: $.defaultHeaders,
+            ),
+            onDone: fun (resp) {
+                final document = HtmlElement.parse(resp.body);
 
-                        return AsyncTask.resolveAll(
-                            Collection.filterList(
-                                Collection.mapList(
-                                    HtmlElement.parse(html).querySelectorAll('.anime_muti_link ul > li'),
-                                    fun (i, x) {
-                                        final link = x.querySelector('a').attributes['data-video'];
+                return AsyncTask.resolveAll(
+                    Collection.filterList(
+                        Collection.mapList(
+                            document.querySelectorAll('.anime_muti_link ul > li'),
+                            fun (i, x) {
+                                final link = x.querySelector('a').attributes['data-video'];
 
-                                        if (link != null) {
-                                            if (x.classes.contains('anime') || x.classes.contains('vidcdn')) {
-                                                return () => GogoPlay.parse(link);
-                                            }
-                                        }
-
-                                        return null;
+                                if (link != null) {
+                                    if (x.classes.contains('anime') || x.classes.contains('vidcdn')) {
+                                        return () => GogoPlay.parse(link);
                                     }
-                                ),
-                                (i, x) => x != null,
-                            ),
-                            onDone: fun (res) {
-                                return Collection.flattenList(res, 1);
+                                }
+
+                                return null;
                             }
-                        );
+                        ),
+                        (i, x) => x != null,
+                    ),
+                    onDone: fun (res) {
+                        return Collection.flattenList(res, 1);
                     }
                 );
             }

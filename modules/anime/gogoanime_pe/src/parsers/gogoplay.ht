@@ -7,6 +7,12 @@ class GogoPlay {
         'User-Agent': Http.defaultUserAgent,
     };
 
+    static final cKey = Converter.utf8Encode('25716538522938396164662278833288');
+    static final cIv = Converter.utf8Encode('1285672985238393');
+    static final cMode = 'cbc';
+    static final cPadding = 'none';
+    static final cCustomPadding = Converter.base64Decode('CA4DCAkDBAk=');
+
     static fun ajaxApiURL(baseURL, id) {
         return Http.ensureURL('${baseURL}/encrypt-ajax.php?id=${id}&time=00000000000000000000');
     }
@@ -40,7 +46,7 @@ class GogoPlay {
         );
     }
 
-    // Source:
+    // Source: (The credit goes to them)
     //  - https://github.com/justfoolingaround/animdl/blob/master/animdl/core/codebase/extractors/gogoplay/__init__.py
     //  - https://github.com/saikou-app/saikou/blob/master/app/src/main/java/ani/saikou/anime/source/extractors/GogoCDN.kt
     static fun parseStreaming(url, resp) {
@@ -51,23 +57,9 @@ class GogoPlay {
         final encrypted = document.querySelector('script[data-name="crypto"]')?.attributes['data-value'];
         if (id == null || encrypted == null) return [];
 
-        final key = '25716538522938396164662278833288';
-        final iv = '1285672985238393';
-        final secretKey = Crypto.aesDecrypt(
-            encrypted: Converter.base64Decode(encrypted),
-            key: Converter.utf8Encode(key),
-            iv: Converter.utf8Encode(iv),
-            aesMode: 'cbc',
-        );
+        final secretKey = cDecrypt(Converter.base64Decode(encrypted));
+        final encryptedId = cEncrypt(Converter.utf8Encode(Converter.utf8Decode(secretKey).split('&').first));
 
-        final encryptedId = Crypto.aesEncrypt(
-            input: Converter.utf8Encode(Converter.utf8Decode(secretKey).split('&').first),
-            key: Converter.utf8Encode(key),
-            iv: Converter.utf8Encode(iv),
-            aesMode: 'cbc',
-        );
-
-        print(ajaxApiURL(baseURL, Converter.base64Encode(encryptedId)));
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
@@ -77,13 +69,21 @@ class GogoPlay {
                 }),
             ),
             onDone: fun (resp) {
-                final parsed = Converter.jsonDecode(resp.body);
+                final rawParsed = Converter.jsonDecode(resp.body);
+                final dData = Converter.utf8Decode(
+                    cDecrypt(
+                        Converter.base64Decode(rawParsed['data'])
+                    )
+                ).replaceFirst('o"<P{#meme":', 'e":[{"file":');
+                final parsed = Converter.jsonDecode(
+                    Regex('([\\S\\s]+})[^}]+$').firstMatch(dData).group(1)
+                );
 
                 return Collection.mapList(
-                    Collection.filterList(parsed['source'], (i, x) => x['type'] == 'mp4'),
+                    Collection.mergeList(parsed['source'], parsed['source_bk']),
                     fun (i, x) {
                         final srcURL = Http.ensureURL(x['file']);
-                        
+
                         return EpisodeSource(
                             url: srcURL,
                             headers: defaultHeaders,
@@ -112,12 +112,27 @@ class GogoPlay {
         );
     }
 
-    static final _customPadder = '\x08\x0e\x03\x08\t\x03\x04\t';
-    static fun pad(data) {
-        return '${data}${_customPadder.substring(_customPadder.length - data.length % 16, _customPadder.length)}';
-    }
-
     static fun getBaseURL(url) {
         return Regex('https?:\\/\\/[^/]+').firstMatch(url).group(0);
+    }
+
+    static fun cDecrypt(data) {
+        return Crypto.aesDecrypt(
+            encrypted: data,
+            key: cKey,
+            iv: cIv,
+            mode: cMode,
+            padding: cPadding,
+        );
+    }
+
+    static fun cEncrypt(data) {
+        return Crypto.aesEncrypt(
+            input: data.add(cCustomPadding),
+            key: cKey,
+            iv: cIv,
+            mode: cMode,
+            padding: cPadding,
+        );
     }
 }
