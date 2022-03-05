@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 import 'package:tenka/tenka.dart';
 import 'package:tenka_dev_tools/tenka_dev_tools.dart';
-import 'package:utilx/utilities/utils.dart';
+import 'package:utilx/utils.dart';
 import '../tools/utils.dart';
 import 'files.dart';
 

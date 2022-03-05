@@ -1,6 +1,6 @@
 import 'package:tenka/tenka.dart';
 import 'package:tenka_dev_tools/tenka_dev_tools.dart';
-import 'package:utilx/utilities/locale.dart';
+import 'package:utilx/locale.dart';
 import '../../../tools/utils.dart';
 
 const Locale locale = Locale(LanguageCodes.en);

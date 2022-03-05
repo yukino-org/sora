@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:tenka/tenka.dart';
-import 'package:utilx/utilities/utils.dart';
+import 'package:utilx/utils.dart';
 
 export 'procedure.dart';
 
