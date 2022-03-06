@@ -1,0 +1,72 @@
+class $WebviewFetcher {
+    var _webview;
+
+    fun getInstance() {
+        if (_webview != null && !_webview.disposed) {
+            return _webview;
+        }
+
+        return AsyncTask.resolve(
+            () => Webview.create(),
+            onDone: fun (res) {
+                _webview = res;
+                return _webview;
+            }
+        );
+    }
+
+    fun load(url, [waitUntil = 'domContentLoaded']) {
+        return AsyncTask.resolve(
+            () => getInstance(),
+            onDone: fun (webview) {
+                return AsyncTask.resolve(
+                    () => webview.open(url, waitUntil),
+                    onDone: fun (_) {
+                        return AsyncTask.resolve(
+                            () => webview.tryBypassCloudfareBrowserVerification(),
+                            onDone: fun (bypassed) {
+                                if (!bypassed) throw 'Failed to bypass cloudflare';
+
+                                return webview;
+                            }
+                        );
+                    }
+                );
+            }
+        );
+    }
+
+    fun getBody(url, [waitUntil = 'domContentLoaded']) {
+        return AsyncTask.resolve(
+            () => load(url, waitUntil),
+            onDone: fun (webview) {
+                return AsyncTask.resolve(
+                    () => webview.getHtml(),
+                    onDone: (html) => html,
+                );
+            }
+        );
+    }
+}
+
+class $HttpFetcher {
+    fun request({ method, url, headers }) {
+        return AsyncTask.resolve(
+            () => Http.fetch(
+                method: method,
+                url: url,
+                headers: headers,
+            ),
+            onDone: fun (resp) {
+                return resp;
+            },
+        );
+    }
+
+    fun getBody({ method, url, headers }) {
+        return AsyncTask.resolve(
+            () => request(method: method, url: url, headers: headers),
+            onDone: (resp) => resp.body,
+        );
+    }
+}

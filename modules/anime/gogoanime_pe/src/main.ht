@@ -1,6 +1,8 @@
 import 'parsers/gogoplay.ht';
 import 'utils.ht';
-import 'webview.ht';
+import '../../../shared/utils.ht';
+
+final fetcher = $HttpFetcher();
 
 final extractor = AnimeExtractor(
     defaultLocale: $.defaultLocale,
@@ -8,34 +10,31 @@ final extractor = AnimeExtractor(
         final url = $.getSearchURL(terms);
 
         return AsyncTask.resolve(
-            () => getSite(url),
-            onDone: fun (_) {
-                return AsyncTask.resolve(
-                    () => webview.getHtml(),
-                    onDone: fun (html) {
-                        if (html == null) throw 'No html was received';
+            () => fetcher.getBody(
+                method: 'get',
+                url: url,
+                headers: $.defaultHeaders,
+            ),
+            onDone: fun (html) {
+                final document = HtmlElement.parse(html);
 
-                        final document = HtmlElement.parse(html);
+                return Collection.mapList(
+                    document.querySelectorAll('.items li'),
+                    fun (i, x) {
+                        final titleElement = x.querySelector('.name a');
+                        final url = titleElement.attributes['href'].trim();
+                        final thumbnail = x.querySelector('.img img').attributes['src'].trim();
 
-                        return Collection.mapList(
-                            document.querySelectorAll('.items li'),
-                            fun (i, x) {
-                                final titleElement = x.querySelector('.name a');
-                                final url = titleElement.attributes['href'].trim();
-                                final thumbnail = x.querySelector('.img img').attributes['src'].trim();
-
-                                return SearchInfo(
-                                    title: titleElement.text.trim(),
-                                    url: $.appendBaseURL(url),
-                                    thumbnail: ImageDescriber(
-                                        url: Http.ensureURL(thumbnail),
-                                        headers: $.defaultHeaders,
-                                    ),
-                                    locale: $.defaultLocale,
-                                );
-                            }
+                        return SearchInfo(
+                            title: titleElement.text.trim(),
+                            url: $.appendBaseURL(url),
+                            thumbnail: ImageDescriber(
+                                url: Http.ensureURL(thumbnail),
+                                headers: $.defaultHeaders,
+                            ),
+                            locale: $.defaultLocale,
                         );
-                    },
+                    }
                 );
             }
         );
@@ -44,60 +43,55 @@ final extractor = AnimeExtractor(
         final url = Http.ensureURL(_url);
 
         return AsyncTask.resolve(
-            () => getSite(url),
-            onDone: fun (_) {
+            () => fetcher.getBody(
+                method: 'get',
+                url: url,
+                headers: $.defaultHeaders,
+            ),
+            onDone: fun (html) {
+                final document = HtmlElement.parse(html);
+
+                final epPagesElement = document.querySelectorAll('#episode_page a');
+                final epURL = $.getEpisodeApiURL(
+                    document.querySelector('input#movie_id').attributes['value'].trim(),
+                    epPagesElement.first.attributes['ep_start'].trim(),
+                    epPagesElement.last.attributes['ep_end'].trim(),
+                );
+
                 return AsyncTask.resolve(
-                    () => webview.getHtml(),
-                    onDone: fun (html) {
-                        if (html == null) throw 'No html was received';
-
-                        final document = HtmlElement.parse(html);
-
-                        final epPagesElement = document.querySelectorAll('#episode_page a');
-                        final epURL = $.getEpisodeApiURL(
-                            document.querySelector('input#movie_id').attributes['value'].trim(),
-                            epPagesElement.first.attributes['ep_start'].trim(),
-                            epPagesElement.last.attributes['ep_end'].trim(),
-                        );
-
-                        return AsyncTask.resolve(
-                            () => getSite(epURL),
-                            onDone: fun (_) {
-                                return AsyncTask.resolve(
-                                    () => webview.getHtml(),
-                                    onDone: fun (epHtml) {
-                                        if (epHtml == null) throw 'No html was received';
-
-                                        final episodes = Collection.mapList(
-                                            HtmlElement.parse(epHtml).querySelectorAll('#episode_related a'),
-                                            fun (i, x) {
-                                                final episode = x.querySelector('.name').text.replaceFirst('EP', '').trim();
-                                                final url = x.attributes['href'].trim();
-                                                
-                                                return EpisodeInfo(
-                                                    episode: episode,
-                                                    url: $.appendBaseURL(url),
-                                                    locale: $.defaultLocale,
-                                                );
-                                            }
-                                        );
-
-                                        return AnimeInfo(
-                                            title: document.querySelector('.anime_info_body_bg h1').text.trim(),
-                                            url: Http.ensureURL(url),
-                                            thumbnail: ImageDescriber(
-                                                url: Http.ensureURL(document.querySelector('.anime_info_body_bg img').attributes['src'].trim()),
-                                                headers: $.defaultHeaders,
-                                            ),
-                                            episodes: episodes,
-                                            locale: $.defaultLocale,
-                                            availableLocales: [
-                                                $.defaultLocale,
-                                            ]
-                                        );
-                                    }
+                    () => fetcher.getBody(
+                        method: 'get',
+                        url: epURL,
+                        headers: $.defaultHeaders,
+                    ),
+                    onDone: fun (epHtml) {
+                        final epDocument = HtmlElement.parse(epHtml);
+                        final episodes = Collection.mapList(
+                            epDocument.querySelectorAll('#episode_related a'),
+                            fun (i, x) {
+                                final episode = x.querySelector('.name').text.replaceFirst('EP', '').trim();
+                                final url = x.attributes['href'].trim();
+                                
+                                return EpisodeInfo(
+                                    episode: episode,
+                                    url: $.appendBaseURL(url),
+                                    locale: $.defaultLocale,
                                 );
                             }
+                        );
+
+                        return AnimeInfo(
+                            title: document.querySelector('.anime_info_body_bg h1').text.trim(),
+                            url: Http.ensureURL(url),
+                            thumbnail: ImageDescriber(
+                                url: Http.ensureURL(document.querySelector('.anime_info_body_bg img').attributes['src'].trim()),
+                                headers: $.defaultHeaders,
+                            ),
+                            episodes: episodes,
+                            locale: $.defaultLocale,
+                            availableLocales: [
+                                $.defaultLocale,
+                            ]
                         );
                     }
                 );
@@ -108,13 +102,13 @@ final extractor = AnimeExtractor(
         final url = Http.ensureURL(_url);
 
         return AsyncTask.resolve(
-            () => Http.fetch(
+            () => fetcher.getBody(
                 method: 'get',
                 url: url,
                 headers: $.defaultHeaders,
             ),
-            onDone: fun (resp) {
-                final document = HtmlElement.parse(resp.body);
+            onDone: fun (html) {
+                final document = HtmlElement.parse(html);
 
                 return AsyncTask.resolveAll(
                     Collection.filterList(
