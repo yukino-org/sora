@@ -1,7 +1,8 @@
 import 'utils.ht';
 import '../../../shared/utils.ht';
 
-final fetcher = $HttpFetcher();
+final fetcher = $WebviewFetcher();
+final fBypasser = $WebviewFetcher.tryBypassDDOSGuardBrowserVerification;
 
 final extractor = AnimeExtractor(
     defaultLocale: $.defaultLocale,
@@ -10,9 +11,8 @@ final extractor = AnimeExtractor(
 
         return AsyncTask.resolve(
             () => fetcher.getBody(
-                method: 'get',
                 url: url,
-                headers: $.defaultHeaders,
+                bypasser: fBypasser,
             ),
             onDone: fun (html) {
                 final document = HtmlElement.parse(html);
@@ -39,9 +39,8 @@ final extractor = AnimeExtractor(
 
         return AsyncTask.resolve(
             () => fetcher.getBody(
-                method: 'get',
                 url: url,
-                headers: $.defaultHeaders,
+                bypasser: fBypasser,
             ),
             onDone: fun (html) {
                 final document = HtmlElement.parse(html);
@@ -83,9 +82,8 @@ final extractor = AnimeExtractor(
 
         return AsyncTask.resolve(
             () => fetcher.getBody(
-                method: 'get',
                 url: url,
-                headers: $.defaultHeaders,
+                bypasser: fBypasser,
             ),
             onDone: fun (html) {
                 final iframeURL = Regex('<iframe src="([^"]+)"').firstMatch(html).group(1);

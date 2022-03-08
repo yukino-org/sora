@@ -15,19 +15,27 @@ class $WebviewFetcher {
         );
     }
 
-    fun load(url, [waitUntil = 'domContentLoaded']) {
+    fun _defaultBypassBrowser(html) {
+        return false;
+    }
+
+    fun load({
+        url,
+        waitUntil = 'domContentLoaded',
+        bypasser = _defaultBypassBrowser,
+    }) {
         return AsyncTask.resolve(
             () => getInstance(),
-            onDone: fun (webview) {
+            onDone: fun (_) {
                 return AsyncTask.resolve(
-                    () => webview.open(url, waitUntil),
+                    () => _webview.open(url, waitUntil),
                     onDone: fun (_) {
                         return AsyncTask.resolve(
-                            () => webview.tryBypassCloudfareBrowserVerification(),
+                            () => _webview.tryBypassBrowserVerification(bypasser),
                             onDone: fun (bypassed) {
-                                if (!bypassed) throw 'Failed to bypass cloudflare';
+                                if (!bypassed) throw 'Failed to bypass checks';
 
-                                return webview;
+                                return _webview;
                             }
                         );
                     }
@@ -36,16 +44,28 @@ class $WebviewFetcher {
         );
     }
 
-    fun getBody(url, [waitUntil = 'domContentLoaded']) {
+    fun getBody({
+        url,
+        waitUntil = 'domContentLoaded',
+        bypasser = _defaultBypassBrowser,
+    }) {
         return AsyncTask.resolve(
-            () => load(url, waitUntil),
-            onDone: fun (webview) {
+            () => load(
+                url: url,
+                waitUntil: waitUntil,
+                bypasser: bypasser,
+            ),
+            onDone: fun (_) {
                 return AsyncTask.resolve(
-                    () => webview.getHtml(),
+                    () => _webview.getHtml(),
                     onDone: (html) => html,
                 );
             }
         );
+    }
+
+    static fun tryBypassDDOSGuardBrowserVerification(html) {
+        return html.contains('href="https://ddos-guard.net"');
     }
 }
 
