@@ -28,6 +28,7 @@ jobs:
               run: dart run ./test/all.dart --ci
 
             - name: 🚀 Upload summary
+              if: always()
               working-directory: ${{ env.GIT_OUTPUT_DIR }}
               run: |
                   git init
