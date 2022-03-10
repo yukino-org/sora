@@ -9,7 +9,7 @@
 The developer of this application is not responsible for any content displayed and does not have any affiliation with any of the third-party sources in this repository. Use this at your own risk.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL_v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Test](https://github.com/yukino-org/official-tenka-modules/actions/workflows/test.yml/badge.svg)](https://github.com/yukino-org/official-tenka-modules/actions/workflows/test.yml)
+[![Tests](https://github.com/yukino-org/official-tenka-modules/actions/workflows/tests.yml/badge.svg)](https://github.com/yukino-org/official-tenka-modules/actions/workflows/tests.yml)
 
 ## Anime
 
