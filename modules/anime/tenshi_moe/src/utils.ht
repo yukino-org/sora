@@ -37,7 +37,6 @@ class $CWebviewFetcher extends $WebviewFetcher {
                 headers: headers,
             ),
             onFail: (err) {
-                print('error: ${err}');
                 if (!err.contains('navigation')) {
                     throw err;
                 }
