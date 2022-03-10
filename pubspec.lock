@@ -7,7 +7,7 @@ packages:
       name: archive
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.2.1"
+    version: "3.2.2"
   args:
     dependency: transitive
     description:
@@ -56,7 +56,7 @@ packages:
       name: collection
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.15.0"
+    version: "1.16.0"
   colorize:
     dependency: transitive
     description:
@@ -212,7 +212,7 @@ packages:
       name: pointycastle
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.5.1"
+    version: "3.5.2"
   pool:
     dependency: transitive
     description:
@@ -226,16 +226,16 @@ packages:
       name: pub_semver
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.0"
+    version: "2.1.1"
   puppeteer:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: fbf0746f1f460dae272c9817f9023c6c2040db07
+      resolved-ref: "4558fa749d568e26dbe8fa58f921223f426299f4"
       url: "git://github.com/xvrh/puppeteer-dart.git"
     source: git
-    version: "2.6.0"
+    version: "2.7.0"
   quiver:
     dependency: transitive
     description:
@@ -276,7 +276,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka
-      resolved-ref: f508a2549fef29b3e0b82ad22fa3291530827a90
+      resolved-ref: "2d3554ecdc63eee0189a518c8834caa58082cf18"
       url: "git://github.com/yukino-org/packages.git"
     source: git
     version: "1.0.5"
@@ -294,7 +294,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka_runtime
-      resolved-ref: defd641706c052015b706a848f5cfe80141e01d5
+      resolved-ref: b00914f5fb55721be97da11e983e47fac608b34d
       url: "git://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
@@ -326,7 +326,7 @@ packages:
     description:
       path: "."
       ref: dart_utilx_desktop
-      resolved-ref: f169907eb28c3b06e40451af86a74bdb86c8e2e1
+      resolved-ref: "96271929c04ee139e08eed77e5d9549101a810fe"
       url: "git://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"

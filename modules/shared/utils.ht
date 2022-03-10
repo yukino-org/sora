@@ -23,16 +23,23 @@ class $WebviewFetcher {
         url,
         waitUntil = 'domContentLoaded',
         bypasser = _defaultBypassBrowser,
+        headers = {}
     }) {
         return AsyncTask.resolve(
             () => getInstance(),
             onDone: fun (_) {
+                _webview.addExtraHeaders(headers);
                 return AsyncTask.resolve(
                     () => _webview.open(url, waitUntil),
                     onDone: fun (_) {
                         return AsyncTask.resolve(
                             () => _webview.tryBypassBrowserVerification(bypasser),
                             onDone: fun (bypassed) {
+                                for (var key in headers.keys) {
+                                    headers[key] =  null;
+                                }
+                                _webview.addExtraHeaders(headers);
+
                                 if (!bypassed) throw 'Failed to bypass checks';
 
                                 return _webview;

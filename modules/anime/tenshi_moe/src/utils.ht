@@ -1,3 +1,7 @@
+import '../../../shared/utils.ht';
+
+final fetcher = $WebviewFetcher();
+
 class $ {
     static const baseURL = 'https://tenshi.moe';
 
@@ -11,4 +15,45 @@ class $ {
     static fun getSearchURL(terms) {
         return Http.ensureURL('${baseURL}/anime?q=${terms}');
     }
+}
+
+class $CWebviewFetcher extends $WebviewFetcher {
+    final _bypasser = $WebviewFetcher.tryBypassDDOSGuardBrowserVerification;
+
+    fun load({
+        url,
+        waitUntil = 'domContentLoaded',
+        headers = {},
+        tries = 0,
+    }) {
+        if (tries > _maxTries) throw 'Failed to navigate to site';
+        tries++;
+
+        return runAsZoned(
+            () => super.load(
+                url: url,
+                waitUntil: waitUntil,
+                bypasser: _bypasser,
+                headers: headers,
+            ),
+            onFail: (err) {
+                print('error: ${err}');
+                if (!err.contains('navigation')) {
+                    throw err;
+                }
+
+                return AsyncTask.wait(
+                    Duration(seconds: 5),
+                    () => load(
+                        url: url,
+                        waitUntil: waitUntil,
+                        headers: headers,
+                        tries: tries,
+                    )
+                );
+            }
+        );
+    }
+
+    static const _maxTries = 2;
 }
