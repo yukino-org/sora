@@ -66,7 +66,7 @@ class TestAll {
       }
     }
 
-    exitCode = passed == 0 ? 0 : 1;
+    exitCode = failed == 0 ? 0 : 1;
 
     final File summaryFile = File(Utils.summaryOutput);
     await FSUtils.ensureFile(summaryFile);
