@@ -1,0 +1,87 @@
+import '../http.ht';
+
+class $DDOSGuardFetcher extends $HttpFetcher {
+    var ddg1;
+    var ddg2;
+    var xrsfToken;
+
+    fun getInitialCookie({ origin, headers }) {
+        return AsyncTask.resolve(
+            () => Http.fetch(
+                method: 'get',
+                url: checkJsURL,
+                headers: Collection.mergeMap(headers, {
+                    'Referer': '${origin}/',
+                }),
+            ),
+            onDone: fun (resp) {
+                processCookieFromResponse(resp);
+            },
+        );
+    }
+
+    fun request({ method, url, headers, tries = 0 }) {
+        if (tries > _maxTries) throw 'Failed to bypass DDOS guard';
+
+        return AsyncTask.resolve(
+            () => Http.fetch(
+                method: method,
+                url: url,
+                headers: Collection.mergeMap(headers, {
+                    'cookie': cookie,
+                }),
+            ),
+            onDone: fun (resp) {
+                if (resp.statusCode == 403) {
+                    return AsyncTask.resolve(
+                        () => getInitialCookie(
+                            origin: Http.getDomainFromURL(url),
+                            headers: headers,
+                        ),
+                        onDone: (_) {
+                            return request(
+                                method: method,
+                                url: url,
+                                headers: headers,
+                                tries: tries + 1,
+                            );
+                        }
+                    );
+                }
+
+                processCookieFromResponse(resp);
+                return resp;
+            },
+        );
+    }
+
+    fun processCookieFromResponse(resp) {
+        if (resp.headers['set-cookie'] != null) {
+            processCookie(resp.headers['set-cookie']);
+        }
+    }
+
+    fun processCookie(cookie) {
+        final match = Regex('[^;]+').firstMatch(cookie)?.group(0);
+        if (match == null) return;
+
+        if (match.startsWith('__ddg1=')) ddg1 = match;
+        if (match.startsWith('__ddg2=')) ddg2 = match;
+        if (match.startsWith('XSRF-TOKEN=')) xrsfToken = match;
+    }
+
+    get cookie {
+        final cookies = [];
+
+        if (ddg1 != null) cookies.add(ddg1);
+        if (ddg2 != null) cookies.add(ddg2);
+        if (xrsfToken != null) cookies.add(xrsfToken);
+
+        return cookies.join(';');
+    }
+
+    static const baseURL = 'https://check.ddos-guard.net';
+    static final checkJsURL = '${baseURL}/check.js';
+
+    static const _maxTries = 2;
+}

@@ -1,0 +1,21 @@
+class $HttpFetcher {
+    fun request({ method, url, headers }) {
+        return AsyncTask.resolve(
+            () => Http.fetch(
+                method: method,
+                url: url,
+                headers: headers,
+            ),
+            onDone: fun (resp) {
+                return resp;
+            },
+        );
+    }
+
+    fun getBody({ method, url, headers }) {
+        return AsyncTask.resolve(
+            () => request(method: method, url: url, headers: headers),
+            onDone: (resp) => resp.body,
+        );
+    }
+}
