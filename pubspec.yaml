@@ -11,20 +11,20 @@ dependencies:
     path: ^1.8.0
     tenka:
         git:
-            url: git://github.com/yukino-org/packages.git
+            url: https://github.com/yukino-org/packages.git
             ref: dart_tenka
     tenka_dev_tools:
         git:
-            url: git://github.com/yukino-org/packages.git
+            url: https://github.com/yukino-org/packages.git
             ref: dart_tenka_dev_tools
     utilx:
         git:
-            url: git://github.com/yukino-org/packages.git
+            url: https://github.com/yukino-org/packages.git
             ref: dart_utilx
 
 dev_dependencies:
     devx:
         git:
-            url: git://github.com/yukino-org/packages.git
+            url: https://github.com/yukino-org/packages.git
             ref: dart_devx
     intl: ^0.17.0
