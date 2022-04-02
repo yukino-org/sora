@@ -1,9 +1,7 @@
 import '../http.ht';
 
 class $DDOSGuardFetcher extends $HttpFetcher {
-    var ddg1;
-    var ddg2;
-    var xrsfToken;
+    final tokens = {};
 
     fun getInitialCookie({ origin, headers }) {
         return AsyncTask.resolve(
@@ -62,22 +60,20 @@ class $DDOSGuardFetcher extends $HttpFetcher {
     }
 
     fun processCookie(cookie) {
-        final match = Regex('[^;]+').firstMatch(cookie)?.group(0);
+        final match = Regex('([^=]+)=([^;]+)').firstMatch(cookie);
         if (match == null) return;
 
-        if (match.startsWith('__ddg1=')) ddg1 = match;
-        if (match.startsWith('__ddg2=')) ddg2 = match;
-        if (match.startsWith('XSRF-TOKEN=')) xrsfToken = match;
+        final key = match.group(1);
+        final value = match.group(2);
+        if (key.startsWith('__dd') || key == 'XSRF-TOKEN') {
+            tokens[key] = value;
+        }
     }
 
     get cookie {
-        final cookies = [];
-
-        if (ddg1 != null) cookies.add(ddg1);
-        if (ddg2 != null) cookies.add(ddg2);
-        if (xrsfToken != null) cookies.add(xrsfToken);
-
-        return cookies.join(';');
+        return Collection
+            .mapList(tokens.keys, (i, x) => '${x}=${tokens[x]}')
+            .join(';');
     }
 
     static const baseURL = 'https://check.ddos-guard.net';

@@ -1,20 +1,20 @@
 import '../utils.ht';
 
 class GogoPlay {
-    static const baseURL = 'https://gogoplay.io';
+    static const baseURL = 'https://gogoplay4.com';
     
     static final defaultHeaders = {
         'User-Agent': Http.defaultUserAgent,
     };
 
-    static final cKey = Converter.utf8Encode('25716538522938396164662278833288');
-    static final cIv = Converter.utf8Encode('1285672985238393');
+    static final cKey = Converter.utf8Encode('63976882873559819639988080820907');
+    static final cIv = Converter.utf8Encode('4770478969418267');
     static final cMode = 'cbc';
     static final cPadding = 'none';
-    static final cCustomPadding = Converter.base64Decode('CA4DCAkDBAk=');
+    static final cCustomPadding = BytesContainer.fromList([8, 8, 8, 8, 8, 8, 8, 8]);
 
     static fun ajaxApiURL(baseURL, id) {
-        return Http.ensureURL('${baseURL}/encrypt-ajax.php?id=${id}&time=00000000000000000000');
+        return Http.ensureURL('${baseURL}/encrypt-ajax.php?id=${id}');
     }
 
     static fun tryGetQuality(url) {
@@ -54,7 +54,7 @@ class GogoPlay {
         final document = HtmlElement.parse(resp.body);
 
         final id = Regex('id=([^&]+)').firstMatch(url)?.group(1);
-        final encrypted = document.querySelector('script[data-name="crypto"]')?.attributes['data-value'];
+        final encrypted = document.querySelector('script[data-name="episode"]')?.attributes['data-value'];
         if (id == null || encrypted == null) return [];
 
         final secretKey = cDecrypt(Converter.base64Decode(encrypted));
