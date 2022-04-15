@@ -1,22 +1,22 @@
 import '../http.ht';
 
 class $DDOSGuardFetcher extends $HttpFetcher {
-    final tokens = {};
+    // final tokens = {};
 
-    fun getInitialCookie({ origin, headers }) {
-        return AsyncTask.resolve(
-            () => Http.fetch(
-                method: 'get',
-                url: checkJsURL,
-                headers: Collection.mergeMap(headers, {
-                    'Referer': '${origin}/',
-                }),
-            ),
-            onDone: fun (resp) {
-                processCookieFromResponse(resp);
-            },
-        );
-    }
+    // fun getInitialCookie({ origin, headers }) {
+    //     return AsyncTask.resolve(
+    //         () => Http.fetch(
+    //             method: 'get',
+    //             url: checkJsURL,
+    //             headers: Collection.mergeMap(headers, {
+    //                 'Referer': origin,
+    //             }),
+    //         ),
+    //         onDone: fun (resp) {
+    //             processCookieFromResponse(resp);
+    //         },
+    //     );
+    // }
 
     fun request({ method, url, headers, tries = 0 }) {
         if (tries > _maxTries) throw 'Failed to bypass DDOS guard';
@@ -30,54 +30,65 @@ class $DDOSGuardFetcher extends $HttpFetcher {
                 }),
             ),
             onDone: fun (resp) {
+                // processCookieFromResponse(resp);
+
                 if (resp.statusCode == 403) {
-                    return AsyncTask.resolve(
-                        () => getInitialCookie(
-                            origin: Http.getDomainFromURL(url),
-                            headers: headers,
-                        ),
-                        onDone: (_) {
-                            return request(
-                                method: method,
-                                url: url,
-                                headers: headers,
-                                tries: tries + 1,
-                            );
-                        }
+                    return request(
+                        method: method,
+                        url: url,
+                        headers: headers,
+                        tries: tries + 1,
                     );
+
+                //     return AsyncTask.resolve(
+                //         () => getInitialCookie(
+                //             origin: Http.getDomainFromURL(url),
+                //             headers: headers,
+                //         ),
+                //         onDone: (_) {
+                            
+                //         }
+                //     );
                 }
 
-                processCookieFromResponse(resp);
                 return resp;
             },
         );
     }
 
-    fun processCookieFromResponse(resp) {
-        if (resp.headers['set-cookie'] != null) {
-            processCookie(resp.headers['set-cookie']);
-        }
-    }
+    // fun processCookieFromResponse(resp) {
+    //     if (resp.headers['set-cookie'] != null) {
+    //         processCookie(resp.headers['set-cookie']);
+    //     }
+    // }
 
-    fun processCookie(cookie) {
-        final match = Regex('([^=]+)=([^;]+)').firstMatch(cookie);
-        if (match == null) return;
-
-        final key = match.group(1);
-        final value = match.group(2);
-        if (key.startsWith('__dd') || key == 'XSRF-TOKEN') {
-            tokens[key] = value;
-        }
-    }
+    // fun processCookie(cookie) {
+    //     Collection.eachList(
+    //         Regex('([^=]+)=([^;]+)').allMatches(cookie),
+    //         fun (i, x) {
+    //             final key = x.group(1);
+    //             final value = x.group(2);
+    //             if (key.startsWith('__dd') || key == 'XSRF-TOKEN') {
+    //                 tokens[_encodeKey(key)] = value;
+    //             }
+    //         }
+    //     );
+    // }
 
     get cookie {
-        return Collection
-            .mapList(tokens.keys, (i, x) => '${x}=${tokens[x]}')
-            .join(';');
+        return '__ddg1_=;__ddg2_=;';
     }
 
-    static const baseURL = 'https://check.ddos-guard.net';
-    static final checkJsURL = '${baseURL}/check.js';
-
+    // static const baseURL = 'https://check.ddos-guard.net';
+    // static final checkJsURL = '${baseURL}/check.js';
     static const _maxTries = 2;
+    // static const _keyPrefix = 'key-';
+
+    // static fun _encodeKey(key) {
+    //     return '${_keyPrefix}${key}';
+    // }
+
+    // static fun _decodeKey(key) {
+    //     return key.replaceFirst(_keyPrefix, '');
+    // }
 }

@@ -1,17 +1,17 @@
 import '../utils.ht';
 
 class GogoPlay {
-    static const baseURL = 'https://gogoplay4.com';
+    static const baseURL = 'https://goload.pro';
     
     static final defaultHeaders = {
         'User-Agent': Http.defaultUserAgent,
     };
 
-    static final cKey = Converter.utf8Encode('63976882873559819639988080820907');
-    static final cIv = Converter.utf8Encode('4770478969418267');
+    static final cKey = Converter.utf8Encode('54250374263409968544777675992430');
+    static final cIv = Converter.utf8Encode('9310616573464045');
     static final cMode = 'cbc';
     static final cPadding = 'none';
-    static final cCustomPadding = BytesContainer.fromList([8, 8, 8, 8, 8, 8, 8, 8]);
+    static final cCustomPadding = BytesContainer.fromList(Collection.filledList(8, 8));
 
     static fun ajaxApiURL(baseURL, id) {
         return Http.ensureURL('${baseURL}/encrypt-ajax.php?id=${id}');
@@ -54,12 +54,9 @@ class GogoPlay {
         final document = HtmlElement.parse(resp.body);
 
         final id = Regex('id=([^&]+)').firstMatch(url)?.group(1);
-        final encrypted = document.querySelector('script[data-name="episode"]')?.attributes['data-value'];
-        if (id == null || encrypted == null) return [];
+        if (id == null) return [];
 
-        final secretKey = cDecrypt(Converter.base64Decode(encrypted));
-        final encryptedId = cEncrypt(Converter.utf8Encode(Converter.utf8Decode(secretKey).split('&').first));
-
+        final encryptedId = cEncrypt(Converter.utf8Encode(id));
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
@@ -75,6 +72,7 @@ class GogoPlay {
                         Converter.base64Decode(rawParsed['data'])
                     )
                 ).replaceFirst('o"<P{#meme":', 'e":[{"file":');
+                
                 final parsed = Converter.jsonDecode(
                     Regex('([\\S\\s]+})[^}]+$').firstMatch(dData).group(1)
                 );
@@ -128,7 +126,7 @@ class GogoPlay {
 
     static fun cEncrypt(data) {
         return Crypto.aesEncrypt(
-            input: data.add(cCustomPadding),
+            input: data.clone().add(cCustomPadding),
             key: cKey,
             iv: cIv,
             mode: cMode,

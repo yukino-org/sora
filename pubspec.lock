@@ -254,7 +254,7 @@ packages:
       name: source_span
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.8.2"
+    version: "1.9.0"
   stack_trace:
     dependency: transitive
     description:
@@ -292,7 +292,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka_runtime
-      resolved-ref: c9df71a8ad81bf359693c22c27912e9630721e36
+      resolved-ref: "421a8fcc41221ebfebcf50eb0f8e46802e09a359"
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
