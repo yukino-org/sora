@@ -1,5 +1,6 @@
 import 'package:tenka/tenka.dart';
 import 'package:tenka_dev_tools/tenka_dev_tools.dart';
+import '../modules/anime/animepahe_com/test.dart' as animepahe_com;
 import '../modules/anime/gogoanime_pe/test.dart' as gogoanime_pe;
 import '../modules/anime/hanime_tv/test.dart' as hanime_tv;
 import '../modules/anime/tenshi_moe/test.dart' as tenshi_moe;
@@ -12,6 +13,7 @@ import '../modules/manga/readm_org/test.dart' as readm_org;
 abstract class TestFiles {
   static final Map<TenkaLocalFileDS, MockedAnimeExtractor> anime =
       <TenkaLocalFileDS, MockedAnimeExtractor>{
+    animepahe_com.source: animepahe_com.mocked,
     gogoanime_pe.source: gogoanime_pe.mocked,
     hanime_tv.source: hanime_tv.mocked,
     tenshi_moe.source: tenshi_moe.mocked,
