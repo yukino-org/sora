@@ -75,7 +75,7 @@ class $DDOSGuardFetcher extends $HttpFetcher {
 
     fun attachBypassHeaders(headers) {
         return Collection.mergeMap(headers, {
-            "Cookie": (headers["Cookie"] ?? "") + cookie,
+            'Cookie': (headers['Cookie'] ?? '') + cookie,
         });
     }
 
