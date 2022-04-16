@@ -3,6 +3,10 @@ import '../../../shared/utils.ht';
 
 final fetcher = $DDOSGuardFetcher();
 
+fun _headers(headers) {
+    return fetcher.attachBypassHeaders(headers);
+}
+
 final extractor = AnimeExtractor(
     defaultLocale: $.defaultLocale,
     search: fun (terms, locale) {
@@ -12,7 +16,9 @@ final extractor = AnimeExtractor(
             () => fetcher.getBody(
                 method: 'get',
                 url: url,
-                headers: $.defaultHeaders,
+                headers: Collection.mergeMap($.defaultHeaders, {
+                    'Cookie': 'loop-view=thumb;',
+                }),
             ),
             onDone: fun (html) {
                 final document = HtmlElement.parse(html);
@@ -21,12 +27,17 @@ final extractor = AnimeExtractor(
                     document.querySelectorAll('.anime-loop li'),
                     fun (i, x) {
                         final link = x.querySelector('a');
-                        final title = link.querySelector('.label .text-primary').text.trim();
+                        final title = link.attributes['title'].trim();
                         final url = link.attributes['href'].trim();
+                        final thumbnail = link.querySelector('.image').attributes['src'].trim();
 
                         return SearchInfo(
                             title: title,
                             url: Http.ensureURL(url),
+                            thumbnail: ImageDescriber(
+                                url: Http.ensureURL(thumbnail),
+                                headers: _headers($.defaultHeaders),
+                            ),
                             locale: $.defaultLocale,
                         );
                     }
@@ -67,7 +78,7 @@ final extractor = AnimeExtractor(
                     url: Http.ensureURL(url),
                     thumbnail: ImageDescriber(
                         url: Http.ensureURL(document.querySelector('img.cover-image').attributes['src'].trim()),
-                        headers: $.defaultHeaders,
+                        headers: _headers($.defaultHeaders),
                     ),
                     episodes: episodes,
                     locale: $.defaultLocale,
@@ -92,6 +103,7 @@ final extractor = AnimeExtractor(
                 final iframeHeaders = Collection.mergeMap($.defaultHeaders, {
                     'Referer': url,
                 });
+                final rHeaders = _headers(iframeHeaders);
 
                 return AsyncTask.resolve(
                     () => fetcher.getBody(
@@ -111,7 +123,7 @@ final extractor = AnimeExtractor(
                                 return EpisodeSource(
                                     url: Http.ensureURL(x.group(1)),
                                     quality: x.group(2),
-                                    headers: iframeHeaders,
+                                    headers: rHeaders,
                                     locale: $.defaultLocale,
                                 );
                             }

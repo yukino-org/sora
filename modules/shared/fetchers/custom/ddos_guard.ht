@@ -25,9 +25,7 @@ class $DDOSGuardFetcher extends $HttpFetcher {
             () => Http.fetch(
                 method: method,
                 url: url,
-                headers: Collection.mergeMap(headers, {
-                    'cookie': cookie,
-                }),
+                headers: attachBypassHeaders(headers),
             ),
             onDone: fun (resp) {
                 // processCookieFromResponse(resp);
@@ -74,6 +72,12 @@ class $DDOSGuardFetcher extends $HttpFetcher {
     //         }
     //     );
     // }
+
+    fun attachBypassHeaders(headers) {
+        return Collection.mergeMap(headers, {
+            "Cookie": (headers["Cookie"] ?? "") + cookie,
+        });
+    }
 
     get cookie {
         return '__ddg1_=;__ddg2_=;';
