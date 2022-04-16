@@ -100,9 +100,7 @@ final extractor = AnimeExtractor(
         );
     },
     getSources: fun (_url, locale) {
-        print('0: ${_url}');
         final url = Http.ensureURL(_url);
-        print('1: ${_url}');
 
         return AsyncTask.resolve(
             () => fetcher.getBody(
@@ -111,7 +109,6 @@ final extractor = AnimeExtractor(
                 headers: $.defaultHeaders,
             ),
             onDone: fun (html) {
-                print('2');
                 final document = HtmlElement.parse(html);
 
                 return AsyncTask.resolveAll(

@@ -8,7 +8,6 @@ class FEmbed {
     }
 
     static fun parse(_url, { locale }) {
-        print('5');
         final url = Http.ensureURL(_url);
         final baseURL = Http.getDomainFromURL(url);
 
@@ -25,7 +24,6 @@ class FEmbed {
                 }),
             ),
             onDone: fun (resp) {
-                print('6');
                 final parsed = Converter.jsonDecode(resp.body);
                 if (!parsed['success']) return [];
 
