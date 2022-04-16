@@ -21,34 +21,12 @@ class GogoPlay {
         return 'unknown';
     }
 
-    static fun parse(_url) {
-        final url = Http.ensureURL(_url);
-
-        return AsyncTask.resolve(
-            () => Http.fetch(
-                method: 'get',
-                url: Http.ensureURL(url),
-                headers: defaultHeaders
-            ),
-            onDone: fun (resp) {
-                if (url.contains('streaming')) {
-                    return parseStreaming(url, resp);
-                } else if (url.contains('embedplus')) {
-                    return parseEmbed(url, resp);
-                } else {
-                    return [];
-                }
-            }
-        );
-    }
-
     // Source: (The credit goes to them)
     //  - https://github.com/justfoolingaround/animdl/blob/master/animdl/core/codebase/extractors/gogoplay/__init__.py
     //  - https://github.com/saikou-app/saikou/blob/master/app/src/main/java/ani/saikou/anime/source/extractors/GogoCDN.kt
-    static fun parseStreaming(_url, resp) {
+    static fun parse(_url) {
         final url = Http.ensureURL(_url);
         final baseURL = Http.getDomainFromURL(url);
-        final document = HtmlElement.parse(resp.body);
 
         final id = Regex('id=([^&]+)').firstMatch(url)?.group(1);
         if (id == null) return [];
@@ -116,22 +94,6 @@ class GogoPlay {
                             },
                         );
                     },
-                );
-            },
-        );
-    }
-
-    static fun parseEmbed(url, resp) {
-        return Collection.mapList(
-            Regex('file:\\s+[\'"]([^\'"]+)[\'"]').allMatches(resp.body) ?? [],
-            fun (i, x) {
-                final srcURL = Http.ensureURL(x.group(1));
-                
-                return EpisodeSource(
-                    url: srcURL,
-                    headers: defaultHeaders,
-                    quality: tryGetQuality(srcURL),
-                    locale: $.defaultLocale,
                 );
             },
         );

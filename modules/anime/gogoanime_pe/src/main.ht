@@ -1,6 +1,7 @@
 import 'parsers/gogoplay.ht';
 import 'utils.ht';
 import '../../../shared/utils.ht';
+import '../../../shared/extractors/fembed.ht';
 
 final fetcher = $HttpFetcher();
 
@@ -120,6 +121,8 @@ final extractor = AnimeExtractor(
                                 if (link != null) {
                                     if (x.classes.contains('anime') || x.classes.contains('vidcdn')) {
                                         return () => GogoPlay.parse(link);
+                                    } else if (x.classes.contains('xstreamcdn')) {
+                                        return () => FEmbed.parse(link, locale: $.defaultLocale);
                                     }
                                 }
 

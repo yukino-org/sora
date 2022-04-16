@@ -1,0 +1,46 @@
+class FEmbed {
+    static final defaultHeaders = {
+        'User-Agent': Http.defaultUserAgent,
+    };
+
+    static fun sourcesApiURL(baseURL, id) {
+        return Http.ensureURL('${baseURL}/api/source/${id}');
+    }
+
+    static fun parse(_url, { locale }) {
+        final url = Http.ensureURL(_url);
+        final baseURL = Http.getDomainFromURL(url);
+
+        final id = Regex('/v/([^?#&/.]+)').firstMatch(url)?.group(1);
+        if (id == null) return [];
+
+        return AsyncTask.resolve(
+            () => Http.fetch(
+                method: 'post',
+                url: sourcesApiURL(baseURL, id),
+                headers: Collection.mergeMap(defaultHeaders, {
+                    'Referer': url,
+                    'X-Requested-With': 'XMLHttpRequest',
+                }),
+            ),
+            onDone: fun (resp) {
+                final parsed = Converter.jsonDecode(resp.body);
+                if (!parsed['success']) return [];
+
+                return Collection.mapList(
+                    parsed['data'],
+                    fun (i, x) {
+                        return EpisodeSource(
+                            url: Http.ensureURL(x['file']),
+                            headers: Collection.mergeMap(defaultHeaders, {
+                                'Referer': baseURL,
+                            }),
+                            quality: x['label'],
+                            locale: locale,
+                        );
+                    }
+                );
+            },
+        );
+    }
+}
