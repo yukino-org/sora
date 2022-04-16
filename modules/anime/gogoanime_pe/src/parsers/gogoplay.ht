@@ -25,10 +25,12 @@ class GogoPlay {
     //  - https://github.com/justfoolingaround/animdl/blob/master/animdl/core/codebase/extractors/gogoplay/__init__.py
     //  - https://github.com/saikou-app/saikou/blob/master/app/src/main/java/ani/saikou/anime/source/extractors/GogoCDN.kt
     static fun parse(_url) {
+        print('3');
         final url = Http.ensureURL(_url);
         final baseURL = Http.getDomainFromURL(url);
 
         final id = Regex('id=([^&]+)').firstMatch(url)?.group(1);
+        print('4');
         if (id == null) return [];
 
         return AsyncTask.resolve(
