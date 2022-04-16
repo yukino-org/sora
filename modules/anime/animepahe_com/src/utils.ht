@@ -1,0 +1,68 @@
+class $ {
+    static const baseURL = 'https://animepahe.com';
+    static const baseApiURL = 'https://animepahe.org/api';
+
+    static final defaultHeaders = {
+        'User-Agent': Http.defaultUserAgent,
+        'Referer': baseURL,
+    }
+
+    static final defaultLocale = Locale.parse('en');
+
+    static fun getSearchApiURL(terms, [length = 8]) {
+        return '${baseApiURL}?m=search&l=${length}&q=${terms}';
+    }
+    
+    static const episodesApiPerPage = 30;
+
+    static fun getEpisodesApiURL(id, [page = 1]) {
+        return '${baseApiURL}?m=release&id=${id}&sort=episode_asc&page=${page}';
+    }
+
+    static fun getEpisodesApiURLFromNumber(id, num) {
+        final page = (num / episodesApiPerPage).floor();
+        return getEpisodesApiURL(id, page);
+    }
+
+    static fun getSourcesApiURL(id, slug) {
+        return '${baseApiURL}?m=links&id=${id}&session=${slug}';
+    }
+
+    static fun getAnimeURL(slug) {
+        return Http.ensureURL('${baseURL}/anime/${slug}');
+    }
+
+    static fun getCustomEpisodeURL(id, slug, episode) {
+        return Http.ensureURL('${baseURL}/anime/${slug}?id=${id}&episode=${episode}');
+    }
+
+    static fun parseCustomEpisodeURL(url) {
+        final qs = Converter.queryStringDecode(url.split('?').last);
+
+        return {
+            'anime-slug': parseSlug(url),
+            'anime-id': qs['id'],
+            'episode': qs['episode'],
+        };
+    }
+
+    static fun isPlayURL(url) {
+        return url.contains('/play/');
+    }
+
+    static fun parsePlayURL(url) {
+        final match = Regex('\\/play\\/([^\\/]+)\\/([^\\/?#]+)').firstMatch(url);
+        return {
+            'anime-slug': match.group(1),
+            'episode-slug': match.group(2),
+        }
+    }
+    
+    static fun appendBaseURL(route) {
+        return Http.ensureURL('${baseURL}${route}');
+    }
+
+    static fun parseSlug(url) {
+        return Regex('\\/anime\\/([^\\/?#]+)').firstMatch(url).group(1);
+    }
+}
