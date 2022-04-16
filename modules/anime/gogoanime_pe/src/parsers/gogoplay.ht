@@ -1,20 +1,16 @@
 import '../utils.ht';
 
 class GogoPlay {
-    static const baseURL = 'https://goload.pro';
-    
     static final defaultHeaders = {
         'User-Agent': Http.defaultUserAgent,
     };
 
-    static final cKey = Converter.utf8Encode('54250374263409968544777675992430');
-    static final cIv = Converter.utf8Encode('9310616573464045');
     static final cMode = 'cbc';
     static final cPadding = 'none';
     static final cCustomPadding = BytesContainer.fromList(Collection.filledList(8, 8));
 
-    static fun ajaxApiURL(baseURL, id) {
-        return Http.ensureURL('${baseURL}/encrypt-ajax.php?id=${id}');
+    static fun ajaxApiURL(baseURL, id, alias) {
+        return Http.ensureURL('${baseURL}/encrypt-ajax.php?id=${id}&alias=${alias}');
     }
 
     static fun tryGetQuality(url) {
@@ -49,44 +45,75 @@ class GogoPlay {
     // Source: (The credit goes to them)
     //  - https://github.com/justfoolingaround/animdl/blob/master/animdl/core/codebase/extractors/gogoplay/__init__.py
     //  - https://github.com/saikou-app/saikou/blob/master/app/src/main/java/ani/saikou/anime/source/extractors/GogoCDN.kt
-    static fun parseStreaming(url, resp) {
-        final baseURL = getBaseURL(url);
+    static fun parseStreaming(_url, resp) {
+        final url = Http.ensureURL(_url);
+        final baseURL = Http.getDomainFromURL(url);
         final document = HtmlElement.parse(resp.body);
 
         final id = Regex('id=([^&]+)').firstMatch(url)?.group(1);
         if (id == null) return [];
 
-        final encryptedId = cEncrypt(Converter.utf8Encode(id));
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
-                url: ajaxApiURL(baseURL, Converter.base64Encode(encryptedId)),
+                url: url,
                 headers: Collection.mergeMap(defaultHeaders, {
-                    'X-Requested-With': 'XMLHttpRequest',
+                    'Referer': baseURL,
                 }),
             ),
             onDone: fun (resp) {
-                final rawParsed = Converter.jsonDecode(resp.body);
-                final dData = Converter.utf8Decode(
-                    cDecrypt(
-                        Converter.base64Decode(rawParsed['data'])
-                    )
-                ).replaceFirst('o"<P{#meme":', 'e":[{"file":');
-                
-                final parsed = Converter.jsonDecode(
-                    Regex('([\\S\\s]+})[^}]+$').firstMatch(dData).group(1)
+                final [_fKeyMatch, _ivMatch] = Regex('container-(\d+)').allMatches(resp.body);
+
+                final _fKey = _fKeyMatch?.group(1);
+                final _sKey = Regex('videocontent-(\d+)').firstMatch(resp.body)?.group(1);
+                final _iv = _ivMatch?.group(1);
+                if (!_fKey || !_sKey || !_iv) return [];
+
+                final fKey = Converter.utf8Encode(_fKey);
+                final sKey = Converter.utf8Encode(_sKey);
+                final iv = Converter.utf8Encode(_iv);
+
+                final encryptedId = cEncrypt(
+                    data: Converter.utf8Encode(id),
+                    key: fKey,
+                    iv: iv,
                 );
 
-                return Collection.mapList(
-                    Collection.mergeList(parsed['source'], parsed['source_bk']),
-                    fun (i, x) {
-                        final srcURL = Http.ensureURL(x['file']);
+                return AsyncTask.resolve(
+                    () => Http.fetch(
+                        method: 'get',
+                        url: ajaxApiURL(baseURL, Converter.base64Encode(encryptedId), id),
+                        headers: Collection.mergeMap(defaultHeaders, {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Referer': baseURL,
+                        }),
+                    ),
+                    onDone: fun (resp) {
+                        final rawParsed = Converter.jsonDecode(resp.body);
+                        final dData = Converter.utf8Decode(
+                            cDecrypt(
+                                data: Converter.base64Decode(rawParsed['data']),
+                                key: sKey,
+                                iv: iv,
+                            )
+                        ).replaceFirst('o"<P{#meme":', 'e":[{"file":');
+                        
+                        final parsed = Converter.jsonDecode(
+                            Regex('([\\S\\s]+})[^}]+$').firstMatch(dData).group(1)
+                        );
 
-                        return EpisodeSource(
-                            url: srcURL,
-                            headers: defaultHeaders,
-                            quality: tryGetQuality(srcURL),
-                            locale: $.defaultLocale,
+                        return Collection.mapList(
+                            Collection.mergeList(parsed['source'], parsed['source_bk']),
+                            fun (i, x) {
+                                final srcURL = Http.ensureURL(x['file']);
+
+                                return EpisodeSource(
+                                    url: srcURL,
+                                    headers: defaultHeaders,
+                                    quality: tryGetQuality(srcURL),
+                                    locale: $.defaultLocale,
+                                );
+                            },
                         );
                     },
                 );
@@ -110,25 +137,21 @@ class GogoPlay {
         );
     }
 
-    static fun getBaseURL(url) {
-        return Regex('https?:\\/\\/[^/]+').firstMatch(url).group(0);
-    }
-
-    static fun cDecrypt(data) {
+    static fun cDecrypt({ data, key, iv }) {
         return Crypto.aesDecrypt(
             encrypted: data,
-            key: cKey,
-            iv: cIv,
+            key: key,
+            iv: iv,
             mode: cMode,
             padding: cPadding,
         );
     }
 
-    static fun cEncrypt(data) {
+    static fun cEncrypt({ data, key, iv }) {
         return Crypto.aesEncrypt(
             input: data.clone().add(cCustomPadding),
-            key: cKey,
-            iv: cIv,
+            key: key,
+            iv: iv,
             mode: cMode,
             padding: cPadding,
         );
