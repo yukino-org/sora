@@ -97,7 +97,8 @@ $seperator ${data.map((final Map<String, String> x) => cols.keys.map((final Stri
   String _getMarkdownURLFromPath(final String fullPath) {
     final String name = _getModuleNameFromPath(fullPath);
     final String rPath = path.relative(fullPath, from: Utils.baseDir);
-    final String url = '${Utils.ghMainBranchURL}/$rPath';
+    final String url =
+        '${Utils.ghMainBranchURL}/$rPath'.replaceAll(RegExp(r'\\'), '');
 
     return '[$name]($url)';
   }
