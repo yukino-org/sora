@@ -6,7 +6,7 @@ class GogoPlay {
     };
 
     static final cMode = 'cbc';
-    static final cPadding = 'none';
+    static final cPadding = 'pkcs7';
     static final cCustomPadding = BytesContainer.fromList(Collection.filledList(8, 8));
 
     static fun ajaxApiURL(baseURL, id, alias) {
@@ -76,10 +76,7 @@ class GogoPlay {
                             )
                         ).replaceFirst('o"<P{#meme":', 'e":[{"file":');
                         
-                        final parsed = Converter.jsonDecode(
-                            Regex('([\\S\\s]+})[^}]+$').firstMatch(dData).group(1)
-                        );
-
+                        final parsed = Converter.jsonDecode(dData);
                         return Collection.mapList(
                             Collection.mergeList(parsed['source'], parsed['source_bk']),
                             fun (i, x) {
@@ -111,7 +108,7 @@ class GogoPlay {
 
     static fun cEncrypt({ data, key, iv }) {
         return Crypto.aesEncrypt(
-            input: data.clone().add(cCustomPadding),
+            input: data,
             key: key,
             iv: iv,
             mode: cMode,

@@ -5,19 +5,25 @@ import '../../../tools/utils.dart';
 
 const Locale locale = Locale(LanguageCodes.en);
 final TenkaLocalFileDS source = Utils.getAnimeDS('animepahe_com');
+
+abstract class MockedData {
+  static late final String animeURL;
+  static late final String episodeURL;
+}
+
 final MockedAnimeExtractor mocked = MockedAnimeExtractor(
-  search: (final AnimeExtractor ext) => ext.search(
-    'bunny girl',
-    locale,
-  ),
-  getInfo: (final AnimeExtractor ext) => ext.getInfo(
-    'https://animepahe.com/anime/377e86f7-3052-e675-020d-bc7e3e076c0d',
-    locale,
-  ),
-  getSources: (final AnimeExtractor ext) => ext.getSources(
-    'https://animepahe.com/anime/377e86f7-3052-e675-020d-bc7e3e076c0d?id=2807&episode=13',
-    locale,
-  ),
+  search: (final AnimeExtractor ext) async {
+    final List<SearchInfo> results = await ext.search('bunny girl', locale);
+    MockedData.animeURL = results.first.url;
+    return results;
+  },
+  getInfo: (final AnimeExtractor ext) async {
+    final AnimeInfo result = await ext.getInfo(MockedData.animeURL, locale);
+    MockedData.episodeURL = result.episodes.first.url;
+    return result;
+  },
+  getSources: (final AnimeExtractor ext) =>
+      ext.getSources(MockedData.episodeURL, locale),
 );
 
 Future<void> main() async {
