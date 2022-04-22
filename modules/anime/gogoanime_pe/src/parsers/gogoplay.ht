@@ -28,9 +28,6 @@ class GogoPlay {
         final url = URL.ensureURL(_url);
         final parsedUrl = URL.parse(url);
 
-        final id = parsedUrl.queryParameters['id'];
-        if (id == null) return [];
-
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
@@ -41,35 +38,41 @@ class GogoPlay {
             ),
             onDone: fun (resp) {
                 final [_fKeyMatch, _ivMatch] = Regex('container-(\d+)').allMatches(resp.body);
-
                 final _fKey = _fKeyMatch?.group(1);
                 final _sKey = Regex('videocontent-(\d+)').firstMatch(resp.body)?.group(1);
                 final _iv = _ivMatch?.group(1);
-                if (!_fKey || !_sKey || !_iv) return [];
+                final _dValue = Regex('data-value="([^"]+)"').firstMatch(resp.body)?.group(1);
+                if (!_fKey || !_sKey || !_iv || !_dValue) return [];
 
                 final fKey = Converter.utf8Encode(_fKey);
                 final sKey = Converter.utf8Encode(_sKey);
                 final iv = Converter.utf8Encode(_iv);
 
-                final encryptedId = cEncrypt(
-                    data: Converter.utf8Encode(id),
+                final decrypted = cDecrypt(
+                    data: Converter.base64Decode(_dValue),
                     key: fKey,
                     iv: iv,
                 );
 
-                // Needs fixing
-                final queryParameters = Collection.mergeMap({}, parsedUrl.queryParameters);
-                queryParameters['id'] = Converter.base64Encode(encryptedId);
-                queryParameters['alias'] = id;
-                queryParameters['op'] = '2';
-                queryParameters['refer'] = $.baseURL;
+                final dQueryParameters = URL.splitQueryString(
+                    'id=' + Converter.utf8Decode(decrypted)
+                );
+
+                final encryptedId = cEncrypt(
+                    data: Converter.utf8Encode(dQueryParameters['id']),
+                    key: fKey,
+                    iv: iv,
+                );
+
+                dQueryParameters['alias'] = dQueryParameters['id'];
+                dQueryParameters['id'] = Converter.base64Encode(encryptedId);
 
                 return AsyncTask.resolve(
                     () => Http.fetch(
                         method: 'get',
                         url: ajaxApiURL(
                             parsedUrl.origin,
-                            URL.joinQueryParameters(queryParameters),
+                            URL.joinQueryParameters(dQueryParameters),
                         ),
                         headers: Collection.mergeMap(defaultHeaders, {
                             'X-Requested-With': 'XMLHttpRequest',

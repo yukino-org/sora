@@ -37,12 +37,12 @@ class $ {
     }
 
     static fun parseCustomEpisodeURL(url) {
-        final qs = Converter.queryStringDecode(url.split('?').last);
+        final queryParameters = Uri.parse(url).queryParameters;
 
         return {
             'anime-slug': parseSlug(url),
-            'anime-id': qs['id'],
-            'episode': qs['episode'],
+            'anime-id': queryParameters['id'],
+            'episode': queryParameters['episode'],
         };
     }
 
