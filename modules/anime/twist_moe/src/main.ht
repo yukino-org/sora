@@ -22,7 +22,7 @@ final extractor = AnimeExtractor(
                     return {
                         'title': x['title'],
                         'altTitle': x['altTitle'] ?? '',
-                        'url': Http.ensureURL($.getAnimeURL(x['slug']['slug'])),
+                        'url': URL.ensureURL($.getAnimeURL(x['slug']['slug'])),
                         'locale': $.defaultLocale,
                     };
                 });
@@ -76,7 +76,7 @@ final extractor = AnimeExtractor(
 
                         return EpisodeInfo(
                             episode: epNum,
-                            url: Http.ensureURL('${animeURLP}/${epNum}'),
+                            url: URL.ensureURL('${animeURLP}/${epNum}'),
                             locale: $.defaultLocale,
                         );
                     }),

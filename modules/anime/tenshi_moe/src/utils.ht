@@ -11,6 +11,6 @@ class $ {
     static final defaultLocale = Locale.parse('en');
 
     static fun getSearchURL(terms) {
-        return Http.ensureURL('${baseURL}/anime?q=${terms}');
+        return URL.ensureURL('${baseURL}/anime?q=${terms}');
     }
 }

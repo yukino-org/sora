@@ -10,24 +10,24 @@ class $ {
     static final defaultLocale = Locale.parse('en');
 
     static fun getSearchURL(terms) {
-        return Http.ensureURL('${baseURL}/search?keyword=${terms}');
+        return URL.ensureURL('${baseURL}/search?keyword=${terms}');
     }
 
     static fun getEpisodesApiURL(id) {
-        return Http.ensureURL('${baseAjaxURL}/episode/list/${id}');
+        return URL.ensureURL('${baseAjaxURL}/episode/list/${id}');
     }
 
     static fun getEpisodeApiURL(url) {
         final id = Regex('\\?ep=(\\d+)').firstMatch(url).group(1);
-        return Http.ensureURL('${baseAjaxURL}/episode/servers?episodeId=${id}');
+        return URL.ensureURL('${baseAjaxURL}/episode/servers?episodeId=${id}');
     }
 
     static fun getSourcesApiURL(id) {
-        return Http.ensureURL('${baseAjaxURL}/episode/sources?id=${id}');
+        return URL.ensureURL('${baseAjaxURL}/episode/sources?id=${id}');
     }
 
     static fun appendBaseURL(route) {
-        return Http.ensureURL('${baseURL}${route}');
+        return URL.ensureURL('${baseURL}${route}');
     }
 
     static fun getRecaptchaToken(url) {
@@ -47,7 +47,7 @@ class $ {
                 return AsyncTask.resolve(
                     () => Http.fetch(
                         method: 'get',
-                        url: Http.ensureURL('https://www.google.com/recaptcha/api.js?render=${rKey}'),
+                        url: URL.ensureURL('https://www.google.com/recaptcha/api.js?render=${rKey}'),
                         headers: Collection.mergeMap(defaultHeaders, {
                             'Referrer': '${_domain}/',
                         }),
@@ -58,7 +58,7 @@ class $ {
                         return AsyncTask.resolve(
                             () => Http.fetch(
                                 method: 'get',
-                                url: Http.ensureURL('https://www.google.com/recaptcha/api2/anchor?ar=1&hl=en&size=invisible&cb=kr60249sk&k=${rKey}&co=${domain}&v=${vToken}'),
+                                url: URL.ensureURL('https://www.google.com/recaptcha/api2/anchor?ar=1&hl=en&size=invisible&cb=kr60249sk&k=${rKey}&co=${domain}&v=${vToken}'),
                                 headers: Collection.mergeMap(defaultHeaders, {
                                     'Referrer': '${_domain}/',
                                 }),
@@ -69,7 +69,7 @@ class $ {
                                 return AsyncTask.resolve(
                                     () => Http.fetch(
                                         method: 'post',
-                                        url: Http.ensureURL('https://www.google.com/recaptcha/api2/reload?k=${rKey}'),
+                                        url: URL.ensureURL('https://www.google.com/recaptcha/api2/reload?k=${rKey}'),
                                         headers: Collection.mergeMap(defaultHeaders, {
                                             'Referrer': '${_domain}/',
                                             'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',

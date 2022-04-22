@@ -30,7 +30,7 @@ final extractor = AnimeExtractor(
                             title: titleElement.text.trim(),
                             url: $.appendBaseURL(url),
                             thumbnail: ImageDescriber(
-                                url: Http.ensureURL(thumbnail),
+                                url: URL.ensureURL(thumbnail),
                                 headers: $.defaultHeaders,
                             ),
                             locale: $.defaultLocale,
@@ -41,7 +41,7 @@ final extractor = AnimeExtractor(
         );
     },
     getInfo: fun (_url, locale) {
-        final url = Http.ensureURL(_url);
+        final url = URL.ensureURL(_url);
 
         return AsyncTask.resolve(
             () => fetcher.getBody(
@@ -83,9 +83,9 @@ final extractor = AnimeExtractor(
 
                         return AnimeInfo(
                             title: document.querySelector('.anime_info_body_bg h1').text.trim(),
-                            url: Http.ensureURL(url),
+                            url: URL.ensureURL(url),
                             thumbnail: ImageDescriber(
-                                url: Http.ensureURL(document.querySelector('.anime_info_body_bg img').attributes['src'].trim()),
+                                url: URL.ensureURL(document.querySelector('.anime_info_body_bg img').attributes['src'].trim()),
                                 headers: $.defaultHeaders,
                             ),
                             episodes: episodes,
@@ -100,7 +100,7 @@ final extractor = AnimeExtractor(
         );
     },
     getSources: fun (_url, locale) {
-        final url = Http.ensureURL(_url);
+        final url = URL.ensureURL(_url);
 
         return AsyncTask.resolve(
             () => fetcher.getBody(
@@ -111,25 +111,34 @@ final extractor = AnimeExtractor(
             onDone: fun (html) {
                 final document = HtmlElement.parse(html);
 
+                fun asyncify(fn) {
+                    return () => AsyncTask.resolve(
+                        fn ?? () => [],
+                        onDone: (res) => res,
+                        onFail: () => [],
+                    );
+                }
+                
                 return AsyncTask.resolveAll(
-                    Collection.filterList(
-                        Collection.mapList(
-                            document.querySelectorAll('.anime_muti_link ul > li'),
-                            fun (i, x) {
-                                final link = x.querySelector('a').attributes['data-video'];
+                    Collection.mapList(
+                        document.querySelectorAll('.anime_muti_link ul > li'),
+                        fun (i, x) {
+                            final link = x.querySelector('a').attributes['data-video'];
 
-                                if (link != null) {
-                                    if (x.classes.contains('anime') || x.classes.contains('vidcdn')) {
-                                        return () => GogoPlay.parse(link);
-                                    } else if (x.classes.contains('xstreamcdn')) {
-                                        return () => FEmbed.parse(link, locale: $.defaultLocale);
-                                    }
+                            if (link != null) {
+                                if (x.classes.contains('anime') || x.classes.contains('vidcdn')) {
+                                    return asyncify(
+                                        () => GogoPlay.parse(link),
+                                    );
+                                } else if (x.classes.contains('xstreamcdn')) {
+                                    return asyncify(
+                                        () => FEmbed.parse(link, locale: $.defaultLocale),
+                                    );
                                 }
-
-                                return null;
                             }
-                        ),
-                        (i, x) => x != null,
+
+                            return asyncify(null);
+                        },
                     ),
                     onDone: fun (res) {
                         return Collection.flattenList(res, 1);

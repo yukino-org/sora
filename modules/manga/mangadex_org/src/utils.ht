@@ -11,39 +11,39 @@ class $ {
     static final defaultLocale = Locale.parse('en');
 
     static fun getSearchApiURL(terms) {
-        return Http.ensureURL('${baseApiURL}/manga?title=${terms}');
+        return URL.ensureURL('${baseApiURL}/manga?title=${terms}');
     }
 
     static fun getMangaApiURL(id) {
-        return Http.ensureURL('${baseApiURL}/manga/${id}');
+        return URL.ensureURL('${baseApiURL}/manga/${id}');
     }
 
     static fun getMangaFeedApiURL(id, locale, limit, offset) {
-        return Http.ensureURL('${baseApiURL}/manga/${id}/feed?limit=${limit}&offset=${offset}&order[chapter]=asc&translatedLanguage[]=${locale}');
+        return URL.ensureURL('${baseApiURL}/manga/${id}/feed?limit=${limit}&offset=${offset}&order[chapter]=asc&translatedLanguage[]=${locale}');
     }
 
     static fun getMangaChapterOverviewURL(id, chapter, volume, limit) {
-        return Http.ensureURL('${baseApiURL}/chapter?manga=${id}&chapter=${chapter}&volume=${volume}&limit=${limit}&order[chapter]=asc');
+        return URL.ensureURL('${baseApiURL}/chapter?manga=${id}&chapter=${chapter}&volume=${volume}&limit=${limit}&order[chapter]=asc');
     }
 
     static fun getMangaServerApiURL(id) {
-        return Http.ensureURL('${baseApiURL}/at-home/server/${id}');
+        return URL.ensureURL('${baseApiURL}/at-home/server/${id}');
     }
 
     static fun getChapterApiURL(serverURL, quality, hash) {
-        return Http.ensureURL('${serverURL}/${quality}/${hash}');
+        return URL.ensureURL('${serverURL}/${quality}/${hash}');
     }
 
     static fun getPageSourceURL(chapterApiURL, filename) {
-        return Http.ensureURL('${chapterApiURL}/${filename}');
+        return URL.ensureURL('${chapterApiURL}/${filename}');
     }
 
     static fun getCoverApiURL(coverID) {
-        return Http.ensureURL('${baseApiURL}/cover/${coverID}');
+        return URL.ensureURL('${baseApiURL}/cover/${coverID}');
     }
 
     static fun getCoverURL(mangaID, coverFile) {
-        return Http.ensureURL('${baseUploadsURL}/covers/${mangaID}/${coverFile}');
+        return URL.ensureURL('${baseUploadsURL}/covers/${mangaID}/${coverFile}');
     }
 
     static fun parseId(url) {

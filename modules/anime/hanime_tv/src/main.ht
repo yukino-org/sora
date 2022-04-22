@@ -33,7 +33,7 @@ final extractor = AnimeExtractor(
                         title: '${title}${censored ? ' (Censored)' : ''}',
                         url: $.getAnimeURL(x['slug']),
                         thumbnail: ImageDescriber(
-                            url: Http.ensureURL(x['cover_url']),
+                            url: URL.ensureURL(x['cover_url']),
                             headers: $.defaultHeaders,
                         ),
                         locale: $.defaultLocale,
@@ -56,7 +56,7 @@ final extractor = AnimeExtractor(
                     title: '${title}${censored ? ' (Censored)' : ''}',
                     url: url,
                     thumbnail: ImageDescriber(
-                        url: Http.ensureURL(resp['hentai_video']['cover_url']),
+                        url: URL.ensureURL(resp['hentai_video']['cover_url']),
                         headers: $.defaultHeaders,
                     ),
                     episodes: [

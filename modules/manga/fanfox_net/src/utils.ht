@@ -10,14 +10,14 @@ class $ {
     static final defaultLocale = Locale.parse('en');
 
     static fun getSearchURL(terms) {
-        return Http.ensureURL('${baseURL}/search?title=${terms}');
+        return URL.ensureURL('${baseURL}/search?title=${terms}');
     }
 
     static fun appendBaseURL(route) {
-        return Http.ensureURL('${baseURL}${route}');
+        return URL.ensureURL('${baseURL}${route}');
     }
 
     static fun getMobileURL(url) {
-        return Http.ensureURL(Regex('https?:\\/\\/fanfox').replaceFirst(url, 'https://m.fanfox'));
+        return URL.ensureURL(Regex('https?:\\/\\/fanfox').replaceFirst(url, 'https://m.fanfox'));
     }
 }

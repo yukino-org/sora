@@ -33,9 +33,9 @@ final extractor = AnimeExtractor(
 
                         return SearchInfo(
                             title: title,
-                            url: Http.ensureURL(url),
+                            url: URL.ensureURL(url),
                             thumbnail: ImageDescriber(
-                                url: Http.ensureURL(thumbnail),
+                                url: URL.ensureURL(thumbnail),
                                 headers: _headers($.defaultHeaders),
                             ),
                             locale: $.defaultLocale,
@@ -46,7 +46,7 @@ final extractor = AnimeExtractor(
         );
     },
     getInfo: fun (url, locale) {
-        final url = Http.ensureURL(url);
+        final url = URL.ensureURL(url);
 
         return AsyncTask.resolve(
             () => fetcher.getBody(
@@ -67,7 +67,7 @@ final extractor = AnimeExtractor(
                         
                         return EpisodeInfo(
                             episode: epNum,
-                            url: Http.ensureURL('${trimmedURL}/${epNum}'),
+                            url: URL.ensureURL('${trimmedURL}/${epNum}'),
                             locale: $.defaultLocale,
                         );
                     }
@@ -75,9 +75,9 @@ final extractor = AnimeExtractor(
 
                 return AnimeInfo(
                     title: document.querySelector('.entry-header').text.trim(),
-                    url: Http.ensureURL(url),
+                    url: URL.ensureURL(url),
                     thumbnail: ImageDescriber(
-                        url: Http.ensureURL(document.querySelector('img.cover-image').attributes['src'].trim()),
+                        url: URL.ensureURL(document.querySelector('img.cover-image').attributes['src'].trim()),
                         headers: _headers($.defaultHeaders),
                     ),
                     episodes: episodes,
@@ -90,7 +90,7 @@ final extractor = AnimeExtractor(
         );
     },
     getSources: fun (_url, locale) {
-        final url = Http.ensureURL(_url);
+        final url = URL.ensureURL(_url);
 
         return AsyncTask.resolve(
             () => fetcher.getBody(
@@ -121,7 +121,7 @@ final extractor = AnimeExtractor(
                                 .allMatches(sources),
                             fun (i, x) {
                                 return EpisodeSource(
-                                    url: Http.ensureURL(x.group(1)),
+                                    url: URL.ensureURL(x.group(1)),
                                     quality: x.group(2),
                                     headers: rHeaders,
                                     locale: $.defaultLocale,

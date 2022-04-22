@@ -1,5 +1,5 @@
 class $ {
-    static const baseURL = 'https://gogoanime.fi';
+    static const baseURL = 'https://gogoanime.sk';
 
     static final defaultHeaders = {
         'User-Agent': Http.defaultUserAgent,
@@ -9,14 +9,14 @@ class $ {
     static final defaultLocale = Locale.parse('en');
 
     static fun getSearchURL(terms) {
-        return Http.ensureURL('${baseURL}/search.html?keyword=${terms}');
+        return URL.ensureURL('${baseURL}/search.html?keyword=${terms}');
     }
 
     static fun getEpisodeApiURL(id, start, end) {
-        return Http.ensureURL('https://ajax.gogo-load.com/ajax/load-list-episode?ep_start=${start}&ep_end=${end}&id=${id}');
+        return URL.ensureURL('https://ajax.gogo-load.com/ajax/load-list-episode?ep_start=${start}&ep_end=${end}&id=${id}');
     }
 
     static fun appendBaseURL(route) {
-        return Http.ensureURL('${baseURL}${route}');
+        return URL.ensureURL('${baseURL}${route}');
     }
 }

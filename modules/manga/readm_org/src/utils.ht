@@ -9,10 +9,10 @@ class $ {
     static final defaultLocale = Locale.parse('en');
 
     static fun getSearchURL() {
-        return Http.ensureURL('${baseURL}/service/search');
+        return URL.ensureURL('${baseURL}/service/search');
     }
 
     static fun appendBaseURL(route) {
-        return Http.ensureURL('${baseURL}${route}');
+        return URL.ensureURL('${baseURL}${route}');
     }
 }

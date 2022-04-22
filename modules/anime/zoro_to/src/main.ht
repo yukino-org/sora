@@ -26,7 +26,7 @@ final extractor = AnimeExtractor(
                             title: title.text.trim(),
                             url: $.appendBaseURL(url),
                             thumbnail: ImageDescriber(
-                                url: Http.ensureURL(thumbnail),
+                                url: URL.ensureURL(thumbnail),
                                 headers: $.defaultHeaders,
                             ),
                             locale: $.defaultLocale,
@@ -37,7 +37,7 @@ final extractor = AnimeExtractor(
         );
     },
     getInfo: fun (_url, locale) {
-        final url = Http.ensureURL(_url);
+        final url = URL.ensureURL(_url);
 
         return AsyncTask.resolve(
             () => Http.fetch(
@@ -82,7 +82,7 @@ final extractor = AnimeExtractor(
                             title: document.querySelector('#ani_detail .film-name').text.trim(),
                             url: url,
                             thumbnail: ImageDescriber(
-                                url: Http.ensureURL(document.querySelector('#ani_detail .film-poster-img').attributes['src'].trim()),
+                                url: URL.ensureURL(document.querySelector('#ani_detail .film-poster-img').attributes['src'].trim()),
                                 headers: $.defaultHeaders,
                             ),
                             episodes: episodes,

@@ -9,8 +9,8 @@ class GogoPlay {
     static final cPadding = 'pkcs7';
     static final cCustomPadding = BytesContainer.fromList(Collection.filledList(8, 8));
 
-    static fun ajaxApiURL(baseURL, id, alias) {
-        return Http.ensureURL('${baseURL}/encrypt-ajax.php?id=${id}&alias=${alias}');
+    static fun ajaxApiURL(baseURL, query) {
+        return URL.ensureURL('${baseURL}/encrypt-ajax.php?${query}');
     }
 
     static fun tryGetQuality(url) {
@@ -25,10 +25,10 @@ class GogoPlay {
     //  - https://github.com/justfoolingaround/animdl/blob/master/animdl/core/codebase/extractors/gogoplay/__init__.py
     //  - https://github.com/saikou-app/saikou/blob/master/app/src/main/java/ani/saikou/anime/source/extractors/GogoCDN.kt
     static fun parse(_url) {
-        final url = Http.ensureURL(_url);
-        final baseURL = Http.getDomainFromURL(url);
+        final url = URL.ensureURL(_url);
+        final parsedUrl = URL.parse(url);
 
-        final id = Regex('id=([^&]+)').firstMatch(url)?.group(1);
+        final id = parsedUrl.queryParameters['id'];
         if (id == null) return [];
 
         return AsyncTask.resolve(
@@ -36,7 +36,7 @@ class GogoPlay {
                 method: 'get',
                 url: url,
                 headers: Collection.mergeMap(defaultHeaders, {
-                    'Referer': baseURL,
+                    'Referer': parsedUrl.origin,
                 }),
             ),
             onDone: fun (resp) {
@@ -57,13 +57,23 @@ class GogoPlay {
                     iv: iv,
                 );
 
+                // Needs fixing
+                final queryParameters = Collection.mergeMap({}, parsedUrl.queryParameters);
+                queryParameters['id'] = Converter.base64Encode(encryptedId);
+                queryParameters['alias'] = id;
+                queryParameters['op'] = '2';
+                queryParameters['refer'] = $.baseURL;
+
                 return AsyncTask.resolve(
                     () => Http.fetch(
                         method: 'get',
-                        url: ajaxApiURL(baseURL, Converter.base64Encode(encryptedId), id),
+                        url: ajaxApiURL(
+                            parsedUrl.origin,
+                            URL.joinQueryParameters(queryParameters),
+                        ),
                         headers: Collection.mergeMap(defaultHeaders, {
                             'X-Requested-With': 'XMLHttpRequest',
-                            'Referer': baseURL,
+                            'Referer': url,
                         }),
                     ),
                     onDone: fun (resp) {
@@ -80,7 +90,7 @@ class GogoPlay {
                         return Collection.mapList(
                             Collection.mergeList(parsed['source'], parsed['source_bk']),
                             fun (i, x) {
-                                final srcURL = Http.ensureURL(x['file']);
+                                final srcURL = URL.ensureURL(x['file']);
 
                                 return EpisodeSource(
                                     url: srcURL,

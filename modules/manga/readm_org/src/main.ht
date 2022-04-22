@@ -40,7 +40,7 @@ final extractor = MangaExtractor(
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
-                url: Http.ensureURL(url),
+                url: URL.ensureURL(url),
                 headers: $.defaultHeaders,
             ),
             onDone: fun (resp) {
@@ -68,7 +68,7 @@ final extractor = MangaExtractor(
 
                 return MangaInfo(
                     title: title,
-                    url: Http.ensureURL(url),
+                    url: URL.ensureURL(url),
                     thumbnail: ImageDescriber(
                         url: $.appendBaseURL(thumbnail),
                         headers: $.defaultHeaders,
@@ -83,12 +83,12 @@ final extractor = MangaExtractor(
         );
     },
     getChapter: fun (_url, locale) {
-        final url = Http.ensureURL(_url);
+        final url = URL.ensureURL(_url);
 
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
-                url: Http.ensureURL(url),
+                url: URL.ensureURL(url),
                 headers: $.defaultHeaders,
             ),
             onDone: fun (resp) {

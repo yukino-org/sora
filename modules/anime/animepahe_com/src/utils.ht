@@ -29,11 +29,11 @@ class $ {
     }
 
     static fun getAnimeURL(slug) {
-        return Http.ensureURL('${baseURL}/anime/${slug}');
+        return URL.ensureURL('${baseURL}/anime/${slug}');
     }
 
     static fun getCustomEpisodeURL(id, slug, episode) {
-        return Http.ensureURL('${baseURL}/anime/${slug}?id=${id}&episode=${episode}');
+        return URL.ensureURL('${baseURL}/anime/${slug}?id=${id}&episode=${episode}');
     }
 
     static fun parseCustomEpisodeURL(url) {
@@ -59,7 +59,7 @@ class $ {
     }
     
     static fun appendBaseURL(route) {
-        return Http.ensureURL('${baseURL}${route}');
+        return URL.ensureURL('${baseURL}${route}');
     }
 
     static fun parseSlug(url) {

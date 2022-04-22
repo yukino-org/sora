@@ -19,11 +19,11 @@ class $ {
     }
 
     static fun getAnimeURL(slug) {
-        return Http.ensureURL('${baseURL}/a/${slug}');
+        return URL.ensureURL('${baseURL}/a/${slug}');
     }
 
     static fun getAnimeApiURL(slug) {
-        return Http.ensureURL('${baseApiURL}/anime/${slug}');
+        return URL.ensureURL('${baseApiURL}/anime/${slug}');
     }
 
     static fun getAnimeSourcesURL(slug) {
@@ -35,11 +35,11 @@ class $ {
     }
     
     static fun appendBaseURL(route) {
-        return Http.ensureURL('${baseURL}${route}');
+        return URL.ensureURL('${baseURL}${route}');
     }
 
     static fun getCdnURL(file) {
-        return Http.ensureURL('${baseCdnURL}${file}');
+        return URL.ensureURL('${baseCdnURL}${file}');
     }
 
     static fun generateSourceKey(salt) {

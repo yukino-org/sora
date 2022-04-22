@@ -4,12 +4,12 @@ class FEmbed {
     };
 
     static fun sourcesApiURL(baseURL, id) {
-        return Http.ensureURL('${baseURL}/api/source/${id}');
+        return URL.ensureURL('${baseURL}/api/source/${id}');
     }
 
     static fun parse(_url, { locale }) {
-        final url = Http.ensureURL(_url);
-        final baseURL = Http.getDomainFromURL(url);
+        final url = URL.ensureURL(_url);
+        final parsedUrl = URL.parse(url);
 
         final id = Regex('/v/([^?#&/.]+)').firstMatch(url)?.group(1);
         if (id == null) return [];
@@ -17,7 +17,7 @@ class FEmbed {
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'post',
-                url: sourcesApiURL(baseURL, id),
+                url: sourcesApiURL(parsedUrl.origin, id),
                 headers: Collection.mergeMap(defaultHeaders, {
                     'Referer': url,
                     'X-Requested-With': 'XMLHttpRequest',
@@ -31,9 +31,9 @@ class FEmbed {
                     parsed['data'],
                     fun (i, x) {
                         return EpisodeSource(
-                            url: Http.ensureURL(x['file']),
+                            url: URL.ensureURL(x['file']),
                             headers: Collection.mergeMap(defaultHeaders, {
-                                'Referer': baseURL,
+                                'Referer': parsedUrl.origin,
                             }),
                             quality: x['label'],
                             locale: locale,

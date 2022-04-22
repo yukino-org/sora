@@ -19,7 +19,7 @@ final extractor = AnimeExtractor(
                             title: x['title'],
                             url: $.getAnimeURL(x['session']),
                             thumbnail: ImageDescriber(
-                                url: Http.ensureURL(x['poster']),
+                                url: URL.ensureURL(x['poster']),
                                 headers: $.defaultHeaders,
                             ),
                             locale: $.defaultLocale,
@@ -30,7 +30,7 @@ final extractor = AnimeExtractor(
         );
     },
     getInfo: fun (_url, locale) {
-        final url = Http.ensureURL(_url);
+        final url = URL.ensureURL(_url);
         final slug = $.parseSlug(url);
         
         return AsyncTask.resolve(
@@ -61,7 +61,7 @@ final extractor = AnimeExtractor(
                                 .trim(),
                             url: url,
                             thumbnail: ImageDescriber(
-                                url: Http.ensureURL(
+                                url: URL.ensureURL(
                                     document
                                         .querySelector('.anime-header .anime-poster img')
                                         .attributes['data-src']
@@ -92,7 +92,7 @@ final extractor = AnimeExtractor(
         );
     },
     getSources: fun (_url, locale) {
-        final url = Http.ensureURL(_url);
+        final url = URL.ensureURL(_url);
 
         if ($.isPlayURL(url)) {
             final uParsed = $.parsePlayURL(url);
@@ -151,8 +151,8 @@ fun _getSources(id, slug) {
                         final quality = x.keys.first;
                         final y = x[quality];
                         
-                        final embed = Http.ensureURL(y['kwik']);
-                        final baseURL = Http.getDomainFromURL(embed);
+                        final embed = URL.ensureURL(y['kwik']);
+                        final parsedEmbedUrl = URL.parse(embed);
 
                         return () => AsyncTask.resolve(
                             () => Http.fetch(
@@ -169,7 +169,7 @@ fun _getSources(id, slug) {
                                 return EpisodeSource(
                                     url: '${m[10]}://${m[9]}-${m[8]}.${m[7]}.${m[6]}.${m[5]}/${m[4]}/${m[3]}/${m[2]}/${m[1]}.${m[0]}',
                                     headers: Collection.mergeMap($.defaultHeaders, {
-                                        'Referer': baseURL,
+                                        'Referer': parsedEmbedUrl.origin,
                                     }),
                                     quality: quality,
                                     locale: $.defaultLocale,

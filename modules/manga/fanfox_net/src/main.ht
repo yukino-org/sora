@@ -21,7 +21,7 @@ final extractor = MangaExtractor(
                         title: link.text.trim(),
                         url: $.appendBaseURL(url),
                         thumbnail: ImageDescriber(
-                            url: Http.ensureURL(image),
+                            url: URL.ensureURL(image),
                             headers: $.defaultHeaders,
                         ),
                         locale: $.defaultLocale,
@@ -31,7 +31,7 @@ final extractor = MangaExtractor(
         );
     },
     getInfo: fun (_url, locale) {
-        final url = Http.ensureURL(_url);
+        final url = URL.ensureURL(_url);
         
         return AsyncTask.resolve(
             () => Http.fetch(
@@ -72,7 +72,7 @@ final extractor = MangaExtractor(
                     title: document.querySelector('.detail-info-right-title-font').text,
                     url: url,
                     thumbnail: ImageDescriber(
-                        url: Http.ensureURL(document.querySelector('img.detail-info-cover-img').attributes['src']),
+                        url: URL.ensureURL(document.querySelector('img.detail-info-cover-img').attributes['src']),
                         headers: $.defaultHeaders,
                     ),
                     chapters: chapters,
@@ -98,7 +98,7 @@ final extractor = MangaExtractor(
                     HtmlElement.parse(resp.body).querySelector('select.mangaread-page').querySelectorAll('option'),
                     fun (i, x) {
                         return PageInfo(
-                            url: Http.ensureURL(x.attributes['value']),
+                            url: URL.ensureURL(x.attributes['value']),
                             locale: $.defaultLocale,
                         );
                     }
@@ -120,7 +120,7 @@ final extractor = MangaExtractor(
                 if (img == null) throw 'Failed to parse image URL';
 
                 return ImageDescriber(
-                    url: Http.ensureURL(img),
+                    url: URL.ensureURL(img),
                     headers: $.defaultHeaders,
                 );
             }

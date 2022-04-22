@@ -17,10 +17,10 @@ class $ {
     }
 
     static fun getAnimeURL(slug) {
-        return Http.ensureURL('${baseURL}/videos/hentai/${slug}');
+        return URL.ensureURL('${baseURL}/videos/hentai/${slug}');
     }
 
     static fun getAnimeApiURL(slug) {
-        return Http.ensureURL('${baseApiURL}/video?id=${slug}');
+        return URL.ensureURL('${baseApiURL}/video?id=${slug}');
     }
 }
