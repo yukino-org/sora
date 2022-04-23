@@ -25,7 +25,7 @@ jobs:
                   dart pub get
 
             - name: 🧪 Test modules
-              run: dart run ./test/all.dart
+              run: dart run ./test/all.dart --ci
 
             - name: 🚀 Upload summary
               if: always()

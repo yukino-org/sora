@@ -113,23 +113,23 @@ final extractor = AnimeExtractor(
                         Regex('data-id="(\\d+)"').allMatches(parsed['html']),
                         fun (i, x) {
                             final id = x.group(1);
-                            final srcURL = $.getSourcesApiURL(id);
+                            final sourceUrl = $.getSourcesApiURL(id);
 
                             return () => AsyncTask.resolve(
                                 () => Http.fetch(
                                     method: 'get',
-                                    url: srcURL,
+                                    url: sourceUrl,
                                     headers: Collection.mergeMap($.defaultHeaders, {
                                         'Referer': url,
                                         'X-Requested-With': 'XMLHttpRequest',
                                     }),
                                 ),
-                                onDone: fun (srcResp) {
-                                    final srcParsed = Converter.jsonDecode(srcResp.body);
-                                    final embedURL = srcParsed['link'];
+                                onDone: fun (sResp) {
+                                    final sParsed = Converter.jsonDecode(sResp.body);
+                                    final embedUrl = sParsed['link'];
 
-                                    if (embedURL.contains('rapid-cloud')) {
-                                        return RapidCloud.parse(embedURL);
+                                    if (embedUrl.contains('rapid-cloud')) {
+                                        return RapidCloud.parse(embedUrl);
                                     }
 
                                     return [];

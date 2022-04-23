@@ -119,9 +119,9 @@ class GogoPlay {
 
                                     return () => AsyncTask.value([
                                         EpisodeSource(
-                                            url: srcURL,
+                                            url: x,
                                             headers: defaultHeaders,
-                                            quality: tryGetQuality(srcURL),
+                                            quality: tryGetQuality(x),
                                             locale: $.defaultLocale,
                                         ),
                                     ]);
