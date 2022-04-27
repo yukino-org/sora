@@ -8,11 +8,11 @@ final TenkaLocalFileDS source = Utils.getAnimeDS('gogoanime_pe');
 final MockedAnimeExtractor mocked = MockedAnimeExtractor(
   search: (final AnimeExtractor ext) => ext.search('bunny girl', locale),
   getInfo: (final AnimeExtractor ext) => ext.getInfo(
-    'https://gogoanime.fi/category/seishun-buta-yarou-wa-bunny-girl-senpai-no-yume-wo-minai',
+    'https://gogoanime.sk/category/seishun-buta-yarou-wa-bunny-girl-senpai-no-yume-wo-minai',
     locale,
   ),
   getSources: (final AnimeExtractor ext) => ext.getSources(
-    'https://gogoanime.fi/seishun-buta-yarou-wa-bunny-girl-senpai-no-yume-wo-minai-episode-1',
+    'https://gogoanime.sk/seishun-buta-yarou-wa-bunny-girl-senpai-no-yume-wo-minai-episode-13',
     locale,
   ),
 );
