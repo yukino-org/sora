@@ -35,7 +35,7 @@ packages:
       name: characters
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.2.0"
+    version: "1.2.1"
   charcode:
     dependency: transitive
     description:
@@ -77,7 +77,7 @@ packages:
       name: crypto
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.1"
+    version: "3.0.2"
   csslib:
     dependency: transitive
     description:
@@ -212,7 +212,7 @@ packages:
       name: pointycastle
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.5.2"
+    version: "3.6.0"
   pool:
     dependency: transitive
     description:
@@ -240,7 +240,7 @@ packages:
       name: quiver
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.1+1"
+    version: "3.1.0"
   recase:
     dependency: transitive
     description:
@@ -274,7 +274,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka
-      resolved-ref: "37ef94a66b09994a49a8be66908619d36e8cab88"
+      resolved-ref: ca4eea586be7d61496680086defce8e79154a809
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "1.0.5"
@@ -283,7 +283,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka_dev_tools
-      resolved-ref: a8cf463c33d93216fd01d1e1838f26b407673cf9
+      resolved-ref: "8ad2cc1368b9dd5fd2cc6ef1f956f6c88a1035df"
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
@@ -292,7 +292,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka_runtime
-      resolved-ref: "3ff3fbe8920452eec30d0ceb102784133c39fda8"
+      resolved-ref: "9eac10afe87d4e295beb8a67dff77696156f7451"
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"

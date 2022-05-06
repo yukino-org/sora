@@ -115,7 +115,7 @@ final extractor = AnimeExtractor(
                     return () => AsyncTask.resolve(
                         fn ?? () => [],
                         onDone: (res) => res,
-                        onFail: () => [],
+                        onFail: !Globals.isDebug ? () => [] : null,
                     );
                 }
                 
