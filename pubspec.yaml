@@ -1,5 +1,5 @@
-name: official_tenka_modules
-description: "⚡ Officially maintained Tenka modules."
+name: tenka_modules
+description: "⚡ Officially maintained Tenka modules by Yukino Org."
 version: 0.0.0
 
 publish_to: none
