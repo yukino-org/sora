@@ -14,7 +14,7 @@ packages:
       name: args
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.3.0"
+    version: "2.3.1"
   asn1lib:
     dependency: transitive
     description:
@@ -36,20 +36,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.1"
-  charcode:
-    dependency: transitive
-    description:
-      name: charcode
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.3.1"
   clock:
     dependency: transitive
     description:
       name: clock
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.1.1"
   collection:
     dependency: transitive
     description:
@@ -70,7 +63,7 @@ packages:
       name: convert
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.1"
+    version: "3.0.2"
   crypto:
     dependency: transitive
     description:
@@ -84,7 +77,7 @@ packages:
       name: csslib
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.17.1"
+    version: "0.17.2"
   devx:
     dependency: "direct dev"
     description:
@@ -142,7 +135,7 @@ packages:
       name: http_parser
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.0.0"
+    version: "4.0.1"
   intl:
     dependency: "direct dev"
     description:
@@ -184,21 +177,21 @@ packages:
       name: matcher
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.12.11"
+    version: "0.12.12"
   meta:
     dependency: transitive
     description:
       name: meta
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.7.0"
+    version: "1.8.0"
   path:
     dependency: "direct main"
     description:
       name: path
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.8.1"
+    version: "1.8.2"
   petitparser:
     dependency: transitive
     description:
@@ -219,7 +212,7 @@ packages:
       name: pool
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.5.0"
+    version: "1.5.1"
   pub_semver:
     dependency: transitive
     description:
@@ -233,7 +226,7 @@ packages:
       name: puppeteer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.8.0"
+    version: "2.9.0"
   quiver:
     dependency: transitive
     description:
@@ -268,7 +261,7 @@ packages:
       name: string_scanner
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.1.1"
   tenka:
     dependency: "direct main"
     description:
@@ -283,7 +276,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka_dev_tools
-      resolved-ref: "8ad2cc1368b9dd5fd2cc6ef1f956f6c88a1035df"
+      resolved-ref: "0ec514fe407a56fe837e62e2718742eae255fb55"
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
@@ -292,7 +285,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka_runtime
-      resolved-ref: "9eac10afe87d4e295beb8a67dff77696156f7451"
+      resolved-ref: f2eb79959642e52d15718e02162f505061cf4208
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
@@ -302,20 +295,20 @@ packages:
       name: term_glyph
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.2.0"
+    version: "1.2.1"
   typed_data:
     dependency: transitive
     description:
       name: typed_data
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.3.0"
+    version: "1.3.1"
   utilx:
     dependency: "direct main"
     description:
       path: "."
       ref: dart_utilx
-      resolved-ref: b498c79f406f02ae1f08ecc4328de4f60c7637c0
+      resolved-ref: d684110d4334a5efcdb20de5490c17a00f130547
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
@@ -334,6 +327,6 @@ packages:
       name: yaml
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.1.0"
+    version: "3.1.1"
 sdks:
   dart: ">=2.16.0 <3.0.0"
