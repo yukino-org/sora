@@ -1,0 +1,167 @@
+import 'utils.ht';
+
+final extractor = MangaExtractor(
+    defaultLocale: $.defaultLocale,
+    search: fun (terms, locale) {
+        if (_searcher != null) {
+            return _searcher(terms);
+        }
+
+        return AsyncTask.resolve(
+            () => _prepareSearcher(),
+            onDone: fun (resp) {
+                return _searcher(terms);
+            }
+        );
+    },
+    getInfo: fun (url, locale) {
+        final slug = $.parseSlug(url);
+
+        return AsyncTask.resolve(
+            () => Http.fetch(
+                method: 'get',
+                url: URL.ensureURL(url),
+                headers: $.defaultHeaders,
+            ),
+            onDone: fun (resp) {
+                final document = HtmlElement.parse(resp.body);
+                
+                final chapters = Collection.mapList(
+                    Converter.jsonDecode(
+                        Regex('vm\\.Chapters = (.*);')
+                            .firstMatch(resp.body)
+                            .group(1),
+                    ),
+                    fun (i, x) {
+                        final chapter = $.parseChapterId(x['Chapter']);
+
+                        return ChapterInfo(
+                            title: x['ChapterName'],
+                            url: $.getChapterURL(slug, chapter),
+                            chapter: chapter,
+                            locale: $.defaultLocale,
+                        );
+                    }
+                );
+
+                final title = document.querySelector('.MainContainer .BoxBody .list-group h1').text.trim();
+                final thumbnail = document.querySelector('.MainContainer .BoxBody .img-fluid').attributes['src'].trim();
+
+                return MangaInfo(
+                    title: title,
+                    url: URL.ensureURL(url),
+                    thumbnail: ImageDescriber(
+                        url: $.getMangaThumbnailURL(slug),
+                        headers: $.defaultHeaders,
+                    ),
+                    chapters: chapters,
+                    locale: $.defaultLocale,
+                    availableLocales: [
+                        $.defaultLocale,
+                    ]
+                );
+            }
+        );
+    },
+    getChapter: fun (_url, locale) {
+        final url = URL.ensureURL(_url);
+
+        return AsyncTask.resolve(
+            () => Http.fetch(
+                method: 'get',
+                url: URL.ensureURL(url),
+                headers: $.defaultHeaders,
+            ),
+            onDone: fun (resp) {
+                final document = HtmlElement.parse(resp.body);
+
+                final host = Regex('vm\\.CurPathName = "([^"]+)"')
+                    .firstMatch(resp.body)
+                    .group(1);
+
+                final slug = Regex('vm\\.IndexName = "([^"]+)"')
+                    .firstMatch(resp.body)
+                    .group(1);
+                
+                final data = Converter.jsonDecode(
+                    Regex('vm\\.CurChapter = (.*);')
+                        .firstMatch(resp.body)
+                        .group(1)
+                );
+
+                final chapterId = $.parseChapterId(data['Chapter'], false);
+                final subPath = data['Directory'];
+                final totalPages = int.parse(data['Page']);
+
+                return Collection.mapList(
+                    Collection.rangeList(0, totalPages),
+                    fun (i, x) {
+                        final pageId = Regex('(\d{3})$')
+                            .firstMatch('000${x + 1}')
+                            .group(1);
+
+                        return PageInfo(
+                            url: $.getImageURL(host, slug, subPath, chapterId, pageId),
+                            locale: $.defaultLocale,
+                        );
+                    }
+                );
+            }
+        );
+    },
+    getPage: fun (url, locale) {
+        return ImageDescriber(
+            url: url,
+            headers: $.defaultHeaders,
+        );
+    },
+);
+
+var _searcher;
+
+fun _prepareSearcher() {
+    return AsyncTask.resolve(
+        () => Http.fetch(
+            method: 'post',
+            url: $.getSearchApiURL(),
+            headers: $.defaultHeaders,
+        ),
+        onDone: fun (resp) {
+            final parsed = Converter.jsonDecode(resp.body);
+            final items = Collection.mapList(parsed, fun (i, x) {
+                return {
+                    'i': x['i'],
+                    's': x['s'],
+                    'a': x['a'].join(' | '),
+                }
+            });
+
+            final fuzzy = FuzzySearch(
+                items: items,
+                keys: [
+                    FuzzySearchKey(
+                        getter: (x) => x['s'],
+                        weight: 2.0,
+                    ),
+                    FuzzySearchKey(getter: (x) => x['a']),
+                    FuzzySearchKey(getter: (x) => x['i']),
+                ]
+            );
+
+            _searcher = fun (terms) {
+                return Collection.mapList(
+                    fuzzy.search(terms, 10),
+                    (i, x) => SearchInfo(
+                        title: x.item['s'],
+                        url: $.getMangaURL(x.item['i']),
+                        thumbnail: ImageDescriber(
+                            url: $.getMangaThumbnailURL(x.item['i']),
+                            headers: $.defaultHeaders,
+                        ),
+                        locale: $.defaultLocale,
+                    ),
+                );
+            };
+        },
+    );
+}

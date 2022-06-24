@@ -1,0 +1,45 @@
+class $ {
+    static const baseURL = 'https://mangasee123.com';
+
+    static final defaultHeaders = {
+        'User-Agent': Http.defaultUserAgent,
+        'Referer': baseURL,
+    }
+
+    static final defaultLocale = Locale.parse('en');
+
+    static fun getSearchApiURL() {
+        return URL.ensureURL('${baseURL}/_search.php');
+    }
+
+    static fun getMangaURL(slug) {
+        return URL.ensureURL('${baseURL}/manga/${slug}');
+    }
+
+    static fun getMangaThumbnailURL(slug) {
+        return URL.ensureURL('https://cover.nep.li/cover/${slug}.jpg');
+    }
+
+    static fun parseChapterId(id, [trim = true]) {
+        final match = Regex('^(\\d)(\\d+)(\\d)$').firstMatch(id);
+        final mid = match.group(2);
+        final end = match.group(3);
+
+        final start = trim ? int.parse(mid).toString() : mid;
+        final end = end == '0' ? '' : '.${end}';
+
+        return '${start}${end}';
+    }
+
+    static fun getChapterURL(slug, chapter) {
+        return URL.ensureURL('${baseURL}/read-online/${slug}-chapter-${chapter}-page-1.html');
+    }
+
+    static fun getImageURL(host, slug, sub, chap, page) {
+        return URL.ensureURL('https://${host}/manga/${slug}/${sub == '' ? '' : sub + '/'}${chap}-${page}.png');
+    }
+
+    static fun parseSlug(url) {
+        return Regex('\\/manga\\/([^\\/]+)').firstMatch(url).group(1);
+    }
+}
