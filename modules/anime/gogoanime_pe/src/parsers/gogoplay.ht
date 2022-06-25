@@ -152,7 +152,7 @@ class GogoPlay {
                         resp.body.split('\n'),
                         (i, x) => !x.startsWith('#') && (x.contains('.m3u8') || x.contains('.ts')),
                     ),
-                    (i, x) => '${prevUrl}${x}',
+                    (i, x) => x.startsWith('http') ? x : '${prevUrl}${x}',
                 );
             },
         );

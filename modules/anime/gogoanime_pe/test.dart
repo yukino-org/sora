@@ -12,7 +12,7 @@ final MockedAnimeExtractor mocked = MockedAnimeExtractor(
     locale,
   ),
   getSources: (final AnimeExtractor ext) => ext.getSources(
-    'https://gogoanime.sk/seishun-buta-yarou-wa-bunny-girl-senpai-no-yume-wo-minai-episode-13',
+    'https://gogoanime.sk/spy-x-family-episode-1',
     locale,
   ),
 );
