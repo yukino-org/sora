@@ -19,7 +19,7 @@ final extractor = MangaExtractor(
             onDone: fun (resp) {
                 final parsed = Converter.jsonDecode(resp.body);
 
-                return Collection.mapList(parsed['manga'], fun (i, x) {
+                return Collection.mapList(parsed['manga'] ?? [], fun (i, x) {
                     final url = x['url'];
                     final thumbnail = x['image'];
                     
