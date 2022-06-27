@@ -136,16 +136,18 @@ fun _getChapters(id, locale, offset, chapters) {
                 fun (i, x) {
                     final id = x['id'];
                     final title = x['attributes']['title'];
-
-                    chapters.add(
-                        ChapterInfo(
-                            title: (title?.isNotEmpty ?? false) ? title : null,
-                            url: 'id:${id}',
-                            chapter: x['attributes']['chapter'],
-                            volume: x['attributes']['volume'],
-                            locale: locale,
-                        ),
-                    );
+                    final chapterNum = x['attributes']['chapter'];
+                    if (chapterNum != null) {
+                        chapters.add(
+                            ChapterInfo(
+                                title: (title?.isNotEmpty ?? false) ? title : null,
+                                url: 'id:${id}',
+                                chapter: chapterNum,
+                                volume: x['attributes']['volume'],
+                                locale: locale,
+                            ),
+                        );
+                    }
 
                     wasEmpty = false;
                 },

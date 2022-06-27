@@ -7,11 +7,11 @@ const Locale locale = Locale(LanguageCodes.en);
 final TenkaLocalFileDS source = Utils.getMangaDS('mangadex_org');
 final MockedMangaExtractor mocked = MockedMangaExtractor(
   search: (final MangaExtractor ext) => ext.search(
-    'bunny girl',
+    'masamune kun revenge',
     locale,
   ),
   getInfo: (final MangaExtractor ext) => ext.getInfo(
-    'https://api.mangadex.org/manga/b15632d7-88d0-4233-9815-c01e75cabda8',
+    'https://api.mangadex.org/manga/7bee0d50-f466-4fa1-8338-7c804be45187',
     locale,
   ),
   getChapter: (final MangaExtractor ext) => ext.getChapter(
