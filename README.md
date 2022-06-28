@@ -13,6 +13,7 @@ By using this project, you agree to the [usage policy](https://yukino-org.github
 
 ## Anime
 
+-   [AnimePahe.com (https://animepahe.com)](./modules/anime/animepahe_com)
 -   [Gogoanime.pe (https://gogoanime.cm)](./modules/anime/gogoanime_pe)
 -   [HAnime.tv (https://hanime.tv)](./modules/anime/kawaiifu_com)
 -   [Tenshi.moe (https://tenshi.moe)](./modules/anime/tenshi_moe)
@@ -23,6 +24,7 @@ By using this project, you agree to the [usage policy](https://yukino-org.github
 
 -   [FanFox.net (https://fanfox.net)](./modules/manga/fanfox_net)
 -   [MangaDex.org (https://mangadex.org)](./modules/manga/mangadex_org)
+-   [MangaSee123.com (https://mangasee123.com)](./modules/manga/mangasee123_com)
 -   [ReadM.org (https://readm.org)](./modules/manga/readm_org)
 
 ## License
