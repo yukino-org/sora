@@ -1,21 +1,21 @@
 import 'utils.ht';
 
-final extractor = MangaExtractor(
+extractor := MangaExtractor(
     defaultLocale: $.defaultLocale,
-    search: fun (terms, locale) {
-        if (_searcher != null) {
+    search: -> terms, locale {
+        if (_searcher != null {
             return _searcher(terms);
         }
 
         return AsyncTask.resolve(
             () => _prepareSearcher(),
-            onDone: fun (resp) {
+            onDone: -> resp {
                 return _searcher(terms);
             }
         );
     },
-    getInfo: fun (url, locale) {
-        final slug = $.parseSlug(url);
+    getInfo: -> url, locale {
+        slug := $.parseSlug(url);
 
         return AsyncTask.resolve(
             () => Http.fetch(
@@ -23,17 +23,17 @@ final extractor = MangaExtractor(
                 url: URL.ensureURL(url),
                 headers: $.defaultHeaders,
             ),
-            onDone: fun (resp) {
-                final document = HtmlElement.parse(resp.body);
+            onDone: -> resp {
+                document := HtmlElement.parse(resp.body);
                 
-                final chapters = Collection.mapList(
+                chapters := Collection.mapList(
                     Converter.jsonDecode(
                         Regex('vm\\.Chapters = (.*);')
                             .firstMatch(resp.body)
                             .group(1),
                     ),
-                    fun (i, x) {
-                        final chapter = $.parseChapterId(x['Chapter']);
+                    -> i, x {
+                        chapter := $.parseChapterId(x['Chapter']);
 
                         return ChapterInfo(
                             title: x['ChapterName'],
@@ -44,8 +44,8 @@ final extractor = MangaExtractor(
                     }
                 );
 
-                final title = document.querySelector('.MainContainer .BoxBody .list-group h1').text.trim();
-                final thumbnail = document.querySelector('.MainContainer .BoxBody .img-fluid').attributes['src'].trim();
+                title := document.querySelector('.MainContainer .BoxBody .list-group h1').text.trim();
+                thumbnail := document.querySelector('.MainContainer .BoxBody .img-fluid').attributes['src'].trim();
 
                 return MangaInfo(
                     title: title,
@@ -63,8 +63,8 @@ final extractor = MangaExtractor(
             }
         );
     },
-    getChapter: fun (_url, locale) {
-        final url = URL.ensureURL(_url);
+    getChapter: -> _url, locale {
+        url := URL.ensureURL(_url);
 
         return AsyncTask.resolve(
             () => Http.fetch(
@@ -72,31 +72,31 @@ final extractor = MangaExtractor(
                 url: URL.ensureURL(url),
                 headers: $.defaultHeaders,
             ),
-            onDone: fun (resp) {
-                final document = HtmlElement.parse(resp.body);
+            onDone: -> resp {
+                document := HtmlElement.parse(resp.body);
 
-                final host = Regex('vm\\.CurPathName = "([^"]+)"')
+                host := Regex('vm\\.CurPathName = "([^"]+)"')
                     .firstMatch(resp.body)
                     .group(1);
 
-                final slug = Regex('vm\\.IndexName = "([^"]+)"')
+                slug := Regex('vm\\.IndexName = "([^"]+)"')
                     .firstMatch(resp.body)
                     .group(1);
                 
-                final data = Converter.jsonDecode(
+                data := Converter.jsonDecode(
                     Regex('vm\\.CurChapter = (.*);')
                         .firstMatch(resp.body)
                         .group(1)
                 );
 
-                final chapterId = $.parseChapterId(data['Chapter'], false);
-                final subPath = data['Directory'];
-                final totalPages = int.parse(data['Page']);
+                chapterId := $.parseChapterId(data['Chapter'], false);
+                subPath := data['Directory'];
+                totalPages := int.parse(data['Page']);
 
                 return Collection.mapList(
                     Collection.rangeList(0, totalPages),
-                    fun (i, x) {
-                        final pageId = Regex('(\d{3})$')
+                    -> i, x {
+                        pageId := Regex('(\d{3})$')
                             .firstMatch('000${x + 1}')
                             .group(1);
 
@@ -109,7 +109,7 @@ final extractor = MangaExtractor(
             }
         );
     },
-    getPage: fun (url, locale) {
+    getPage: -> url, locale {
         return ImageDescriber(
             url: url,
             headers: $.defaultHeaders,
@@ -119,16 +119,16 @@ final extractor = MangaExtractor(
 
 var _searcher;
 
-fun _prepareSearcher() {
+_prepareSearcher := ->  {
     return AsyncTask.resolve(
         () => Http.fetch(
             method: 'post',
             url: $.getSearchApiURL(),
             headers: $.defaultHeaders,
         ),
-        onDone: fun (resp) {
-            final parsed = Converter.jsonDecode(resp.body);
-            final items = Collection.mapList(parsed, fun (i, x) {
+        onDone: -> resp {
+            parsed := Converter.jsonDecode(resp.body);
+            items := Collection.mapList(parsed, -> i, x {
                 return {
                     'i': x['i'],
                     's': x['s'],
@@ -136,7 +136,7 @@ fun _prepareSearcher() {
                 }
             });
 
-            final fuzzy = FuzzySearch(
+            fuzzy := FuzzySearch(
                 items: items,
                 keys: [
                     FuzzySearchKey(
@@ -148,7 +148,7 @@ fun _prepareSearcher() {
                 ]
             );
 
-            _searcher = fun (terms) {
+            _searcher = -> terms {
                 return Collection.mapList(
                     fuzzy.search(terms, 10),
                     (i, x) => SearchInfo(

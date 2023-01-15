@@ -1,8 +1,8 @@
 import 'utils.ht';
 
-final extractor = AnimeExtractor(
+extractor := AnimeExtractor(
     defaultLocale: $.defaultLocale,
-    search: fun (terms, locale) {
+    search: -> terms, locale {
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'post',
@@ -21,13 +21,13 @@ final extractor = AnimeExtractor(
                     'page': 0
                 }),
             ),
-            onDone: fun (resp) {
-                final parsed = Converter.jsonDecode(resp.body);
-                final hits = Converter.jsonDecode(parsed['hits']);
+            onDone: -> resp {
+                parsed := Converter.jsonDecode(resp.body);
+                hits := Converter.jsonDecode(parsed['hits']);
 
-                return Collection.mapList(hits, fun (i, x) {
-                    final title = x['name'];
-                    final censored = x['is_censored'];
+                return Collection.mapList(hits, -> i, x {
+                    title := x['name'];
+                    censored := x['is_censored'];
 
                     return SearchInfo(
                         title: '${title}${censored ? ' (Censored)' : ''}',
@@ -42,15 +42,15 @@ final extractor = AnimeExtractor(
             },
         );
     },
-    getInfo: fun (url, locale) {
-        final slug = $.parseSlug(url);
+    getInfo: -> url, locale {
+        slug := $.parseSlug(url);
 
         return AsyncTask.resolve(
             () => _getInfo(slug),
-            onDone: fun (resp) {
-                final title = resp['hentai_video']['name'];
-                final censored = resp['hentai_video']['is_censored'];
-                final url = $.getAnimeURL(slug);
+            onDone: -> resp {
+                title := resp['hentai_video']['name'];
+                censored := resp['hentai_video']['is_censored'];
+                url := $.getAnimeURL(slug);
 
                 return AnimeInfo(
                     title: '${title}${censored ? ' (Censored)' : ''}',
@@ -74,20 +74,20 @@ final extractor = AnimeExtractor(
             },
         );
     },
-    getSources: fun(url, locale) {
-        final slug = $.parseSlug(url);
+    getSources: fun(url, locale {
+        slug := $.parseSlug(url);
 
         return AsyncTask.resolve(
             () => _getInfo(slug),
-            onDone: fun (resp) {
+            onDone: -> resp {
                 return Collection.flattenList(
-                    Collection.mapList(resp['videos_manifest']['servers'], fun (i, x) {
+                    Collection.mapList(resp['videos_manifest']['servers'], -> i, x {
                         return Collection.mapList(
                             Collection.filterList(
                                 x['streams'],
                                 (i, x) => x['kind'] == 'hls',
                             ),
-                            fun (i, x) {
+                            -> i, x {
                                 return EpisodeSource(
                                     url: x['url'],
                                     headers: $.defaultHeaders,
@@ -104,10 +104,10 @@ final extractor = AnimeExtractor(
     },
 );
 
-final _infoCache = {};
+_infoCache := {};
 
-fun _getInfo(slug) {
-    final url = $.getAnimeApiURL(slug);
+_getInfo := -> slug {
+    url := $.getAnimeApiURL(slug);
 
     return _infoCache[slug] ?? AsyncTask.resolve(
         () => Http.fetch(
@@ -115,8 +115,8 @@ fun _getInfo(slug) {
             url: url,
             headers: $.defaultHeaders,
         ),
-        onDone: fun (resp) {
-            final parsed = Converter.jsonDecode(resp.body);
+        onDone: -> resp {
+            parsed := Converter.jsonDecode(resp.body);
             _infoCache[slug] = parsed;
             return parsed;
         },

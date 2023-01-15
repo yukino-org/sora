@@ -1,16 +1,16 @@
 import 'utils.ht';
 import '../../../shared/utils.ht';
 
-final fetcher = $DDOSGuardFetcher();
+fetcher := $DDOSGuardFetcher();
 
-fun _headers(headers) {
+_headers := -> headers {
     return fetcher.attachBypassHeaders(headers);
 }
 
-final extractor = AnimeExtractor(
+extractor := AnimeExtractor(
     defaultLocale: $.defaultLocale,
-    search: fun (terms, locale) {
-        final url = $.getSearchURL(terms);
+    search: -> terms, locale {
+        url := $.getSearchURL(terms);
 
         return AsyncTask.resolve(
             () => fetcher.getBody(
@@ -20,16 +20,16 @@ final extractor = AnimeExtractor(
                     'Cookie': 'loop-view=thumb;',
                 }),
             ),
-            onDone: fun (html) {
-                final document = HtmlElement.parse(html);
+            onDone: -> html {
+                document := HtmlElement.parse(html);
 
                 return Collection.mapList(
                     document.querySelectorAll('.anime-loop li'),
-                    fun (i, x) {
-                        final link = x.querySelector('a');
-                        final title = link.attributes['title'].trim();
-                        final url = link.attributes['href'].trim();
-                        final thumbnail = link.querySelector('.image').attributes['src'].trim();
+                    -> i, x {
+                        link := x.querySelector('a');
+                        title := link.attributes['title'].trim();
+                        url := link.attributes['href'].trim();
+                        thumbnail := link.querySelector('.image').attributes['src'].trim();
 
                         return SearchInfo(
                             title: title,
@@ -45,8 +45,8 @@ final extractor = AnimeExtractor(
             }
         );
     },
-    getInfo: fun (url, locale) {
-        final url = URL.ensureURL(url);
+    getInfo: -> url, locale {
+        url := URL.ensureURL(url);
 
         return AsyncTask.resolve(
             () => fetcher.getBody(
@@ -54,16 +54,16 @@ final extractor = AnimeExtractor(
                 url: url,
                 headers: $.defaultHeaders,
             ),
-            onDone: fun (html) {
-                final document = HtmlElement.parse(html);
+            onDone: -> html {
+                document := HtmlElement.parse(html);
 
-                final estimated = document.querySelector('.entry-episodes .badge.badge-secondary.align-top').text.trim();
-                final trimmedURL = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+                estimated := document.querySelector('.entry-episodes .badge.badge-secondary.align-top').text.trim();
+                trimmedURL := url.endsWith('/') ? url.substring(0, url.length - 1) : url;
 
-                final episodes = Collection.mapList(
+                episodes := Collection.mapList(
                     Collection.rangeList(0, int.parse(estimated)),
-                    fun (i: num, x: num) {
-                        final epNum = '${x + 1}';
+                    -> i: num, x: num {
+                        epNum := '${x + 1}';
                         
                         return EpisodeInfo(
                             episode: epNum,
@@ -89,8 +89,8 @@ final extractor = AnimeExtractor(
             }
         );
     },
-    getSources: fun (_url, locale) {
-        final url = URL.ensureURL(_url);
+    getSources: -> _url, locale {
+        url := URL.ensureURL(_url);
 
         return AsyncTask.resolve(
             () => fetcher.getBody(
@@ -98,12 +98,12 @@ final extractor = AnimeExtractor(
                 url: url,
                 headers: $.defaultHeaders,
             ),
-            onDone: fun (html) {
-                final iframeURL = Regex('<iframe src="([^"]+)"').firstMatch(html).group(1);
-                final iframeHeaders = Collection.mergeMap($.defaultHeaders, {
+            onDone: -> html {
+                iframeURL := Regex('<iframe src="([^"]+)"').firstMatch(html).group(1);
+                iframeHeaders := Collection.mergeMap($.defaultHeaders, {
                     'Referer': url,
                 });
-                final rHeaders = _headers(iframeHeaders);
+                rHeaders := _headers(iframeHeaders);
 
                 return AsyncTask.resolve(
                     () => fetcher.getBody(
@@ -111,15 +111,15 @@ final extractor = AnimeExtractor(
                         url: iframeURL,
                         headers: iframeHeaders,
                     ),
-                    onDone: fun (iframeHtml) {
-                        final sources = Regex('sources:[\\s]+\\[([^\\]]+)')
+                    onDone: -> iframeHtml {
+                        sources := Regex('sources:[\\s]+\\[([^\\]]+)')
                             .firstMatch(iframeHtml)
                             .group(1);
 
                         return Collection.mapList(
                             Regex('src:[\\s]+?["\']([^\'"]+)[\\S\\s]+?size:[\\s]+?(\\d+)')
                                 .allMatches(sources),
-                            fun (i, x) {
+                            -> i, x {
                                 return EpisodeSource(
                                     url: URL.ensureURL(x.group(1)),
                                     quality: x.group(2),

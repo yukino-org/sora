@@ -1,16 +1,16 @@
 import '../../../shared/utils.ht';
 
-class $ {
+
     static const baseURL = 'https://tenshi.moe';
 
-    static final defaultHeaders = {
+    defaultHeaders := {
         'User-Agent': Http.defaultUserAgent,
         'Referer': baseURL,
     }
 
-    static final defaultLocale = Locale.parse('en');
+    defaultLocale := Locale.parse('en');
 
-    static fun getSearchURL(terms) {
+    getSearchURL := -> terms {
         return URL.ensureURL('${baseURL}/anime?q=${terms}');
     }
 }

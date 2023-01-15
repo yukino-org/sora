@@ -1,26 +1,26 @@
-class $ {
+
     static const baseURL = 'https://hanime.tv';
 
     static const baseSearchApiURL = 'https://search.htv-services.com';
 
-    static final baseApiURL = '${baseURL}/api/v8';
+    baseApiURL := '${baseURL}/api/v8';
 
-    static final defaultHeaders = {
+    defaultHeaders := {
         'User-Agent': Http.defaultUserAgent,
         'Referer': baseURL,
     }
 
-    static final defaultLocale = Locale.parse('en');
+    defaultLocale := Locale.parse('en');
 
-    static fun parseSlug(url) {
+    parseSlug := -> url {
         return Regex('\\/videos\\/hentai\\/([^?]+)').firstMatch(url).group(1);
     }
 
-    static fun getAnimeURL(slug) {
+    getAnimeURL := -> slug {
         return URL.ensureURL('${baseURL}/videos/hentai/${slug}');
     }
 
-    static fun getAnimeApiURL(slug) {
+    getAnimeApiURL := -> slug {
         return URL.ensureURL('${baseApiURL}/video?id=${slug}');
     }
 }

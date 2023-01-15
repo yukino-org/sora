@@ -2,10 +2,10 @@ import 'utils.ht';
 
 var _searcher;
 
-final extractor = AnimeExtractor(
+extractor := AnimeExtractor(
     defaultLocale: $.defaultLocale,
-    search: fun (terms, locale) {
-        if (_searcher != null) {
+    search: -> terms, locale {
+        if (_searcher != null {
             return _searcher(terms);
         }
 
@@ -15,10 +15,10 @@ final extractor = AnimeExtractor(
                 url: $.getSearchApiURL(),
                 headers: $.defaultHeaders,
             ),
-            onDone: fun (resp) {
-                final parsed = Converter.jsonDecode(resp.body);
+            onDone: -> resp {
+                parsed := Converter.jsonDecode(resp.body);
 
-                final items = Collection.mapList(parsed, fun (i, x) {
+                items := Collection.mapList(parsed, -> i, x {
                     return {
                         'title': x['title'],
                         'altTitle': x['altTitle'] ?? '',
@@ -27,8 +27,8 @@ final extractor = AnimeExtractor(
                     };
                 });
 
-                _searcher = fun (terms) {
-                    final fuzzy = FuzzySearch(
+                _searcher = -> terms {
+                    fuzzy := FuzzySearch(
                         items: items,
                         keys: [
                             FuzzySearchKey(
@@ -55,8 +55,8 @@ final extractor = AnimeExtractor(
             },
         );
     },
-    getInfo: fun (url, locale) {
-        final slug = $.parseSlug(url);
+    getInfo: -> url, locale {
+        slug := $.parseSlug(url);
 
         return AsyncTask.resolve(
             () => Http.fetch(
@@ -64,15 +64,15 @@ final extractor = AnimeExtractor(
                 url: $.getAnimeApiURL(slug),
                 headers: $.defaultHeaders,
             ),
-            onDone: fun (resp) {
-                final parsed = Converter.jsonDecode(resp.body);
-                final animeURLP = $.getAnimeURL(slug);
+            onDone: -> resp {
+                parsed := Converter.jsonDecode(resp.body);
+                animeURLP := $.getAnimeURL(slug);
 
                 return AnimeInfo(
                     title: parsed['title'],
                     url: animeURLP,
-                    episodes: Collection.mapList(parsed['episodes'], fun (i, x) {
-                        final epNum = x['number'].toString();
+                    episodes: Collection.mapList(parsed['episodes'], -> i, x {
+                        epNum := x['number'].toString();
 
                         return EpisodeInfo(
                             episode: epNum,
@@ -88,11 +88,11 @@ final extractor = AnimeExtractor(
             },
         );
     },
-    getSources: fun (url, locale) {
-        final slug = $.parseSlug(url);
-        final episode = Regex('\\d+$').firstMatch(url).group(0);
+    getSources: -> url, locale {
+        slug := $.parseSlug(url);
+        episode := Regex('\\d+$').firstMatch(url).group(0);
 
-        if (_sourceCache[slug] != null) {
+        if (_sourceCache[slug] != null {
             return _getSources(slug, episode);
         }
 
@@ -102,11 +102,11 @@ final extractor = AnimeExtractor(
                 url: $.getAnimeSourcesURL(slug),
                 headers: $.defaultHeaders,
             ),
-            onDone: fun (resp) {
-                final parsed = Converter.jsonDecode(resp.body);
+            onDone: -> resp {
+                parsed := Converter.jsonDecode(resp.body);
 
-                _sourceCache[slug] = Collection.mapList(parsed, fun (i, x) {
-                    final currentEpisode = x['number'].toString();
+                _sourceCache[slug] = Collection.mapList(parsed, -> i, x {
+                    currentEpisode := x['number'].toString();
 
                     return {
                         'episode': currentEpisode,
@@ -126,15 +126,15 @@ final extractor = AnimeExtractor(
     },
 );
 
-final _sourceCache = {};
+_sourceCache := {};
 
-fun _getSources(slug, episode) {
-    final src = Collection.findList(_sourceCache[slug], fun (i, x) {
+_getSources := -> slug, episode {
+    src := Collection.findList(_sourceCache[slug], -> i, x {
         return x['episode'] == episode;
     });
     if (src == null) throw 'Unknown episode: ${episode}';
 
-    if (src['url'] == null) {
+    if (src['url'] == null {
         src['url'] = $.getCdnURL($.decryptSourceURL(src['source']));
     }
 

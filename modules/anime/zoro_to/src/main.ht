@@ -1,10 +1,10 @@
 import 'parsers/rapidcloud.ht';
 import 'utils.ht';
 
-final extractor = AnimeExtractor(
+extractor := AnimeExtractor(
     defaultLocale: $.defaultLocale,
-    search: fun (terms, locale) {
-        final url = $.getSearchURL(terms);
+    search: -> terms, locale {
+        url := $.getSearchURL(terms);
         
         return AsyncTask.resolve(
             () => Http.fetch(
@@ -12,15 +12,15 @@ final extractor = AnimeExtractor(
                 url: url,
                 headers: $.defaultHeaders,
             ),
-            onDone: fun (resp) {
-                final document = HtmlElement.parse(resp.body);
+            onDone: -> resp {
+                document := HtmlElement.parse(resp.body);
 
                 return Collection.mapList(
                     document.querySelectorAll('#main-content .tab-content .flw-item'),
-                    fun (i, x) {
-                        final title = x.querySelector('.film-name a');
-                        final url = title.attributes['href'].trim();
-                        final thumbnail = x.querySelector('.film-poster-img').attributes['data-src'].trim();
+                    -> i, x {
+                        title := x.querySelector('.film-name a');
+                        url := title.attributes['href'].trim();
+                        thumbnail := x.querySelector('.film-poster-img').attributes['data-src'].trim();
 
                         return SearchInfo(
                             title: title.text.trim(),
@@ -36,8 +36,8 @@ final extractor = AnimeExtractor(
             }
         );
     },
-    getInfo: fun (_url, locale) {
-        final url = URL.ensureURL(_url);
+    getInfo: -> _url, locale {
+        url := URL.ensureURL(_url);
 
         return AsyncTask.resolve(
             () => Http.fetch(
@@ -45,11 +45,11 @@ final extractor = AnimeExtractor(
                 url: url,
                 headers: $.defaultHeaders,
             ),
-            onDone: fun (resp) {
-                final document = HtmlElement.parse(resp.body);
+            onDone: -> resp {
+                document := HtmlElement.parse(resp.body);
 
-                final id = document.querySelector('#wrapper').attributes['data-id'].trim();
-                final epURL = $.getEpisodesApiURL(id);
+                id := document.querySelector('#wrapper').attributes['data-id'].trim();
+                epURL := $.getEpisodesApiURL(id);
                 
                 return AsyncTask.resolve(
                     () => Http.fetch(
@@ -60,15 +60,15 @@ final extractor = AnimeExtractor(
                             'X-Requested-With': 'XMLHttpRequest',
                         }),
                     ),
-                    onDone: fun (epResp) {
-                        final epParsed = Converter.jsonDecode(epResp.body);
-                        final epDocument = HtmlElement.parse(epParsed['html']);
+                    onDone: -> epResp {
+                        epParsed := Converter.jsonDecode(epResp.body);
+                        epDocument := HtmlElement.parse(epParsed['html']);
 
-                        final episodes = Collection.mapList(
+                        episodes := Collection.mapList(
                             epDocument.querySelectorAll('.ss-list > .ep-item'),
-                            fun (i, x) {
-                                final episode = x.attributes['data-number'].trim();
-                                final epURL = x.attributes['href'].trim();
+                            -> i, x {
+                                episode := x.attributes['data-number'].trim();
+                                epURL := x.attributes['href'].trim();
 
                                 return EpisodeInfo(
                                     episode: episode,
@@ -96,8 +96,8 @@ final extractor = AnimeExtractor(
             }
         );
     },
-    getSources: fun (_url, locale) {
-        final url = $.getEpisodeApiURL(_url);
+    getSources: -> _url, locale {
+        url := $.getEpisodeApiURL(_url);
 
         return AsyncTask.resolve(
             () => Http.fetch(
@@ -105,15 +105,15 @@ final extractor = AnimeExtractor(
                 url: url,
                 headers: $.defaultHeaders,
             ),
-            onDone: fun (resp) {
-                final parsed = Converter.jsonDecode(resp.body);
+            onDone: -> resp {
+                parsed := Converter.jsonDecode(resp.body);
 
                 return AsyncTask.resolveAll(
                     Collection.mapList(
                         Regex('data-id="(\\d+)"').allMatches(parsed['html']),
-                        fun (i, x) {
-                            final id = x.group(1);
-                            final sourceUrl = $.getSourcesApiURL(id);
+                        -> i, x {
+                            id := x.group(1);
+                            sourceUrl := $.getSourcesApiURL(id);
 
                             return () => AsyncTask.resolve(
                                 () => Http.fetch(
@@ -124,11 +124,11 @@ final extractor = AnimeExtractor(
                                         'X-Requested-With': 'XMLHttpRequest',
                                     }),
                                 ),
-                                onDone: fun (sResp) {
-                                    final sParsed = Converter.jsonDecode(sResp.body);
-                                    final embedUrl = sParsed['link'];
+                                onDone: -> sResp {
+                                    sParsed := Converter.jsonDecode(sResp.body);
+                                    embedUrl := sParsed['link'];
 
-                                    if (embedUrl.contains('rapid-cloud')) {
+                                    if (embedUrl.contains('rapid-cloud') {
                                         return RapidCloud.parse(embedUrl);
                                     }
 

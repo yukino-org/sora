@@ -1,56 +1,56 @@
-class $ {
-    static final baseURL = 'https://mangadex.org';
-    static final baseApiURL = 'https://api.mangadex.org';
-    static final baseUploadsURL = 'https://uploads.mangadex.org';
 
-    static final defaultHeaders = {
+    baseURL := 'https://mangadex.org';
+    baseApiURL := 'https://api.mangadex.org';
+    baseUploadsURL := 'https://uploads.mangadex.org';
+
+    defaultHeaders := {
         'Origin': baseURL,
         'Referer': baseURL,
     };
 
-    static final defaultLocale = Locale.parse('en');
+    defaultLocale := Locale.parse('en');
 
-    static fun getSearchApiURL(terms) {
+    getSearchApiURL := -> terms {
         return URL.ensureURL('${baseApiURL}/manga?title=${terms}');
     }
 
-    static fun getMangaApiURL(id) {
+    getMangaApiURL := -> id {
         return URL.ensureURL('${baseApiURL}/manga/${id}');
     }
 
-    static fun getMangaFeedApiURL(id, locale, limit, offset) {
+    getMangaFeedApiURL := -> id, locale, limit, offset {
         return URL.ensureURL('${baseApiURL}/manga/${id}/feed?limit=${limit}&offset=${offset}&order[chapter]=asc&translatedLanguage[]=${locale}');
     }
 
-    static fun getMangaChapterOverviewURL(id, chapter, volume, limit) {
+    getMangaChapterOverviewURL := -> id, chapter, volume, limit {
         return URL.ensureURL('${baseApiURL}/chapter?manga=${id}&chapter=${chapter}&volume=${volume}&limit=${limit}&order[chapter]=asc');
     }
 
-    static fun getMangaServerApiURL(id) {
+    getMangaServerApiURL := -> id {
         return URL.ensureURL('${baseApiURL}/at-home/server/${id}');
     }
 
-    static fun getChapterApiURL(serverURL, quality, hash) {
+    getChapterApiURL := -> serverURL, quality, hash {
         return URL.ensureURL('${serverURL}/${quality}/${hash}');
     }
 
-    static fun getPageSourceURL(chapterApiURL, filename) {
+    getPageSourceURL := -> chapterApiURL, filename {
         return URL.ensureURL('${chapterApiURL}/${filename}');
     }
 
-    static fun getCoverApiURL(coverID) {
+    getCoverApiURL := -> coverID {
         return URL.ensureURL('${baseApiURL}/cover/${coverID}');
     }
 
-    static fun getCoverURL(mangaID, coverFile) {
+    getCoverURL := -> mangaID, coverFile {
         return URL.ensureURL('${baseUploadsURL}/covers/${mangaID}/${coverFile}');
     }
 
-    static fun parseId(url) {
+    parseId := -> url {
         return Regex('https?:\\/\\/api\\.mangadex\\.org\\/manga\\/([^\\/]+)').firstMatch(url).group(1);
     }
 
-    static fun noop() {
+    noop := ->  {
         return null;
     }
 }

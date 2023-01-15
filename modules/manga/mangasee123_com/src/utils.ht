@@ -1,45 +1,45 @@
-class $ {
+
     static const baseURL = 'https://mangasee123.com';
 
-    static final defaultHeaders = {
+    defaultHeaders := {
         'User-Agent': Http.defaultUserAgent,
         'Referer': baseURL,
     }
 
-    static final defaultLocale = Locale.parse('en');
+    defaultLocale := Locale.parse('en');
 
-    static fun getSearchApiURL() {
+    getSearchApiURL := ->  {
         return URL.ensureURL('${baseURL}/_search.php');
     }
 
-    static fun getMangaURL(slug) {
+    getMangaURL := -> slug {
         return URL.ensureURL('${baseURL}/manga/${slug}');
     }
 
-    static fun getMangaThumbnailURL(slug) {
+    getMangaThumbnailURL := -> slug {
         return URL.ensureURL('https://cover.nep.li/cover/${slug}.jpg');
     }
 
-    static fun parseChapterId(id, [trim = true]) {
-        final match = Regex('^(\\d)(\\d+)(\\d)$').firstMatch(id);
-        final mid = match.group(2);
-        final end = match.group(3);
+    parseChapterId := -> id, [trim = true] {
+        match := Regex('^(\\d)(\\d+)(\\d)$').firstMatch(id);
+        mid := match.group(2);
+        end := match.group(3);
 
-        final start = trim ? int.parse(mid).toString() : mid;
-        final end = end == '0' ? '' : '.${end}';
+        start := trim ? int.parse(mid).toString() : mid;
+        end := end == '0' ? '' : '.${end}';
 
         return '${start}${end}';
     }
 
-    static fun getChapterURL(slug, chapter) {
+    getChapterURL := -> slug, chapter {
         return URL.ensureURL('${baseURL}/read-online/${slug}-chapter-${chapter}-page-1.html');
     }
 
-    static fun getImageURL(host, slug, sub, chap, page) {
+    getImageURL := -> host, slug, sub, chap, page {
         return URL.ensureURL('https://${host}/manga/${slug}/${sub == '' ? '' : sub + '/'}${chap}-${page}.png');
     }
 
-    static fun parseSlug(url) {
+    parseSlug := -> url {
         return Regex('\\/manga\\/([^\\/]+)').firstMatch(url).group(1);
     }
 }

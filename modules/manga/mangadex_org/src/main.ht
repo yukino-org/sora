@@ -1,31 +1,31 @@
 import 'utils.ht';
 
-final extractor = MangaExtractor(
+extractor := MangaExtractor(
     defaultLocale: Locale.parse('en'),
-    search: fun (terms, locale) {
+    search: -> terms, locale {
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
                 url: $.getSearchApiURL(terms),
                 headers: $.defaultHeaders,
             ),
-            onDone: fun (resp) {
-                final data = Converter.jsonDecode(resp.body)['data'];
+            onDone: -> resp {
+                data := Converter.jsonDecode(resp.body)['data'];
 
                 return AsyncTask.resolveAll(
                     Collection.mapList(
                         data.sublist(0, data.length > 10 ? 10 : data.length),
-                        fun (i, x) {
-                            final coverArt = Collection.findList(x['relationships'], fun (i, x) {
+                        -> i, x {
+                            coverArt := Collection.findList(x['relationships'], -> i, x {
                                 return x['type'] == 'cover_art';
                             });
 
                             return () => AsyncTask.resolve(
-                                fun () {
+                                ->  {
                                     if (coverArt == null) return null;
                                     return _getCoverImageURL(x['id'], coverArt['id'])
                                 },
-                                onDone: fun (cover) {
+                                onDone: -> cover {
                                     return SearchInfo(
                                         title: x['attributes']['title'][$.defaultLocale.code],
                                         url: $.getMangaApiURL(x['id']),
@@ -41,9 +41,9 @@ final extractor = MangaExtractor(
             }
         );
     },
-    getInfo: fun (url, locale) {
-        final id = $.parseId(url);
-        final mangaURL = $.getMangaApiURL(id);
+    getInfo: -> url, locale {
+        id := $.parseId(url);
+        mangaURL := $.getMangaApiURL(id);
 
         return AsyncTask.resolve(
             () => Http.fetch(
@@ -51,26 +51,26 @@ final extractor = MangaExtractor(
                 url: mangaURL,
                 headers: $.defaultHeaders
             ),
-            onDone: fun (resp) {
-                final parsed = Converter.jsonDecode(resp.body);
-                final coverArt = Collection.findList(parsed['data']['relationships'], fun (i, x) {
+            onDone: -> resp {
+                parsed := Converter.jsonDecode(resp.body);
+                coverArt := Collection.findList(parsed['data']['relationships'], -> i, x {
                     return x['type'] == 'cover_art';
                 });
 
                 return AsyncTask.resolve(
                     () => _getAvailableLanguages(id),
                     onDone: (langs) => AsyncTask.resolve(
-                        fun () {
+                        ->  {
                             if (coverArt == null) return null;
                             return _getCoverImageURL(parsed['data']['id'], coverArt['id']);
                         },
-                        onDone: fun (cover) {
-                            final localeTitle = parsed['data']['attributes']['title'][locale.code];
-                            final defaultLocaleTitle = parsed['data']['attributes']['title'][$.defaultLocale.code];
+                        onDone: -> cover {
+                            localeTitle := parsed['data']['attributes']['title'][locale.code];
+                            defaultLocaleTitle := parsed['data']['attributes']['title'][$.defaultLocale.code];
 
                             return AsyncTask.resolve(
                                 () => _getChapters(id, locale, 0, []),
-                                onDone: fun (chapters) {
+                                onDone: -> chapters {
                                     return MangaInfo(
                                         title: localeTitle ?? defaultLocaleTitle,
                                         url: mangaURL,
@@ -87,8 +87,8 @@ final extractor = MangaExtractor(
             },
         );
     },
-    getChapter: fun (url, locale) {
-        final id = url.replaceFirst('id:', '');
+    getChapter: -> url, locale {
+        id := url.replaceFirst('id:', '');
 
         return AsyncTask.resolve(
             () => Http.fetch(
@@ -96,13 +96,13 @@ final extractor = MangaExtractor(
                 url: $.getMangaServerApiURL(id),
                 headers: $.defaultHeaders
             ),
-            onDone: fun (resp) {
-                final parsed = Converter.jsonDecode(resp.body);
-                final chapterURL = $.getChapterApiURL(parsed['baseUrl'], 'data', parsed['chapter']['hash']);
+            onDone: -> resp {
+                parsed := Converter.jsonDecode(resp.body);
+                chapterURL := $.getChapterApiURL(parsed['baseUrl'], 'data', parsed['chapter']['hash']);
 
                 return Collection.mapList(
                     parsed['chapter']['data'],
-                    fun (i, x) {
+                    -> i, x {
                         return PageInfo(
                             url: $.getPageSourceURL(chapterURL, x),
                             locale: locale,
@@ -112,7 +112,7 @@ final extractor = MangaExtractor(
             }
         );
     },
-    getPage: fun (url, locale) {
+    getPage: -> url, locale {
         return ImageDescriber(
             url: url,
             headers: $.defaultHeaders,
@@ -121,23 +121,23 @@ final extractor = MangaExtractor(
 );
 
 const _chapterLimit = 500;
-fun _getChapters(id, locale, offset, chapters) {
+_getChapters := -> id, locale, offset, chapters {
     return AsyncTask.resolve(
         () => Http.fetch(
             method: 'get',
             url: $.getMangaFeedApiURL(id, locale.code, _chapterLimit, offset),
             headers: $.defaultHeaders,
         ),
-        onDone: fun (resp) {
+        onDone: -> resp {
             var wasEmpty = true;
 
             Collection.eachList(
                 Converter.jsonDecode(resp.body)['data'],
-                fun (i, x) {
-                    final id = x['id'];
-                    final title = x['attributes']['title'];
-                    final chapterNum = x['attributes']['chapter'];
-                    if (chapterNum != null) {
+                -> i, x {
+                    id := x['id'];
+                    title := x['attributes']['title'];
+                    chapterNum := x['attributes']['chapter'];
+                    if (chapterNum != null {
                         chapters.add(
                             ChapterInfo(
                                 title: (title?.isNotEmpty ?? false) ? title : null,
@@ -163,15 +163,15 @@ fun _getChapters(id, locale, offset, chapters) {
     );
 }
 
-fun _getCoverImageURL(manga, cover) {
+_getCoverImageURL := -> manga, cover {
     return AsyncTask.resolve(
         () => Http.fetch(
             method: 'get',
             url: $.getCoverApiURL(cover),
             headers: $.defaultHeaders,
         ),
-        onDone: fun (resp) {
-            final parsed = Converter.jsonDecode(resp.body);
+        onDone: -> resp {
+            parsed := Converter.jsonDecode(resp.body);
 
             return ImageDescriber(
                 url: $.getCoverURL(manga, parsed['data']['attributes']['fileName']),
@@ -181,25 +181,25 @@ fun _getCoverImageURL(manga, cover) {
     );
 }
 
-final _allLanguagesCache = Languages.all;
-fun _getAvailableLanguages(manga) {
+_allLanguagesCache := Languages.all;
+_getAvailableLanguages := -> manga {
     return AsyncTask.resolve(
         () => Http.fetch(
             method: 'get',
             url: $.getMangaChapterOverviewURL(manga, 1, 1, 100),
             headers: $.defaultHeaders,
         ),
-        onDone: fun (resp) {
-            final parsed = Converter.jsonDecode(resp.body);
+        onDone: -> resp {
+            parsed := Converter.jsonDecode(resp.body);
 
-            final langs = [];
+            langs := [];
 
             Collection.eachList(
                 parsed['data'],
-                fun (i, x) {
-                    final lang = Regex('\\w+').firstMatch(x['attributes']['translatedLanguage'])?.group(0);
+                -> i, x {
+                    lang := Regex('\\w+').firstMatch(x['attributes']['translatedLanguage'])?.group(0);
 
-                    if (lang != null && _allLanguagesCache.contains(lang)) {
+                    if (lang != null && _allLanguagesCache.contains(lang) {
                         langs.add(Locale.parse(lang));
                     }
                 },

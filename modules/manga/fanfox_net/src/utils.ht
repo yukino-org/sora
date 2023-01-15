@@ -1,23 +1,23 @@
-class $ {
+
     static const baseURL = 'https://fanfox.net';
 
-    static final defaultHeaders = {
+    defaultHeaders := {
         'User-Agent': Http.defaultUserAgent,
         'Referer': baseURL,
         'Cookie': 'isAdult=1;',
     }
 
-    static final defaultLocale = Locale.parse('en');
+    defaultLocale := Locale.parse('en');
 
-    static fun getSearchURL(terms) {
+    getSearchURL := -> terms {
         return URL.ensureURL('${baseURL}/search?title=${terms}');
     }
 
-    static fun appendBaseURL(route) {
+    appendBaseURL := -> route {
         return URL.ensureURL('${baseURL}${route}');
     }
 
-    static fun getMobileURL(url) {
+    getMobileURL := -> url {
         return URL.ensureURL(Regex('https?:\\/\\/fanfox').replaceFirst(url, 'https://m.fanfox'));
     }
 }

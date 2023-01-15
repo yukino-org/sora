@@ -3,41 +3,41 @@
 // class $WebviewFetcher {
 //     var _webview;
 
-//     fun getInstance() {
-//         if (_webview != null && !_webview.disposed) {
+//     getInstance := ->  {
+//         if (_webview != null && !_webview.disposed {
 //             return _webview;
 //         }
 
 //         return AsyncTask.resolve(
 //             () => Webview.create(),
-//             onDone: fun (res) {
+//             onDone: -> res {
 //                 _webview = res;
 //                 return _webview;
 //             }
 //         );
 //     }
 
-//     fun _defaultBypassBrowser(html) {
+//     _defaultBypassBrowser := -> html {
 //         return false;
 //     }
 
-//     fun load({
+//     load := -> {
 //         url,
 //         waitUntil = 'domContentLoaded',
 //         bypasser = _defaultBypassBrowser,
 //         headers = {}
-//     }) {
+//     } {
 //         return AsyncTask.resolve(
 //             () => getInstance(),
-//             onDone: fun (_) {
+//             onDone: -> _ {
 //                 _webview.addExtraHeaders(headers);
 //                 return AsyncTask.resolve(
 //                     () => _webview.open(url, waitUntil),
-//                     onDone: fun (_) {
+//                     onDone: -> _ {
 //                         return AsyncTask.resolve(
 //                             () => _webview.tryBypassBrowserVerification(bypasser),
-//                             onDone: fun (bypassed) {
-//                                 for (var key in headers.keys) {
+//                             onDone: -> bypassed {
+//                                 for (var key in headers.keys {
 //                                     headers[key] =  null;
 //                                 }
 //                                 _webview.addExtraHeaders(headers);
@@ -53,18 +53,18 @@
 //         );
 //     }
 
-//     fun getBody({
+//     getBody := -> {
 //         url,
 //         waitUntil = 'domContentLoaded',
 //         bypasser = _defaultBypassBrowser,
-//     }) {
+//     } {
 //         return AsyncTask.resolve(
 //             () => load(
 //                 url: url,
 //                 waitUntil: waitUntil,
 //                 bypasser: bypasser,
 //             ),
-//             onDone: fun (_) {
+//             onDone: -> _ {
 //                 return AsyncTask.resolve(
 //                     () => _webview.getHtml(),
 //                     onDone: (html) => html,
@@ -73,7 +73,7 @@
 //         );
 //     }
 
-//     static fun tryBypassDDOSGuardBrowserVerification(html) {
+//     tryBypassDDOSGuardBrowserVerification := -> html {
 //         return html.contains('href="https://ddos-guard.net"');
 //     }
 // }

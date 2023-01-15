@@ -1,20 +1,20 @@
 import '../utils.ht';
 
 class GogoPlay {
-    static final defaultHeaders = {
+    defaultHeaders := {
         'User-Agent': Http.defaultUserAgent,
     };
 
-    static final cMode = 'cbc';
-    static final cPadding = 'pkcs7';
-    static final cCustomPadding = BytesContainer.fromList(Collection.filledList(8, 8));
+    cMode := 'cbc';
+    cPadding := 'pkcs7';
+    cCustomPadding := BytesContainer.fromList(Collection.filledList(8, 8));
 
-    static fun ajaxApiURL(baseURL, query) {
+    ajaxApiURL := -> baseURL, query {
         return URL.ensureURL('${baseURL}/encrypt-ajax.php?${query}');
     }
 
-    static fun tryGetQuality(url) {
-        for (final x in ['360', '480', '720', '1080']) {
+    tryGetQuality := -> url {
+        for (final x in ['360', '480', '720', '1080'] {
             if (url.contains(x)) return x;
         }
 
@@ -24,9 +24,9 @@ class GogoPlay {
     // Source: (The credit goes to them)
     //  - https://github.com/justfoolingaround/animdl/blob/master/animdl/core/codebase/extractors/gogoplay/__init__.py
     //  - https://github.com/saikou-app/saikou/blob/master/app/src/main/java/ani/saikou/anime/source/extractors/GogoCDN.kt
-    static fun parse(_url) {
-        final url = URL.ensureURL(_url);
-        final parsedUrl = URL.parse(url);
+    parse := -> _url {
+        url := URL.ensureURL(_url);
+        parsedUrl := URL.parse(url);
 
         return AsyncTask.resolve(
             () => Http.fetch(
@@ -36,29 +36,29 @@ class GogoPlay {
                     'Referer': parsedUrl.origin,
                 }),
             ),
-            onDone: fun (resp) {
-                final [_fKeyMatch, _ivMatch] = Regex('container-(\d+)').allMatches(resp.body);
-                final _fKey = _fKeyMatch?.group(1);
-                final _sKey = Regex('videocontent-(\d+)').firstMatch(resp.body)?.group(1);
-                final _iv = _ivMatch?.group(1);
-                final _dValue = Regex('data-value="([^"]+)"').firstMatch(resp.body)?.group(1);
+            onDone: -> resp {
+                [_fKeyMatch, _ivMatch] := Regex('container-(\d+)').allMatches(resp.body);
+                _fKey := _fKeyMatch?.group(1);
+                _sKey := Regex('videocontent-(\d+)').firstMatch(resp.body)?.group(1);
+                _iv := _ivMatch?.group(1);
+                _dValue := Regex('data-value="([^"]+)"').firstMatch(resp.body)?.group(1);
                 if (!_fKey || !_sKey || !_iv || !_dValue) return [];
 
-                final fKey = Converter.utf8Encode(_fKey);
-                final sKey = Converter.utf8Encode(_sKey);
-                final iv = Converter.utf8Encode(_iv);
+                fKey := Converter.utf8Encode(_fKey);
+                sKey := Converter.utf8Encode(_sKey);
+                iv := Converter.utf8Encode(_iv);
 
-                final decrypted = cDecrypt(
+                decrypted := cDecrypt(
                     data: Converter.base64Decode(_dValue),
                     key: fKey,
                     iv: iv,
                 );
 
-                final dQueryParameters = URL.splitQueryString(
+                dQueryParameters := URL.splitQueryString(
                     'id=' + Converter.utf8Decode(decrypted)
                 );
 
-                final encryptedId = cEncrypt(
+                encryptedId := cEncrypt(
                     data: Converter.utf8Encode(dQueryParameters['id']),
                     key: fKey,
                     iv: iv,
@@ -79,9 +79,9 @@ class GogoPlay {
                             'Referer': url,
                         }),
                     ),
-                    onDone: fun (resp) {
-                        final rawParsed = Converter.jsonDecode(resp.body);
-                        final dData = Converter.utf8Decode(
+                    onDone: -> resp {
+                        rawParsed := Converter.jsonDecode(resp.body);
+                        dData := Converter.utf8Decode(
                             cDecrypt(
                                 data: Converter.base64Decode(rawParsed['data']),
                                 key: sKey,
@@ -89,7 +89,7 @@ class GogoPlay {
                             )
                         ).replaceFirst('o"<P{#meme":', 'e":[{"file":');
                         
-                        final parsed = Converter.jsonDecode(dData);
+                        parsed := Converter.jsonDecode(dData);
                         return AsyncTask.resolveAll(
                             Collection.mapList(
                                 Collection.uniqueList(
@@ -99,11 +99,11 @@ class GogoPlay {
                                         (i, x) => x['file'],
                                     ),
                                 ),
-                                fun (i, x) {
-                                    if (x.contains('.m3u8')) {
+                                -> i, x {
+                                    if (x.contains('.m3u8') {
                                         return () => AsyncTask.resolve(
                                             () => parseM3U8(x),
-                                            onDone: fun (res) {
+                                            onDone: -> res {
                                                 return Collection.mapList(
                                                     res,
                                                     (i, x) => EpisodeSource(
@@ -135,7 +135,7 @@ class GogoPlay {
         );
     }
 
-    static fun parseM3U8(url) {
+    parseM3U8 := -> url {
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
@@ -144,8 +144,8 @@ class GogoPlay {
                     'Referer': url,
                 }),
             ),
-            onDone: fun (resp) {
-                final prevUrl = Regex('(.*?)[^\\/]+$').firstMatch(url).group(1);
+            onDone: -> resp {
+                prevUrl := Regex('(.*?)[^\\/]+$').firstMatch(url).group(1);
 
                 return Collection.mapList(
                     Collection.filterList(
@@ -158,7 +158,7 @@ class GogoPlay {
         );
     }
 
-    static fun cDecrypt({ data, key, iv }) {
+    cDecrypt := -> { data, key, iv } {
         return Crypto.aesDecrypt(
             encrypted: data,
             key: key,
@@ -168,7 +168,7 @@ class GogoPlay {
         );
     }
 
-    static fun cEncrypt({ data, key, iv }) {
+    cEncrypt := -> { data, key, iv } {
         return Crypto.aesEncrypt(
             input: data,
             key: key,

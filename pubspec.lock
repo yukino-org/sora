@@ -5,70 +5,72 @@ packages:
     dependency: transitive
     description:
       name: args
-      url: "https://pub.dartlang.org"
+      sha256: b003c3098049a51720352d219b0bb5f219b60fbfb68e7a4748139a06a5676515
+      url: "https://pub.dev"
     source: hosted
     version: "2.3.1"
   asn1lib:
     dependency: transitive
     description:
       name: asn1lib
-      url: "https://pub.dartlang.org"
+      sha256: ab96a1cb3beeccf8145c52e449233fe68364c9641623acd3adad66f8184f1039
+      url: "https://pub.dev"
     source: hosted
-    version: "1.1.0"
+    version: "1.4.0"
   async:
     dependency: transitive
     description:
       name: async
-      url: "https://pub.dartlang.org"
+      sha256: bfe67ef28df125b7dddcea62755991f807aa39a2492a23e1550161692950bbe0
+      url: "https://pub.dev"
     source: hosted
-    version: "2.9.0"
-  characters:
-    dependency: transitive
-    description:
-      name: characters
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.2.1"
+    version: "2.10.0"
   clock:
     dependency: transitive
     description:
       name: clock
-      url: "https://pub.dartlang.org"
+      sha256: cb6d7f03e1de671e34607e909a7213e31d7752be4fb66a86d29fe1eb14bfb5cf
+      url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
   collection:
     dependency: transitive
     description:
       name: collection
-      url: "https://pub.dartlang.org"
+      sha256: cfc915e6923fe5ce6e153b0723c753045de46de1b4d63771530504004a45fae0
+      url: "https://pub.dev"
     source: hosted
-    version: "1.16.0"
+    version: "1.17.0"
   colorize:
     dependency: transitive
     description:
       name: colorize
-      url: "https://pub.dartlang.org"
+      sha256: "584746cd6ba1cba0633b6720f494fe6f9601c4170f0666c1579d2aa2a61071ba"
+      url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
   convert:
     dependency: transitive
     description:
       name: convert
-      url: "https://pub.dartlang.org"
+      sha256: "0f08b14755d163f6e2134cb58222dd25ea2a2ee8a195e53983d57c075324d592"
+      url: "https://pub.dev"
     source: hosted
-    version: "3.0.2"
+    version: "3.1.1"
   crypto:
     dependency: transitive
     description:
       name: crypto
-      url: "https://pub.dartlang.org"
+      sha256: aa274aa7774f8964e4f4f38cc994db7b6158dd36e9187aaceaddc994b35c6c67
+      url: "https://pub.dev"
     source: hosted
     version: "3.0.2"
   csslib:
     dependency: transitive
     description:
       name: csslib
-      url: "https://pub.dartlang.org"
+      sha256: b36c7f7e24c0bdf1bf9a3da461c837d1de64b9f8beb190c9011d8c72a3dfd745
+      url: "https://pub.dev"
     source: hosted
     version: "0.17.2"
   devx:
@@ -76,7 +78,7 @@ packages:
     description:
       path: "."
       ref: dart_devx
-      resolved-ref: fd4d70ed67925465e416a6705b29c51c73c1973f
+      resolved-ref: d7ec26e80057e713806c5b8ccc4d39d25d3ad63e
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
@@ -84,155 +86,131 @@ packages:
     dependency: transitive
     description:
       name: encrypt
-      url: "https://pub.dartlang.org"
+      sha256: "4fd4e4fdc21b9d7d4141823e1e6515cd94e7b8d84749504c232999fba25d9bbb"
+      url: "https://pub.dev"
     source: hosted
     version: "5.0.1"
-  fuzzy:
+  fubuki_compiler:
     dependency: transitive
     description:
-      name: fuzzy
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.4.0-nullsafety.0"
-  hetu_script:
+      path: "packages/fubuki_compiler"
+      ref: HEAD
+      resolved-ref: "1237b00dbabb1f32f984846261a29e704557ea16"
+      url: "https://github.com/yukino-org/fubuki.git"
+    source: git
+    version: "0.0.0"
+  fubuki_shared:
     dependency: transitive
     description:
-      name: hetu_script
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.3.12"
-  hetu_script_dev_tools:
+      path: "packages/fubuki_shared"
+      ref: HEAD
+      resolved-ref: "1237b00dbabb1f32f984846261a29e704557ea16"
+      url: "https://github.com/yukino-org/fubuki"
+    source: git
+    version: "0.0.0"
+  fubuki_vm:
     dependency: transitive
     description:
-      name: hetu_script_dev_tools
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.0.9"
+      path: "packages/fubuki_vm"
+      ref: HEAD
+      resolved-ref: "1237b00dbabb1f32f984846261a29e704557ea16"
+      url: "https://github.com/yukino-org/fubuki.git"
+    source: git
+    version: "0.0.0"
   html:
     dependency: transitive
     description:
       name: html
-      url: "https://pub.dartlang.org"
+      sha256: d9793e10dbe0e6c364f4c59bf3e01fb33a9b2a674bc7a1081693dba0614b6269
+      url: "https://pub.dev"
     source: hosted
-    version: "0.15.0"
+    version: "0.15.1"
   http:
     dependency: transitive
     description:
       name: http
-      url: "https://pub.dartlang.org"
+      sha256: "6aa2946395183537c8b880962d935877325d6a09a2867c3970c05c0fed6ac482"
+      url: "https://pub.dev"
     source: hosted
-    version: "0.13.4"
+    version: "0.13.5"
   http_parser:
     dependency: transitive
     description:
       name: http_parser
-      url: "https://pub.dartlang.org"
+      sha256: "2aa08ce0341cc9b354a498388e30986515406668dbcc4f7c950c3e715496693b"
+      url: "https://pub.dev"
     source: hosted
-    version: "4.0.1"
+    version: "4.0.2"
   intl:
     dependency: "direct dev"
     description:
       name: intl
-      url: "https://pub.dartlang.org"
+      sha256: "910f85bce16fb5c6f614e117efa303e85a1731bb0081edf3604a2ae6e9a3cc91"
+      url: "https://pub.dev"
     source: hosted
     version: "0.17.0"
   js:
     dependency: transitive
     description:
       name: js
-      url: "https://pub.dartlang.org"
+      sha256: "323b7c70073cccf6b9b8d8b334be418a3293cfb612a560dc2737160a37bf61bd"
+      url: "https://pub.dev"
     source: hosted
-    version: "0.6.4"
-  latinize:
-    dependency: transitive
-    description:
-      name: latinize
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.0-nullsafety.0"
+    version: "0.6.6"
   lint:
     dependency: transitive
     description:
       name: lint
-      url: "https://pub.dartlang.org"
+      sha256: "3e9343b1cededcfb1e8b40d0dbd3592b7a1c6c0121545663a991433390c2bc97"
+      url: "https://pub.dev"
     source: hosted
-    version: "1.8.2"
-  matcher:
-    dependency: transitive
-    description:
-      name: matcher
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.12.12"
+    version: "2.0.1"
   meta:
     dependency: transitive
     description:
       name: meta
-      url: "https://pub.dartlang.org"
+      sha256: "6c268b42ed578a53088d834796959e4a1814b5e9e164f147f580a386e5decf42"
+      url: "https://pub.dev"
     source: hosted
     version: "1.8.0"
   path:
     dependency: "direct main"
     description:
       name: path
-      url: "https://pub.dartlang.org"
+      sha256: "8829d8a55c13fc0e37127c29fedf290c102f4e40ae94ada574091fe0ff96c917"
+      url: "https://pub.dev"
     source: hosted
-    version: "1.8.2"
+    version: "1.8.3"
   pointycastle:
     dependency: transitive
     description:
       name: pointycastle
-      url: "https://pub.dartlang.org"
+      sha256: db7306cf0249f838d1a24af52b5a5887c5bf7f31d8bb4e827d071dc0939ad346
+      url: "https://pub.dev"
     source: hosted
-    version: "3.6.0"
-  pub_semver:
-    dependency: transitive
-    description:
-      name: pub_semver
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.1"
-  quiver:
-    dependency: transitive
-    description:
-      name: quiver
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.1.0"
-  recase:
-    dependency: transitive
-    description:
-      name: recase
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "4.0.0"
+    version: "3.6.2"
   source_span:
     dependency: transitive
     description:
       name: source_span
-      url: "https://pub.dartlang.org"
+      sha256: dd904f795d4b4f3b870833847c461801f6750a9fa8e61ea5ac53f9422b31f250
+      url: "https://pub.dev"
     source: hosted
-    version: "1.9.0"
-  stack_trace:
-    dependency: transitive
-    description:
-      name: stack_trace
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.10.0"
+    version: "1.9.1"
   string_scanner:
     dependency: transitive
     description:
       name: string_scanner
-      url: "https://pub.dartlang.org"
+      sha256: "556692adab6cfa87322a115640c11f13cb77b3f076ddcc5d6ae3c20242bedcde"
+      url: "https://pub.dev"
     source: hosted
-    version: "1.1.1"
+    version: "1.2.0"
   tenka:
     dependency: "direct main"
     description:
       path: "."
       ref: dart_tenka
-      resolved-ref: ca4eea586be7d61496680086defce8e79154a809
+      resolved-ref: d613cd27d835cde76f5c7e1f2092a1dbfcc9e805
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "1.0.5"
@@ -241,7 +219,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka_dev_tools
-      resolved-ref: "9257ec4d7d42d3cfd2fb264c96c3f04d7717f5af"
+      resolved-ref: "06c3f1bfd98f51d6fa1304873870c5aab34fd58d"
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
@@ -250,7 +228,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka_runtime
-      resolved-ref: f2eb79959642e52d15718e02162f505061cf4208
+      resolved-ref: c4730b81dbd229d6794e441743363f6cc0f4b89f
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
@@ -258,14 +236,16 @@ packages:
     dependency: transitive
     description:
       name: term_glyph
-      url: "https://pub.dartlang.org"
+      sha256: a29248a84fbb7c79282b40b8c72a1209db169a2e0542bce341da992fe1bc7e84
+      url: "https://pub.dev"
     source: hosted
     version: "1.2.1"
   typed_data:
     dependency: transitive
     description:
       name: typed_data
-      url: "https://pub.dartlang.org"
+      sha256: "26f87ade979c47a150c9eaab93ccd2bebe70a27dc0b4b29517f2904f04eb11a5"
+      url: "https://pub.dev"
     source: hosted
     version: "1.3.1"
   utilx:
@@ -273,7 +253,7 @@ packages:
     description:
       path: "."
       ref: dart_utilx
-      resolved-ref: d684110d4334a5efcdb20de5490c17a00f130547
+      resolved-ref: "7b2ddc4c01806acf239b47eba3bda5e59f983f5c"
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
@@ -281,8 +261,18 @@ packages:
     dependency: transitive
     description:
       name: yaml
-      url: "https://pub.dartlang.org"
+      sha256: "23812a9b125b48d4007117254bca50abb6c712352927eece9e155207b1db2370"
+      url: "https://pub.dev"
     source: hosted
     version: "3.1.1"
+  zlint:
+    dependency: transitive
+    description:
+      path: "."
+      ref: main
+      resolved-ref: "7646e785237bdc95d93c7095523f51e3bef364e4"
+      url: "https://github.com/zyrouge/dart_zlint.git"
+    source: git
+    version: "0.0.0"
 sdks:
-  dart: ">=2.16.0-100.0.dev <3.0.0"
+  dart: ">=2.19.0-345.0.dev <4.0.0"

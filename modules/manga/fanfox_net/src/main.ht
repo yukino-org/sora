@@ -1,21 +1,21 @@
 import 'utils.ht';
 
-final extractor = MangaExtractor(
+extractor := MangaExtractor(
     defaultLocale: $.defaultLocale,
-    search: fun (terms, locale) {
+    search: -> terms, locale {
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
                 url: $.getSearchURL(terms),
                 headers: $.defaultHeaders,
             ),
-            onDone: fun (resp) {
-                final document = HtmlElement.parse(resp.body);
+            onDone: -> resp {
+                document := HtmlElement.parse(resp.body);
 
-                return Collection.mapList(document.querySelectorAll('.line-list li'), fun (i, x) {
-                    final link = x.querySelector('.manga-list-4-item-title a');
-                    final url = link.attributes['href'];
-                    final image = x.querySelector('img').attributes['src'];
+                return Collection.mapList(document.querySelectorAll('.line-list li'), -> i, x {
+                    link := x.querySelector('.manga-list-4-item-title a');
+                    url := link.attributes['href'];
+                    image := x.querySelector('img').attributes['src'];
 
                     return SearchInfo(
                         title: link.text.trim(),
@@ -30,8 +30,8 @@ final extractor = MangaExtractor(
             }
         );
     },
-    getInfo: fun (_url, locale) {
-        final url = URL.ensureURL(_url);
+    getInfo: -> _url, locale {
+        url := URL.ensureURL(_url);
         
         return AsyncTask.resolve(
             () => Http.fetch(
@@ -39,20 +39,20 @@ final extractor = MangaExtractor(
                 url: url,
                 headers: $.defaultHeaders
             ),
-            onDone: fun (resp) {
-                final document = HtmlElement.parse(resp.body);
+            onDone: -> resp {
+                document := HtmlElement.parse(resp.body);
                 
-                final chapters = Collection.filterList(
+                chapters := Collection.filterList(
                     Collection.mapList(
                         document.querySelectorAll('#chapterlist li a'),
-                        fun (i, x) {
-                            final title = x.querySelector('.title3').text;
-                            final shortTitle = Regex('-(.*)').firstMatch(title)?.group(1);
-                            final route = x.attributes['href'];
-                            final vol = Regex('Vol.(\\d+)').firstMatch(title)?.group(1);
-                            final chap = Regex('Ch.([\\d.]+)').firstMatch(title)?.group(1);
+                        -> i, x {
+                            title := x.querySelector('.title3').text;
+                            shortTitle := Regex('-(.*)').firstMatch(title)?.group(1);
+                            route := x.attributes['href'];
+                            vol := Regex('Vol.(\\d+)').firstMatch(title)?.group(1);
+                            chap := Regex('Ch.([\\d.]+)').firstMatch(title)?.group(1);
 
-                            if (chap != null) {
+                            if (chap != null {
                                 return ChapterInfo(
                                     title: shortTitle ?? title,
                                     url: $.appendBaseURL(route),
@@ -84,8 +84,8 @@ final extractor = MangaExtractor(
             }
         );
     },
-    getChapter: fun (_url, locale) {
-        final url = $.getMobileURL(_url);
+    getChapter: -> _url, locale {
+        url := $.getMobileURL(_url);
 
         return AsyncTask.resolve(
             () => Http.fetch(
@@ -93,10 +93,10 @@ final extractor = MangaExtractor(
                 url: url,
                 headers: $.defaultHeaders,
             ),
-            onDone: fun (resp) {
+            onDone: -> resp {
                 return Collection.mapList(
                     HtmlElement.parse(resp.body).querySelector('select.mangaread-page').querySelectorAll('option'),
-                    fun (i, x) {
+                    -> i, x {
                         return PageInfo(
                             url: URL.ensureURL(x.attributes['value']),
                             locale: $.defaultLocale,
@@ -106,8 +106,8 @@ final extractor = MangaExtractor(
             }
         );
     },
-    getPage: fun (_url, locale) {
-        final url = $.getMobileURL(_url);
+    getPage: -> _url, locale {
+        url := $.getMobileURL(_url);
 
         return AsyncTask.resolve(
             () => Http.fetch(
@@ -115,8 +115,8 @@ final extractor = MangaExtractor(
                 url: url,
                 headers: $.defaultHeaders,
             ),
-            onDone: fun (resp) {
-                final img = Regex('<img src="(.*?)".*id="image".*>').firstMatch(resp.body)?.group(1);
+            onDone: -> resp {
+                img := Regex('<img src="(.*?)".*id="image".*>').firstMatch(resp.body)?.group(1);
                 if (img == null) throw 'Failed to parse image URL';
 
                 return ImageDescriber(

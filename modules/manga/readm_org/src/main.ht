@@ -1,8 +1,8 @@
 import 'utils.ht';
 
-final extractor = MangaExtractor(
+extractor := MangaExtractor(
     defaultLocale: $.defaultLocale,
-    search: fun (terms, locale) {
+    search: -> terms, locale {
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'post',
@@ -16,12 +16,12 @@ final extractor = MangaExtractor(
                     'phrase': terms,
                 }),
             ),
-            onDone: fun (resp) {
-                final parsed = Converter.jsonDecode(resp.body);
+            onDone: -> resp {
+                parsed := Converter.jsonDecode(resp.body);
 
-                return Collection.mapList(parsed['manga'] ?? [], fun (i, x) {
-                    final url = x['url'];
-                    final thumbnail = x['image'];
+                return Collection.mapList(parsed['manga'] ?? [], -> i, x {
+                    url := x['url'];
+                    thumbnail := x['image'];
                     
                     return SearchInfo(
                         title: x['title'],
@@ -36,22 +36,22 @@ final extractor = MangaExtractor(
             }
         );
     },
-    getInfo: fun (url, locale) {
+    getInfo: -> url, locale {
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
                 url: URL.ensureURL(url),
                 headers: $.defaultHeaders,
             ),
-            onDone: fun (resp) {
-                final document = HtmlElement.parse(resp.body);
+            onDone: -> resp {
+                document := HtmlElement.parse(resp.body);
                 
-                final chapters = Collection.mapList(
+                chapters := Collection.mapList(
                     document.querySelectorAll('.episodes-list .table-episodes-title a'),
-                    fun (i, x) {
-                        final sep = x.text.replaceFirst('Chapter', '').trim().split(':');
-                        final url = x.attributes['href'].trim();
-                        final cvMatch = Regex('Chapter (\\d+\\.?\\d*)(v(\\d+))?').firstMatch(sep[0]);
+                    -> i, x {
+                        sep := x.text.replaceFirst('Chapter', '').trim().split(':');
+                        url := x.attributes['href'].trim();
+                        cvMatch := Regex('Chapter (\\d+\\.?\\d*)(v(\\d+))?').firstMatch(sep[0]);
 
                         return ChapterInfo(
                             title: sep.length > 1 ? sep[1].trim() : null,
@@ -63,8 +63,8 @@ final extractor = MangaExtractor(
                     }
                 );
 
-                final title = document.querySelector('.page-title').text.trim();
-                final thumbnail = document.querySelector('.series-profile-thumb').attributes['src'].trim();
+                title := document.querySelector('.page-title').text.trim();
+                thumbnail := document.querySelector('.series-profile-thumb').attributes['src'].trim();
 
                 return MangaInfo(
                     title: title,
@@ -82,8 +82,8 @@ final extractor = MangaExtractor(
             }
         );
     },
-    getChapter: fun (_url, locale) {
-        final url = URL.ensureURL(_url);
+    getChapter: -> _url, locale {
+        url := URL.ensureURL(_url);
 
         return AsyncTask.resolve(
             () => Http.fetch(
@@ -91,13 +91,13 @@ final extractor = MangaExtractor(
                 url: URL.ensureURL(url),
                 headers: $.defaultHeaders,
             ),
-            onDone: fun (resp) {
-                final document = HtmlElement.parse(resp.body);
+            onDone: -> resp {
+                document := HtmlElement.parse(resp.body);
 
                 return Collection.mapList(
                     document.querySelectorAll('.ch-images img'),
-                    fun (i, x) {
-                        final url = x.attributes['src'].trim();
+                    -> i, x {
+                        url := x.attributes['src'].trim();
 
                         return PageInfo(
                             url: $.appendBaseURL(url),
@@ -108,7 +108,7 @@ final extractor = MangaExtractor(
             }
         );
     },
-    getPage: fun (url, locale) {
+    getPage: -> url, locale {
         return ImageDescriber(
             url: url,
             headers: $.defaultHeaders,

@@ -1,0 +1,134 @@
+import './utils.fbs' as $;
+
+extractor := {
+    defaultLocale: $.defaultLocale,
+    search: -> terms, locale {
+        resp := Http.request({
+            method: 'get',
+            url: $.getSearchApiURL(terms),
+            headers: $.defaultHeaders,
+        }).await();
+        parsed := Convert.decodeJson(resp.body);
+        
+        return parsed.data.map(
+            -> x : {
+                title: x.title,
+                url: $.getAnimeURL(x.session),
+                thumbnail: {
+                    url: Url.ensure(x.poster),
+                    headers: $.defaultHeaders,
+                },
+                locale: $.defaultLocale,
+            }
+        );
+    },
+    getInfo: -> url, locale {
+        url = Url.ensure(url);
+        slug := $.parseSlug(url);
+        resp := Http.request({
+            method: 'get',
+            url: url,
+            headers: $.defaultHeaders,
+        }).await();
+        id := RegExp.new(r'\/a\/(\d+)').firstMatch(resp.body).group(1);
+        document := HtmlElement.parse(resp.body);
+
+        eResp := Http.request({
+            method: 'get',
+            url: $.getEpisodesApiURL(slug),
+            headers: $.defaultHeaders,
+        }).await();
+        eParsed := Convert.decodeJson(eResp.body);
+        eStart := eParsed.from;
+        eTotal := eParsed.total;
+        episodes := List.generate(eTotal, -> i {
+            eNum := eStart + i;
+            return {
+                episode: String.from(eNum),
+                url: $.getCustomEpisodeURL(id, slug, eNum),
+                locale: $.defaultLocale,
+            };
+        });
+
+        print document;
+        return {
+            title: document
+                .querySelector('.anime-header .title-wrapper > h1 > span')
+                .text
+                .trim(),
+            url: url,
+            thumbnail: {
+                url: Url.ensure(
+                    document
+                        .querySelector('.anime-header .anime-poster img')
+                        .attributes['data-src']
+                        .trim()
+                ),
+                headers: $.defaultHeaders,
+            },
+            episodes: episodes,
+            locale: $.defaultLocale,
+            availableLocales: [$.defaultLocale],
+        };
+    },
+    getSources: -> url, locale {
+        url = Url.ensure(url);
+
+        if ($.isPlayURL(url)) {
+            uParsed := $.parsePlayURL(url);
+            resp := Http.request({
+                method: 'get',
+                url: url,
+                headers: $.defaultHeaders,
+            }).await();
+            id := Regex.new(r'getUrls\((\d+)').firstMatch(resp.body).group(1);
+            return _getSources(id, uParsed.episodeSlug);
+        }
+
+        uParsed := $.parseCustomEpisodeURL(url);
+        eNum := Number.from(uParsed.episode);
+        eResp := Http.request({
+            method: 'get',
+            url: $.getEpisodesApiURLFromNumber(uParsed.animeId, eNum),
+            headers: $.defaultHeaders,
+        }).await();
+        eParsed := Convert.decodeJson(eResp.body);
+        eData := eParsed.data.find(-> x : x.episode == eNum);
+        return _getSources(eData.animeId, eData.session);
+    },
+};
+
+_getSources := -> id, slug {
+    resp := Http.request({
+        method: 'get',
+        url: $.getSourcesApiURL(id, slug),
+        headers: $.defaultHeaders,
+    }).await();
+    parsed := Convert.decodeJson(resp.body);
+    return Future.awaitAll(
+        parsed.data.map(-> x {
+            quality := x.keys.first;
+            y := x[quality];
+            embed := Url.ensure(y.kwik);
+            parsedEmbedUrl := Url.parse(embed);
+            eResp := Http.request({
+                method: 'get',
+                url: embed,
+                headers: $.defaultHeaders,
+            }).await();
+            m := RegExp.new('Plyr\\|querySelector\\|document\\|([^\'"]+)')
+                .firstMatch(eResp.body)
+                .group(1)
+                .split('|');
+
+            return {
+                url: '${m[10]}://${m[9]}-${m[8]}.${m[7]}.${m[6]}.${m[5]}/${m[4]}/${m[3]}/${m[2]}/${m[1]}.${m[0]}',
+                headers: Object.apply({
+                    Referer: parsedEmbedUrl.origin,
+                }, $.defaultHeaders),
+                quality: quality,
+                locale: $.defaultLocale,
+            };
+        })
+    );
+};

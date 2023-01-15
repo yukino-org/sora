@@ -1,9 +1,9 @@
 import '../http.ht';
 
 class $DDOSGuardFetcher extends $HttpFetcher {
-    // final tokens = {};
+    // tokens := {};
 
-    // fun getInitialCookie({ origin, headers }) {
+    // getInitialCookie := -> { origin, headers } {
     //     return AsyncTask.resolve(
     //         () => Http.fetch(
     //             method: 'get',
@@ -12,13 +12,13 @@ class $DDOSGuardFetcher extends $HttpFetcher {
     //                 'Referer': origin,
     //             }),
     //         ),
-    //         onDone: fun (resp) {
+    //         onDone: -> resp {
     //             processCookieFromResponse(resp);
     //         },
     //     );
     // }
 
-    fun request({ method, url, headers, tries = 0 }) {
+    request := -> { method, url, headers, tries = 0 } {
         if (tries > _maxTries) throw 'Failed to bypass DDOS guard';
 
         return AsyncTask.resolve(
@@ -27,10 +27,10 @@ class $DDOSGuardFetcher extends $HttpFetcher {
                 url: url,
                 headers: attachBypassHeaders(headers),
             ),
-            onDone: fun (resp) {
+            onDone: -> resp {
                 // processCookieFromResponse(resp);
 
-                if (resp.statusCode == 403) {
+                if (resp.statusCode == 403 {
                     return request(
                         method: method,
                         url: url,
@@ -43,7 +43,7 @@ class $DDOSGuardFetcher extends $HttpFetcher {
                 //             origin: Http.getDomainFromURL(url),
                 //             headers: headers,
                 //         ),
-                //         onDone: (_) {
+                //         onDone: (_ {
                             
                 //         }
                 //     );
@@ -54,26 +54,26 @@ class $DDOSGuardFetcher extends $HttpFetcher {
         );
     }
 
-    // fun processCookieFromResponse(resp) {
-    //     if (resp.headers['set-cookie'] != null) {
+    // processCookieFromResponse := -> resp {
+    //     if (resp.headers['set-cookie'] != null {
     //         processCookie(resp.headers['set-cookie']);
     //     }
     // }
 
-    // fun processCookie(cookie) {
+    // processCookie := -> cookie {
     //     Collection.eachList(
     //         Regex('([^=]+)=([^;]+)').allMatches(cookie),
-    //         fun (i, x) {
-    //             final key = x.group(1);
-    //             final value = x.group(2);
-    //             if (key.startsWith('__dd') || key == 'XSRF-TOKEN') {
+    //         -> i, x {
+    //             key := x.group(1);
+    //             value := x.group(2);
+    //             if (key.startsWith('__dd') || key == 'XSRF-TOKEN' {
     //                 tokens[_encodeKey(key)] = value;
     //             }
     //         }
     //     );
     // }
 
-    fun attachBypassHeaders(headers) {
+    attachBypassHeaders := -> headers {
         return Collection.mergeMap(headers, {
             'Cookie': (headers['Cookie'] ?? '') + cookie,
         });
@@ -84,15 +84,15 @@ class $DDOSGuardFetcher extends $HttpFetcher {
     }
 
     // static const baseURL = 'https://check.ddos-guard.net';
-    // static final checkJsURL = '${baseURL}/check.js';
+    // checkJsURL := '${baseURL}/check.js';
     static const _maxTries = 2;
     // static const _keyPrefix = 'key-';
 
-    // static fun _encodeKey(key) {
+    // _encodeKey := -> key {
     //     return '${_keyPrefix}${key}';
     // }
 
-    // static fun _decodeKey(key) {
+    // _decodeKey := -> key {
     //     return key.replaceFirst(_keyPrefix, '');
     // }
 }

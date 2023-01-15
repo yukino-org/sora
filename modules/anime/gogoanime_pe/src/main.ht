@@ -3,12 +3,12 @@ import 'utils.ht';
 import '../../../shared/utils.ht';
 import '../../../shared/extractors/fembed.ht';
 
-final fetcher = $HttpFetcher();
+fetcher := $HttpFetcher();
 
-final extractor = AnimeExtractor(
+extractor := AnimeExtractor(
     defaultLocale: $.defaultLocale,
-    search: fun (terms, locale) {
-        final url = $.getSearchURL(terms);
+    search: -> terms, locale {
+        url := $.getSearchURL(terms);
 
         return AsyncTask.resolve(
             () => fetcher.getBody(
@@ -16,15 +16,15 @@ final extractor = AnimeExtractor(
                 url: url,
                 headers: $.defaultHeaders,
             ),
-            onDone: fun (html) {
-                final document = HtmlElement.parse(html);
+            onDone: -> html {
+                document := HtmlElement.parse(html);
 
                 return Collection.mapList(
                     document.querySelectorAll('.items li'),
-                    fun (i, x) {
-                        final titleElement = x.querySelector('.name a');
-                        final url = titleElement.attributes['href'].trim();
-                        final thumbnail = x.querySelector('.img img').attributes['src'].trim();
+                    -> i, x {
+                        titleElement := x.querySelector('.name a');
+                        url := titleElement.attributes['href'].trim();
+                        thumbnail := x.querySelector('.img img').attributes['src'].trim();
 
                         return SearchInfo(
                             title: titleElement.text.trim(),
@@ -40,8 +40,8 @@ final extractor = AnimeExtractor(
             }
         );
     },
-    getInfo: fun (_url, locale) {
-        final url = URL.ensureURL(_url);
+    getInfo: -> _url, locale {
+        url := URL.ensureURL(_url);
 
         return AsyncTask.resolve(
             () => fetcher.getBody(
@@ -49,11 +49,11 @@ final extractor = AnimeExtractor(
                 url: url,
                 headers: $.defaultHeaders,
             ),
-            onDone: fun (html) {
-                final document = HtmlElement.parse(html);
+            onDone: -> html {
+                document := HtmlElement.parse(html);
 
-                final epPagesElement = document.querySelectorAll('#episode_page a');
-                final epURL = $.getEpisodeApiURL(
+                epPagesElement := document.querySelectorAll('#episode_page a');
+                epURL := $.getEpisodeApiURL(
                     document.querySelector('input#movie_id').attributes['value'].trim(),
                     epPagesElement.first.attributes['ep_start'].trim(),
                     epPagesElement.last.attributes['ep_end'].trim(),
@@ -65,13 +65,13 @@ final extractor = AnimeExtractor(
                         url: epURL,
                         headers: $.defaultHeaders,
                     ),
-                    onDone: fun (epHtml) {
-                        final epDocument = HtmlElement.parse(epHtml);
-                        final episodes = Collection.mapList(
+                    onDone: -> epHtml {
+                        epDocument := HtmlElement.parse(epHtml);
+                        episodes := Collection.mapList(
                             epDocument.querySelectorAll('#episode_related a'),
-                            fun (i, x) {
-                                final episode = x.querySelector('.name').text.replaceFirst('EP', '').trim();
-                                final url = x.attributes['href'].trim();
+                            -> i, x {
+                                episode := x.querySelector('.name').text.replaceFirst('EP', '').trim();
+                                url := x.attributes['href'].trim();
                                 
                                 return EpisodeInfo(
                                     episode: episode,
@@ -99,8 +99,8 @@ final extractor = AnimeExtractor(
             }
         );
     },
-    getSources: fun (_url, locale) {
-        final url = URL.ensureURL(_url);
+    getSources: -> _url, locale {
+        url := URL.ensureURL(_url);
 
         return AsyncTask.resolve(
             () => fetcher.getBody(
@@ -108,10 +108,10 @@ final extractor = AnimeExtractor(
                 url: url,
                 headers: $.defaultHeaders,
             ),
-            onDone: fun (html) {
-                final document = HtmlElement.parse(html);
+            onDone: -> html {
+                document := HtmlElement.parse(html);
 
-                fun asyncify(fn) {
+                asyncify := -> fn {
                     return () => AsyncTask.resolve(
                         fn ?? () => [],
                         onDone: (res) => res,
@@ -122,15 +122,15 @@ final extractor = AnimeExtractor(
                 return AsyncTask.resolveAll(
                     Collection.mapList(
                         document.querySelectorAll('.anime_muti_link ul > li'),
-                        fun (i, x) {
-                            final link = x.querySelector('a').attributes['data-video'];
+                        -> i, x {
+                            link := x.querySelector('a').attributes['data-video'];
 
-                            if (link != null) {
-                                if (x.classes.contains('anime') || x.classes.contains('vidcdn')) {
+                            if (link != null {
+                                if (x.classes.contains('anime') || x.classes.contains('vidcdn') {
                                     return asyncify(
                                         () => GogoPlay.parse(link),
                                     );
-                                } else if (x.classes.contains('xstreamcdn')) {
+                                } else if (x.classes.contains('xstreamcdn') {
                                     return asyncify(
                                         () => FEmbed.parse(link, locale: $.defaultLocale),
                                     );
@@ -140,7 +140,7 @@ final extractor = AnimeExtractor(
                             return asyncify(null);
                         },
                     ),
-                    onDone: fun (res) {
+                    onDone: -> res {
                         return Collection.flattenList(res, 1);
                     }
                 );

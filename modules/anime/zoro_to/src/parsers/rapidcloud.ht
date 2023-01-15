@@ -1,20 +1,20 @@
 import '../utils.ht';
 
 class RapidCloud {
-    static fun parseId(url) {
+    parseId := -> url {
         return Regex('\\/embed-6\\/([^?]+)\\?z=').firstMatch(url).group(1);
     }
 
-    static fun getSourcesApiURL(id, rToken, rNumber) {
+    getSourcesApiURL := -> id, rToken, rNumber {
         return URL.ensureURL('https://rapid-cloud.ru/ajax/embed-6/getSources?id=${id}&_token=${rToken}&_number=${rNumber}');
     }
 
-    static fun parse(url) {
+    parse := -> url {
         return AsyncTask.resolve(
             () => $.getRecaptchaToken(url),
-            onDone: (recaptcha) {
-                final id = parseId(url);
-                final apiURL = getSourcesApiURL(id, recaptcha['token'], recaptcha['number']);
+            onDone: (recaptcha {
+                id := parseId(url);
+                apiURL := getSourcesApiURL(id, recaptcha['token'], recaptcha['number']);
 
                 return AsyncTask.resolve(
                     () => Http.fetch(
@@ -22,15 +22,15 @@ class RapidCloud {
                         url: apiURL,
                         headers: $.defaultHeaders,
                     ),
-                    onDone: fun (resp) {
-                        final parsed = Converter.jsonDecode(resp.body);
+                    onDone: -> resp {
+                        parsed := Converter.jsonDecode(resp.body);
 
                         return AsyncTask.resolveAll(
                             Collection.mapList(
                                 parsed['sources'],
-                                fun (i, x) {
-                                    final m3u8URL = x['file'];
-                                    final m3u8ParentURL = Regex('(.*)\\/[^\\/]+$').firstMatch(m3u8URL).group(1);
+                                -> i, x {
+                                    m3u8URL := x['file'];
+                                    m3u8ParentURL := Regex('(.*)\\/[^\\/]+$').firstMatch(m3u8URL).group(1);
 
                                     return () => AsyncTask.resolve(
                                         () => Http.fetch(
@@ -38,12 +38,12 @@ class RapidCloud {
                                             url: m3u8URL,
                                             headers: $.defaultHeaders,
                                         ),
-                                        onDone: fun (resp) {
+                                        onDone: -> resp {
                                             return Collection.mapList(
                                                 Regex('#EXT-X-STREAM-INF:.*?,RESOLUTION=\\d+x(\\d+),.*?\\n([^\\n]+)').allMatches(resp.body),
-                                                fun (i, x) {
-                                                    final resHeight = x.group(1);
-                                                    final route = x.group(2);
+                                                -> i, x {
+                                                    resHeight := x.group(1);
+                                                    route := x.group(2);
 
                                                     return EpisodeSource(
                                                         url: URL.ensureURL('${m3u8ParentURL}/${route}'),
