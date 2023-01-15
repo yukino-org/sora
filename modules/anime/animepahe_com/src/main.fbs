@@ -50,7 +50,6 @@ extractor := {
             };
         });
 
-        print document;
         return {
             title: document
                 .querySelector('.anime-header .title-wrapper > h1 > span')
@@ -89,7 +88,7 @@ extractor := {
         eNum := Number.from(uParsed.episode);
         eResp := Http.request({
             method: 'get',
-            url: $.getEpisodesApiURLFromNumber(uParsed.animeId, eNum),
+            url: $.getEpisodesApiURLFromNumber(uParsed.animeSlug, eNum),
             headers: $.defaultHeaders,
         }).await();
         eParsed := Convert.decodeJson(eResp.body);
@@ -105,9 +104,9 @@ _getSources := -> id, slug {
         headers: $.defaultHeaders,
     }).await();
     parsed := Convert.decodeJson(resp.body);
-    return Future.awaitAll(
-        parsed.data.map(-> x {
-            quality := x.keys.first;
+    return Future.unify(
+        parsed.data.map(-> x : -> {
+            quality := Object.keys(x)[0];
             y := x[quality];
             embed := Url.ensure(y.kwik);
             parsedEmbedUrl := Url.parse(embed);
@@ -116,13 +115,13 @@ _getSources := -> id, slug {
                 url: embed,
                 headers: $.defaultHeaders,
             }).await();
-            m := RegExp.new('Plyr\\|querySelector\\|document\\|([^\'"]+)')
+            m := RegExp.new(r"Plyr\|(.+?)'")
                 .firstMatch(eResp.body)
                 .group(1)
                 .split('|');
 
             return {
-                url: '${m[10]}://${m[9]}-${m[8]}.${m[7]}.${m[6]}.${m[5]}/${m[4]}/${m[3]}/${m[2]}/${m[1]}.${m[0]}',
+                url: '{}://{}-{}.{}.{}.{}/{}/{}/{}/{}.{}'.format(m.reversed()),
                 headers: Object.apply({
                     Referer: parsedEmbedUrl.origin,
                 }, $.defaultHeaders),
@@ -130,5 +129,5 @@ _getSources := -> id, slug {
                 locale: $.defaultLocale,
             };
         })
-    );
+    ).await();
 };
