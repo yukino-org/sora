@@ -1,6 +1,6 @@
 import 'utils.ht';
 
-extractor := MangaExtractor(
+extractor := {
     defaultLocale: Locale.parse('en'),
     search: -> terms, locale {
         return AsyncTask.resolve(
@@ -26,7 +26,7 @@ extractor := MangaExtractor(
                                     return _getCoverImageURL(x['id'], coverArt['id'])
                                 },
                                 onDone: -> cover {
-                                    return SearchInfo(
+                                    return {
                                         title: x['attributes']['title'][$.defaultLocale.code],
                                         url: $.getMangaApiURL(x['id']),
                                         thumbnail: cover,
@@ -71,7 +71,7 @@ extractor := MangaExtractor(
                             return AsyncTask.resolve(
                                 () => _getChapters(id, locale, 0, []),
                                 onDone: -> chapters {
-                                    return MangaInfo(
+                                    return {
                                         title: localeTitle ?? defaultLocaleTitle,
                                         url: mangaURL,
                                         thumbnail: cover,
@@ -103,7 +103,7 @@ extractor := MangaExtractor(
                 return Collection.mapList(
                     parsed['chapter']['data'],
                     -> i, x {
-                        return PageInfo(
+                        return {
                             url: $.getPageSourceURL(chapterURL, x),
                             locale: locale,
                         );
@@ -113,7 +113,7 @@ extractor := MangaExtractor(
         );
     },
     getPage: -> url, locale {
-        return ImageDescriber(
+        return {
             url: url,
             headers: $.defaultHeaders,
         );
@@ -139,9 +139,9 @@ _getChapters := -> id, locale, offset, chapters {
                     chapterNum := x['attributes']['chapter'];
                     if (chapterNum != null {
                         chapters.add(
-                            ChapterInfo(
+                            {
                                 title: (title?.isNotEmpty ?? false) ? title : null,
-                                url: 'id:${id}',
+                                url: 'id:{id}',
                                 chapter: chapterNum,
                                 volume: x['attributes']['volume'],
                                 locale: locale,
@@ -173,7 +173,7 @@ _getCoverImageURL := -> manga, cover {
         onDone: -> resp {
             parsed := Converter.jsonDecode(resp.body);
 
-            return ImageDescriber(
+            return {
                 url: $.getCoverURL(manga, parsed['data']['attributes']['fileName']),
                 headers: $.defaultHeaders,
             );

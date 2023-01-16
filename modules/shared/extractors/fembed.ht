@@ -1,14 +1,14 @@
 class FEmbed {
     defaultHeaders := {
-        'User-Agent': Http.defaultUserAgent,
+        'User-Agent': Http.defaultDesktopUserAgent(),
     };
 
     sourcesApiURL := -> baseURL, id {
-        return URL.ensureURL('${baseURL}/api/source/${id}');
+        return Url.ensure('{baseURL}/api/source/{id}');
     }
 
     parse := -> _url, { locale } {
-        url := URL.ensureURL(_url);
+        url := Url.ensure(_url);
         parsedUrl := URL.parse(url);
 
         id := Regex('/v/([^?#&/.]+)').firstMatch(url)?.group(1);
@@ -30,8 +30,8 @@ class FEmbed {
                 return Collection.mapList(
                     parsed['data'],
                     -> i, x {
-                        return EpisodeSource(
-                            url: URL.ensureURL(x['file']),
+                        return {
+                            url: Url.ensure(x['file']),
                             headers: Collection.mergeMap(defaultHeaders, {
                                 'Referer': parsedUrl.origin,
                             }),

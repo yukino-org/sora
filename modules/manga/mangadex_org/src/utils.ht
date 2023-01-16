@@ -11,39 +11,39 @@
     defaultLocale := Locale.parse('en');
 
     getSearchApiURL := -> terms {
-        return URL.ensureURL('${baseApiURL}/manga?title=${terms}');
+        return Url.ensure('{baseApiURL}/manga?title={terms}');
     }
 
     getMangaApiURL := -> id {
-        return URL.ensureURL('${baseApiURL}/manga/${id}');
+        return Url.ensure('{baseApiURL}/manga/{id}');
     }
 
     getMangaFeedApiURL := -> id, locale, limit, offset {
-        return URL.ensureURL('${baseApiURL}/manga/${id}/feed?limit=${limit}&offset=${offset}&order[chapter]=asc&translatedLanguage[]=${locale}');
+        return Url.ensure('{baseApiURL}/manga/{id}/feed?limit={limit}&offset={offset}&order[chapter]=asc&translatedLanguage[]={locale}');
     }
 
     getMangaChapterOverviewURL := -> id, chapter, volume, limit {
-        return URL.ensureURL('${baseApiURL}/chapter?manga=${id}&chapter=${chapter}&volume=${volume}&limit=${limit}&order[chapter]=asc');
+        return Url.ensure('{baseApiURL}/chapter?manga={id}&chapter={chapter}&volume={volume}&limit={limit}&order[chapter]=asc');
     }
 
     getMangaServerApiURL := -> id {
-        return URL.ensureURL('${baseApiURL}/at-home/server/${id}');
+        return Url.ensure('{baseApiURL}/at-home/server/{id}');
     }
 
     getChapterApiURL := -> serverURL, quality, hash {
-        return URL.ensureURL('${serverURL}/${quality}/${hash}');
+        return Url.ensure('{serverURL}/{quality}/{hash}');
     }
 
     getPageSourceURL := -> chapterApiURL, filename {
-        return URL.ensureURL('${chapterApiURL}/${filename}');
+        return Url.ensure('{chapterApiURL}/{filename}');
     }
 
     getCoverApiURL := -> coverID {
-        return URL.ensureURL('${baseApiURL}/cover/${coverID}');
+        return Url.ensure('{baseApiURL}/cover/{coverID}');
     }
 
     getCoverURL := -> mangaID, coverFile {
-        return URL.ensureURL('${baseUploadsURL}/covers/${mangaID}/${coverFile}');
+        return Url.ensure('{baseUploadsURL}/covers/{mangaID}/{coverFile}');
     }
 
     parseId := -> url {

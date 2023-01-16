@@ -1,0 +1,22 @@
+baseUrl := 'https://marin.moe';
+
+getSearchUrl := -> terms : Url.ensure(
+    '{}/anime?search={}'.format([baseUrl, Url.encodeQueryComponent(terms)])
+);
+
+getAnimeUrl := -> slug : Url.ensure(
+    '{}/anime/{}'.format([baseUrl, slug])
+);
+
+getEpisodeUrl := -> animeSlug, episodeSlug : Url.ensure(
+    '{}/anime/{}/{}'.format([baseUrl, animeSlug, episodeSlug])
+);
+
+defaultHeaders := {
+    ['User-Agent']: Http.defaultDesktopUserAgent(),
+    Referer: baseUrl,
+    ['x-inertia']: 'true',
+    ['x-inertia-version']: '5ec023866657ee7f8f9db8b2040b3ffc',
+};
+
+defaultLocale := 'en';

@@ -5,7 +5,7 @@ import '../../../shared/extractors/fembed.ht';
 
 fetcher := $HttpFetcher();
 
-extractor := AnimeExtractor(
+extractor := {
     defaultLocale: $.defaultLocale,
     search: -> terms, locale {
         url := $.getSearchURL(terms);
@@ -26,11 +26,11 @@ extractor := AnimeExtractor(
                         url := titleElement.attributes['href'].trim();
                         thumbnail := x.querySelector('.img img').attributes['src'].trim();
 
-                        return SearchInfo(
+                        return {
                             title: titleElement.text.trim(),
                             url: $.appendBaseURL(url),
-                            thumbnail: ImageDescriber(
-                                url: URL.ensureURL(thumbnail),
+                            thumbnail: {
+                                url: Url.ensure(thumbnail),
                                 headers: $.defaultHeaders,
                             ),
                             locale: $.defaultLocale,
@@ -41,7 +41,7 @@ extractor := AnimeExtractor(
         );
     },
     getInfo: -> _url, locale {
-        url := URL.ensureURL(_url);
+        url := Url.ensure(_url);
 
         return AsyncTask.resolve(
             () => fetcher.getBody(
@@ -73,7 +73,7 @@ extractor := AnimeExtractor(
                                 episode := x.querySelector('.name').text.replaceFirst('EP', '').trim();
                                 url := x.attributes['href'].trim();
                                 
-                                return EpisodeInfo(
+                                return {
                                     episode: episode,
                                     url: $.appendBaseURL(url),
                                     locale: $.defaultLocale,
@@ -81,11 +81,11 @@ extractor := AnimeExtractor(
                             }
                         );
 
-                        return AnimeInfo(
+                        return {
                             title: document.querySelector('.anime_info_body_bg h1').text.trim(),
-                            url: URL.ensureURL(url),
-                            thumbnail: ImageDescriber(
-                                url: URL.ensureURL(document.querySelector('.anime_info_body_bg img').attributes['src'].trim()),
+                            url: Url.ensure(url),
+                            thumbnail: {
+                                url: Url.ensure(document.querySelector('.anime_info_body_bg img').attributes['src'].trim()),
                                 headers: $.defaultHeaders,
                             ),
                             episodes: episodes,
@@ -100,7 +100,7 @@ extractor := AnimeExtractor(
         );
     },
     getSources: -> _url, locale {
-        url := URL.ensureURL(_url);
+        url := Url.ensure(_url);
 
         return AsyncTask.resolve(
             () => fetcher.getBody(

@@ -2,7 +2,7 @@ import '../utils.ht';
 
 class GogoPlay {
     defaultHeaders := {
-        'User-Agent': Http.defaultUserAgent,
+        'User-Agent': Http.defaultDesktopUserAgent(),
     };
 
     cMode := 'cbc';
@@ -10,7 +10,7 @@ class GogoPlay {
     cCustomPadding := BytesContainer.fromList(Collection.filledList(8, 8));
 
     ajaxApiURL := -> baseURL, query {
-        return URL.ensureURL('${baseURL}/encrypt-ajax.php?${query}');
+        return Url.ensure('{baseURL}/encrypt-ajax.php?{query}');
     }
 
     tryGetQuality := -> url {
@@ -25,7 +25,7 @@ class GogoPlay {
     //  - https://github.com/justfoolingaround/animdl/blob/master/animdl/core/codebase/extractors/gogoplay/__init__.py
     //  - https://github.com/saikou-app/saikou/blob/master/app/src/main/java/ani/saikou/anime/source/extractors/GogoCDN.kt
     parse := -> _url {
-        url := URL.ensureURL(_url);
+        url := Url.ensure(_url);
         parsedUrl := URL.parse(url);
 
         return AsyncTask.resolve(
@@ -106,7 +106,7 @@ class GogoPlay {
                                             onDone: -> res {
                                                 return Collection.mapList(
                                                     res,
-                                                    (i, x) => EpisodeSource(
+                                                    (i, x) => {
                                                         url: x,
                                                         headers: defaultHeaders,
                                                         quality: tryGetQuality(x),
@@ -118,7 +118,7 @@ class GogoPlay {
                                     }
 
                                     return () => AsyncTask.value([
-                                        EpisodeSource(
+                                        {
                                             url: x,
                                             headers: defaultHeaders,
                                             quality: tryGetQuality(x),
@@ -152,7 +152,7 @@ class GogoPlay {
                         resp.body.split('\n'),
                         (i, x) => !x.startsWith('#') && (x.contains('.m3u8') || x.contains('.ts')),
                     ),
-                    (i, x) => x.startsWith('http') ? x : '${prevUrl}${x}',
+                    (i, x) => x.startsWith('http') ? x : '{prevUrl}{x}',
                 );
             },
         );

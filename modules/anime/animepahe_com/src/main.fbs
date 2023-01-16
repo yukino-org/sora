@@ -1,43 +1,43 @@
-import './utils.fbs' as $;
+import './config.fbs' as config;
 
 extractor := {
-    defaultLocale: $.defaultLocale,
-    search: -> terms, locale {
-        resp := Http.request({
+    defaultLocale: config.defaultLocale,
+    search: -> terms, locale async {
+        resp := await Http.request({
             method: 'get',
-            url: $.getSearchApiURL(terms),
-            headers: $.defaultHeaders,
-        }).await();
+            url: config.getSearchApiUrl(terms),
+            headers: config.defaultHeaders,
+        });
         parsed := Convert.decodeJson(resp.body);
         
         return parsed.data.map(
             -> x : {
                 title: x.title,
-                url: $.getAnimeURL(x.session),
+                url: config.getAnimeUrl(x.session),
                 thumbnail: {
                     url: Url.ensure(x.poster),
-                    headers: $.defaultHeaders,
+                    headers: config.defaultHeaders,
                 },
-                locale: $.defaultLocale,
+                locale: config.defaultLocale,
             }
         );
     },
-    getInfo: -> url, locale {
+    getInfo: -> url, locale async {
         url = Url.ensure(url);
-        slug := $.parseSlug(url);
-        resp := Http.request({
+        slug := config.parseSlug(url);
+        resp := await Http.request({
             method: 'get',
             url: url,
-            headers: $.defaultHeaders,
-        }).await();
+            headers: config.defaultHeaders,
+        });
         id := RegExp.new(r'\/a\/(\d+)').firstMatch(resp.body).group(1);
         document := HtmlElement.parse(resp.body);
 
-        eResp := Http.request({
+        eResp := await Http.request({
             method: 'get',
-            url: $.getEpisodesApiURL(slug),
-            headers: $.defaultHeaders,
-        }).await();
+            url: config.getEpisodesApiUrl(slug),
+            headers: config.defaultHeaders,
+        });
         eParsed := Convert.decodeJson(eResp.body);
         eStart := eParsed.from;
         eTotal := eParsed.total;
@@ -45,8 +45,8 @@ extractor := {
             eNum := eStart + i;
             return {
                 episode: String.from(eNum),
-                url: $.getCustomEpisodeURL(id, slug, eNum),
-                locale: $.defaultLocale,
+                url: config.getCustomEpisodeUrl(id, slug, eNum),
+                locale: config.defaultLocale,
             };
         });
 
@@ -63,59 +63,59 @@ extractor := {
                         .attributes['data-src']
                         .trim()
                 ),
-                headers: $.defaultHeaders,
+                headers: config.defaultHeaders,
             },
             episodes: episodes,
-            locale: $.defaultLocale,
-            availableLocales: [$.defaultLocale],
+            locale: config.defaultLocale,
+            availableLocales: [config.defaultLocale],
         };
     },
-    getSources: -> url, locale {
+    getSources: -> url, locale async {
         url = Url.ensure(url);
 
-        if ($.isPlayURL(url)) {
-            uParsed := $.parsePlayURL(url);
-            resp := Http.request({
+        if (config.isPlayUrl(url)) {
+            uParsed := config.parsePlayUrl(url);
+            resp := await Http.request({
                 method: 'get',
                 url: url,
-                headers: $.defaultHeaders,
-            }).await();
+                headers: config.defaultHeaders,
+            });
             id := Regex.new(r'getUrls\((\d+)').firstMatch(resp.body).group(1);
             return _getSources(id, uParsed.episodeSlug);
         }
 
-        uParsed := $.parseCustomEpisodeURL(url);
+        uParsed := config.parseCustomEpisodeUrl(url);
         eNum := Number.from(uParsed.episode);
-        eResp := Http.request({
+        eResp := await Http.request({
             method: 'get',
-            url: $.getEpisodesApiURLFromNumber(uParsed.animeSlug, eNum),
-            headers: $.defaultHeaders,
-        }).await();
+            url: config.getEpisodesApiUrlFromNumber(uParsed.animeSlug, eNum),
+            headers: config.defaultHeaders,
+        });
         eParsed := Convert.decodeJson(eResp.body);
         eData := eParsed.data.find(-> x : x.episode == eNum);
         return _getSources(eData.animeId, eData.session);
     },
 };
 
-_getSources := -> id, slug {
-    resp := Http.request({
+_getSources := -> id, slug async {
+    resp := await Http.request({
         method: 'get',
-        url: $.getSourcesApiURL(id, slug),
-        headers: $.defaultHeaders,
-    }).await();
+        url: config.getSourcesApiUrl(id, slug),
+        headers: config.defaultHeaders,
+    });
     parsed := Convert.decodeJson(resp.body);
     return Future.unify(
-        parsed.data.map(-> x : -> {
+        parsed.data.map(-> x async {
             quality := Object.keys(x)[0];
             y := x[quality];
             embed := Url.ensure(y.kwik);
             parsedEmbedUrl := Url.parse(embed);
-            eResp := Http.request({
+            eResp := await Http.request({
                 method: 'get',
                 url: embed,
-                headers: $.defaultHeaders,
-            }).await();
-            m := RegExp.new(r"Plyr\|(.+?)'")
+                headers: config.defaultHeaders,
+            });
+            m := RegExp.new(r`Plyr\|(.+?)['"]`)
                 .firstMatch(eResp.body)
                 .group(1)
                 .split('|');
@@ -124,10 +124,10 @@ _getSources := -> id, slug {
                 url: '{}://{}-{}.{}.{}.{}/{}/{}/{}/{}.{}'.format(m.reversed()),
                 headers: Object.apply({
                     Referer: parsedEmbedUrl.origin,
-                }, $.defaultHeaders),
+                }, config.defaultHeaders),
                 quality: quality,
-                locale: $.defaultLocale,
+                locale: config.defaultLocale,
             };
         })
-    ).await();
+    );
 };

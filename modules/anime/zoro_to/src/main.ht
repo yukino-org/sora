@@ -1,7 +1,7 @@
 import 'parsers/rapidcloud.ht';
 import 'utils.ht';
 
-extractor := AnimeExtractor(
+extractor := {
     defaultLocale: $.defaultLocale,
     search: -> terms, locale {
         url := $.getSearchURL(terms);
@@ -22,11 +22,11 @@ extractor := AnimeExtractor(
                         url := title.attributes['href'].trim();
                         thumbnail := x.querySelector('.film-poster-img').attributes['data-src'].trim();
 
-                        return SearchInfo(
+                        return {
                             title: title.text.trim(),
                             url: $.appendBaseURL(url),
-                            thumbnail: ImageDescriber(
-                                url: URL.ensureURL(thumbnail),
+                            thumbnail: {
+                                url: Url.ensure(thumbnail),
                                 headers: $.defaultHeaders,
                             ),
                             locale: $.defaultLocale,
@@ -37,7 +37,7 @@ extractor := AnimeExtractor(
         );
     },
     getInfo: -> _url, locale {
-        url := URL.ensureURL(_url);
+        url := Url.ensure(_url);
 
         return AsyncTask.resolve(
             () => Http.fetch(
@@ -70,7 +70,7 @@ extractor := AnimeExtractor(
                                 episode := x.attributes['data-number'].trim();
                                 epURL := x.attributes['href'].trim();
 
-                                return EpisodeInfo(
+                                return {
                                     episode: episode,
                                     url: $.appendBaseURL(epURL),
                                     locale: $.defaultLocale,
@@ -78,11 +78,11 @@ extractor := AnimeExtractor(
                             }
                         );
 
-                        return AnimeInfo(
+                        return {
                             title: document.querySelector('#ani_detail .film-name').text.trim(),
                             url: url,
-                            thumbnail: ImageDescriber(
-                                url: URL.ensureURL(document.querySelector('#ani_detail .film-poster-img').attributes['src'].trim()),
+                            thumbnail: {
+                                url: Url.ensure(document.querySelector('#ani_detail .film-poster-img').attributes['src'].trim()),
                                 headers: $.defaultHeaders,
                             ),
                             episodes: episodes,

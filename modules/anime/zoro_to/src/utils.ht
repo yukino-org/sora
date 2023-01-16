@@ -3,31 +3,31 @@
     static const baseAjaxURL = 'https://zoro.to/ajax/v2';
 
     defaultHeaders := {
-        'User-Agent': Http.defaultUserAgent,
+        'User-Agent': Http.defaultDesktopUserAgent(),
         'Referer': baseURL,
     }
 
     defaultLocale := Locale.parse('en');
 
     getSearchURL := -> terms {
-        return URL.ensureURL('${baseURL}/search?keyword=${terms}');
+        return Url.ensure('{baseURL}/search?keyword={terms}');
     }
 
     getEpisodesApiURL := -> id {
-        return URL.ensureURL('${baseAjaxURL}/episode/list/${id}');
+        return Url.ensure('{baseAjaxURL}/episode/list/{id}');
     }
 
     getEpisodeApiURL := -> url {
         id := Regex('\\?ep=(\\d+)').firstMatch(url).group(1);
-        return URL.ensureURL('${baseAjaxURL}/episode/servers?episodeId=${id}');
+        return Url.ensure('{baseAjaxURL}/episode/servers?episodeId={id}');
     }
 
     getSourcesApiURL := -> id {
-        return URL.ensureURL('${baseAjaxURL}/episode/sources?id=${id}');
+        return Url.ensure('{baseAjaxURL}/episode/sources?id={id}');
     }
 
     appendBaseURL := -> route {
-        return URL.ensureURL('${baseURL}${route}');
+        return Url.ensure('{baseURL}{route}');
     }
 
     getRecaptchaToken := -> url {
@@ -42,14 +42,14 @@
                 rNumber := Regex('recaptchaNumber\\s+=\\s+[\'"](\\d+)[\'"]').firstMatch(mockRes.body).group(1);
 
                 _domain := Regex('(https?:\\/\\/[^/]+)').firstMatch(url).group(1);
-                domain := Converter.base64Encode(Converter.utf8Encode('${_domain}:433')).replaceAll('=', '') + '.';
+                domain := Converter.base64Encode(Converter.utf8Encode('{_domain}:433')).replaceAll('=', '') + '.';
 
                 return AsyncTask.resolve(
                     () => Http.fetch(
                         method: 'get',
-                        url: URL.ensureURL('https://www.google.com/recaptcha/api.js?render=${rKey}'),
+                        url: Url.ensure('https://www.google.com/recaptcha/api.js?render={rKey}'),
                         headers: Collection.mergeMap(defaultHeaders, {
-                            'Referrer': '${_domain}/',
+                            'Referrer': '{_domain}/',
                         }),
                     ),
                     onDone: (vTokenResp {
@@ -58,9 +58,9 @@
                         return AsyncTask.resolve(
                             () => Http.fetch(
                                 method: 'get',
-                                url: URL.ensureURL('https://www.google.com/recaptcha/api2/anchor?ar=1&hl=en&size=invisible&cb=kr60249sk&k=${rKey}&co=${domain}&v=${vToken}'),
+                                url: Url.ensure('https://www.google.com/recaptcha/api2/anchor?ar=1&hl=en&size=invisible&cb=kr60249sk&k={rKey}&co={domain}&v={vToken}'),
                                 headers: Collection.mergeMap(defaultHeaders, {
-                                    'Referrer': '${_domain}/',
+                                    'Referrer': '{_domain}/',
                                 }),
                             ),
                             onDone: (rTokenResp {
@@ -69,9 +69,9 @@
                                 return AsyncTask.resolve(
                                     () => Http.fetch(
                                         method: 'post',
-                                        url: URL.ensureURL('https://www.google.com/recaptcha/api2/reload?k=${rKey}'),
+                                        url: Url.ensure('https://www.google.com/recaptcha/api2/reload?k={rKey}'),
                                         headers: Collection.mergeMap(defaultHeaders, {
-                                            'Referrer': '${_domain}/',
+                                            'Referrer': '{_domain}/',
                                             'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
                                         }),
                                         body: URL.joinQueryParameters({

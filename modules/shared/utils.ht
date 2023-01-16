@@ -1,2 +1,0 @@
-export 'fetchers/http.ht';
-export 'fetchers/custom/ddos_guard.ht';

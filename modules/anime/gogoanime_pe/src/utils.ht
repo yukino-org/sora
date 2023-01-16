@@ -2,21 +2,21 @@
     static const baseURL = 'https://gogoanime.sk';
 
     defaultHeaders := {
-        'User-Agent': Http.defaultUserAgent,
+        'User-Agent': Http.defaultDesktopUserAgent(),
         'Referer': baseURL,
     }
 
     defaultLocale := Locale.parse('en');
 
     getSearchURL := -> terms {
-        return URL.ensureURL('${baseURL}/search.html?keyword=${terms}');
+        return Url.ensure('{baseURL}/search.html?keyword={terms}');
     }
 
     getEpisodeApiURL := -> id, start, end {
-        return URL.ensureURL('https://ajax.gogo-load.com/ajax/load-list-episode?ep_start=${start}&ep_end=${end}&id=${id}');
+        return Url.ensure('https://ajax.gogo-load.com/ajax/load-list-episode?ep_start={start}&ep_end={end}&id={id}');
     }
 
     appendBaseURL := -> route {
-        return URL.ensureURL('${baseURL}${route}');
+        return Url.ensure('{baseURL}{route}');
     }
 }

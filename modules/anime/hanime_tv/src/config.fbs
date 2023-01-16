@@ -1,0 +1,18 @@
+baseUrl := 'https://hanime.tv';
+
+searchApiUrl := 'https://search.htv-services.com';
+
+baseApiUrl := '{}/api/v8'.format([baseUrl]);
+
+parseSlug := -> url : RegExp.new(r'\/videos\/hentai\/([^?]+)').firstMatch(url).group(1);
+
+getAnimeUrl := -> slug : Url.ensure('{}/videos/hentai/{}'.format([baseUrl, slug]));
+
+getAnimeApiUrl := -> slug : Url.ensure('{}/video?id={}'.format([baseApiUrl, slug]));
+
+defaultHeaders := {
+    ['User-Agent']: Http.defaultDesktopUserAgent(),
+    Referer: baseUrl,
+};
+
+defaultLocale := 'en';

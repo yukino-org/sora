@@ -1,0 +1,65 @@
+baseUrl := 'https://animepahe.com';
+baseApiUrl := 'https://animepahe.org/api';
+
+getSearchApiUrl := -> terms, length {
+    length = length ?? 8;
+    return '{}?m=search&l={}&q={}'.format([baseApiUrl, length, terms]);
+};
+
+episodesApiPerPage := 30;
+
+getEpisodesApiUrl := -> id, page {
+    page = page ?? 1;
+    return '{}?m=release&id={}&sort=episode_asc&page={}'.format([baseApiUrl, id, page]);
+};
+
+getEpisodesApiUrlFromNumber := -> id, num {
+    page := num // episodesApiPerPage;
+    return getEpisodesApiUrl(id, page);
+};
+
+getSourcesApiUrl := -> id, slug {
+    return '{}?m=links&id={}&session={}'.format([baseApiUrl, id, slug]);
+};
+
+getAnimeUrl := -> slug {
+    return Url.ensure('{}/anime/{}'.format([baseUrl, slug]));
+};
+
+getCustomEpisodeUrl := -> id, slug, episode {
+    return Url.ensure(
+        '{}/anime/{}?id={}&episode={}'.format([baseUrl, slug, id, episode])
+    );
+};
+
+parseCustomEpisodeUrl := -> url {
+    queryParameters := Url.splitQueryString(url.split('?')[1]);
+    return {
+        animeSlug: parseSlug(url),
+        animeId: queryParameters.id,
+        episode: queryParameters.episode,
+    };
+};
+
+isPlayUrl := -> url : url.contains('/play/');
+
+parsePlayUrlRegex := RegExp.new(r'\/play\/([^\/]+)\/([^\/?#]+)');
+parsePlayUrl := -> url {
+    m := parsePlayUrlRegex.firstMatch(url);
+    return {
+        animeSlug: m.group(1),
+        episodeSlug: m.group(2),
+    };
+};
+
+appendBaseUrl := -> route : Url.ensure(baseUrl + route);
+
+parseSlugRegex := RegExp.new(r'\/anime\/([^\/?#]+)');
+parseSlug := -> url : parseSlugRegex.firstMatch(url).group(1);
+
+defaultHeaders := {
+    ['User-Agent']: Http.defaultDesktopUserAgent(),
+    Referer: baseUrl,
+};
+
+defaultLocale := 'en';

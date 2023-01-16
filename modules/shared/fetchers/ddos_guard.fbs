@@ -1,0 +1,25 @@
+maxTries := 2;
+cookie := '__ddg1_=;__ddg2_=;';
+
+request := -> options async {
+    if (!options.tries) {
+        options.tries = 0;
+        options.headers = makeHeaders(options.headers);
+    }
+    if (options.tries > maxTries) {
+        throw Exception.new('Failed to bypass DDOS guard');
+    }
+
+    resp := await Http.request(options);
+    if (resp.statusCode == 403) {
+        options.tries = options.tries + 1;
+        return request(options);
+    }
+    return resp;
+};
+
+makeHeaders := -> headers {
+    return Object.apply({
+        Cookie: (headers.Cookie ?? '') + cookie,
+    }, headers);
+};

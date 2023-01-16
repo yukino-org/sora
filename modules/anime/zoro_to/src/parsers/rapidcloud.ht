@@ -6,7 +6,7 @@ class RapidCloud {
     }
 
     getSourcesApiURL := -> id, rToken, rNumber {
-        return URL.ensureURL('https://rapid-cloud.ru/ajax/embed-6/getSources?id=${id}&_token=${rToken}&_number=${rNumber}');
+        return Url.ensure('https://rapid-cloud.ru/ajax/embed-6/getSources?id={id}&_token={rToken}&_number={rNumber}');
     }
 
     parse := -> url {
@@ -45,10 +45,10 @@ class RapidCloud {
                                                     resHeight := x.group(1);
                                                     route := x.group(2);
 
-                                                    return EpisodeSource(
-                                                        url: URL.ensureURL('${m3u8ParentURL}/${route}'),
+                                                    return {
+                                                        url: Url.ensure('{m3u8ParentURL}/{route}'),
                                                         headers: $.defaultHeaders,
-                                                        quality: '${resHeight}p',
+                                                        quality: '{resHeight}p',
                                                         locale: $.defaultLocale,
                                                     );
                                                 }

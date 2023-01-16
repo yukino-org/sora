@@ -1,6 +1,6 @@
 import 'utils.ht';
 
-extractor := MangaExtractor(
+extractor := {
     defaultLocale: $.defaultLocale,
     search: -> terms, locale {
         return AsyncTask.resolve(
@@ -23,10 +23,10 @@ extractor := MangaExtractor(
                     url := x['url'];
                     thumbnail := x['image'];
                     
-                    return SearchInfo(
+                    return {
                         title: x['title'],
                         url: $.appendBaseURL(url),
-                        thumbnail: ImageDescriber(
+                        thumbnail: {
                             url: $.appendBaseURL(thumbnail),
                             headers: $.defaultHeaders,
                         ),
@@ -40,7 +40,7 @@ extractor := MangaExtractor(
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
-                url: URL.ensureURL(url),
+                url: Url.ensure(url),
                 headers: $.defaultHeaders,
             ),
             onDone: -> resp {
@@ -53,7 +53,7 @@ extractor := MangaExtractor(
                         url := x.attributes['href'].trim();
                         cvMatch := Regex('Chapter (\\d+\\.?\\d*)(v(\\d+))?').firstMatch(sep[0]);
 
-                        return ChapterInfo(
+                        return {
                             title: sep.length > 1 ? sep[1].trim() : null,
                             url: $.appendBaseURL(url),
                             chapter: cvMatch?.group(1) ?? sep[0].replaceFirst('Chapter', '').trim(),
@@ -66,10 +66,10 @@ extractor := MangaExtractor(
                 title := document.querySelector('.page-title').text.trim();
                 thumbnail := document.querySelector('.series-profile-thumb').attributes['src'].trim();
 
-                return MangaInfo(
+                return {
                     title: title,
-                    url: URL.ensureURL(url),
-                    thumbnail: ImageDescriber(
+                    url: Url.ensure(url),
+                    thumbnail: {
                         url: $.appendBaseURL(thumbnail),
                         headers: $.defaultHeaders,
                     ),
@@ -83,12 +83,12 @@ extractor := MangaExtractor(
         );
     },
     getChapter: -> _url, locale {
-        url := URL.ensureURL(_url);
+        url := Url.ensure(_url);
 
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
-                url: URL.ensureURL(url),
+                url: Url.ensure(url),
                 headers: $.defaultHeaders,
             ),
             onDone: -> resp {
@@ -99,7 +99,7 @@ extractor := MangaExtractor(
                     -> i, x {
                         url := x.attributes['src'].trim();
 
-                        return PageInfo(
+                        return {
                             url: $.appendBaseURL(url),
                             locale: $.defaultLocale,
                         );
@@ -109,7 +109,7 @@ extractor := MangaExtractor(
         );
     },
     getPage: -> url, locale {
-        return ImageDescriber(
+        return {
             url: url,
             headers: $.defaultHeaders,
         );

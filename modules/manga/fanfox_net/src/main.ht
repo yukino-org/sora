@@ -1,6 +1,6 @@
 import 'utils.ht';
 
-extractor := MangaExtractor(
+extractor := {
     defaultLocale: $.defaultLocale,
     search: -> terms, locale {
         return AsyncTask.resolve(
@@ -17,11 +17,11 @@ extractor := MangaExtractor(
                     url := link.attributes['href'];
                     image := x.querySelector('img').attributes['src'];
 
-                    return SearchInfo(
+                    return {
                         title: link.text.trim(),
                         url: $.appendBaseURL(url),
-                        thumbnail: ImageDescriber(
-                            url: URL.ensureURL(image),
+                        thumbnail: {
+                            url: Url.ensure(image),
                             headers: $.defaultHeaders,
                         ),
                         locale: $.defaultLocale,
@@ -31,7 +31,7 @@ extractor := MangaExtractor(
         );
     },
     getInfo: -> _url, locale {
-        url := URL.ensureURL(_url);
+        url := Url.ensure(_url);
         
         return AsyncTask.resolve(
             () => Http.fetch(
@@ -53,7 +53,7 @@ extractor := MangaExtractor(
                             chap := Regex('Ch.([\\d.]+)').firstMatch(title)?.group(1);
 
                             if (chap != null {
-                                return ChapterInfo(
+                                return {
                                     title: shortTitle ?? title,
                                     url: $.appendBaseURL(route),
                                     chapter: chap,
@@ -68,11 +68,11 @@ extractor := MangaExtractor(
                     (i, x) => x != null,
                 );
 
-                return MangaInfo(
+                return {
                     title: document.querySelector('.detail-info-right-title-font').text,
                     url: url,
-                    thumbnail: ImageDescriber(
-                        url: URL.ensureURL(document.querySelector('img.detail-info-cover-img').attributes['src']),
+                    thumbnail: {
+                        url: Url.ensure(document.querySelector('img.detail-info-cover-img').attributes['src']),
                         headers: $.defaultHeaders,
                     ),
                     chapters: chapters,
@@ -97,8 +97,8 @@ extractor := MangaExtractor(
                 return Collection.mapList(
                     HtmlElement.parse(resp.body).querySelector('select.mangaread-page').querySelectorAll('option'),
                     -> i, x {
-                        return PageInfo(
-                            url: URL.ensureURL(x.attributes['value']),
+                        return {
+                            url: Url.ensure(x.attributes['value']),
                             locale: $.defaultLocale,
                         );
                     }
@@ -119,8 +119,8 @@ extractor := MangaExtractor(
                 img := Regex('<img src="(.*?)".*id="image".*>').firstMatch(resp.body)?.group(1);
                 if (img == null) throw 'Failed to parse image URL';
 
-                return ImageDescriber(
-                    url: URL.ensureURL(img),
+                return {
+                    url: Url.ensure(img),
                     headers: $.defaultHeaders,
                 );
             }

@@ -1,6 +1,6 @@
 import 'utils.ht';
 
-extractor := MangaExtractor(
+extractor := {
     defaultLocale: $.defaultLocale,
     search: -> terms, locale {
         if (_searcher != null {
@@ -20,7 +20,7 @@ extractor := MangaExtractor(
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
-                url: URL.ensureURL(url),
+                url: Url.ensure(url),
                 headers: $.defaultHeaders,
             ),
             onDone: -> resp {
@@ -35,7 +35,7 @@ extractor := MangaExtractor(
                     -> i, x {
                         chapter := $.parseChapterId(x['Chapter']);
 
-                        return ChapterInfo(
+                        return {
                             title: x['ChapterName'],
                             url: $.getChapterURL(slug, chapter),
                             chapter: chapter,
@@ -47,10 +47,10 @@ extractor := MangaExtractor(
                 title := document.querySelector('.MainContainer .BoxBody .list-group h1').text.trim();
                 thumbnail := document.querySelector('.MainContainer .BoxBody .img-fluid').attributes['src'].trim();
 
-                return MangaInfo(
+                return {
                     title: title,
-                    url: URL.ensureURL(url),
-                    thumbnail: ImageDescriber(
+                    url: Url.ensure(url),
+                    thumbnail: {
                         url: $.getMangaThumbnailURL(slug),
                         headers: $.defaultHeaders,
                     ),
@@ -64,12 +64,12 @@ extractor := MangaExtractor(
         );
     },
     getChapter: -> _url, locale {
-        url := URL.ensureURL(_url);
+        url := Url.ensure(_url);
 
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
-                url: URL.ensureURL(url),
+                url: Url.ensure(url),
                 headers: $.defaultHeaders,
             ),
             onDone: -> resp {
@@ -97,10 +97,10 @@ extractor := MangaExtractor(
                     Collection.rangeList(0, totalPages),
                     -> i, x {
                         pageId := Regex('(\d{3})$')
-                            .firstMatch('000${x + 1}')
+                            .firstMatch('000{x + 1}')
                             .group(1);
 
-                        return PageInfo(
+                        return {
                             url: $.getImageURL(host, slug, subPath, chapterId, pageId),
                             locale: $.defaultLocale,
                         );
@@ -110,7 +110,7 @@ extractor := MangaExtractor(
         );
     },
     getPage: -> url, locale {
-        return ImageDescriber(
+        return {
             url: url,
             headers: $.defaultHeaders,
         );
@@ -151,10 +151,10 @@ _prepareSearcher := ->  {
             _searcher = -> terms {
                 return Collection.mapList(
                     fuzzy.search(terms, 10),
-                    (i, x) => SearchInfo(
+                    (i, x) => {
                         title: x.item['s'],
                         url: $.getMangaURL(x.item['i']),
-                        thumbnail: ImageDescriber(
+                        thumbnail: {
                             url: $.getMangaThumbnailURL(x.item['i']),
                             headers: $.defaultHeaders,
                         ),

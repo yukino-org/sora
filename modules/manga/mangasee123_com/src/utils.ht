@@ -2,22 +2,22 @@
     static const baseURL = 'https://mangasee123.com';
 
     defaultHeaders := {
-        'User-Agent': Http.defaultUserAgent,
+        'User-Agent': Http.defaultDesktopUserAgent(),
         'Referer': baseURL,
     }
 
     defaultLocale := Locale.parse('en');
 
     getSearchApiURL := ->  {
-        return URL.ensureURL('${baseURL}/_search.php');
+        return Url.ensure('{baseURL}/_search.php');
     }
 
     getMangaURL := -> slug {
-        return URL.ensureURL('${baseURL}/manga/${slug}');
+        return Url.ensure('{baseURL}/manga/{slug}');
     }
 
     getMangaThumbnailURL := -> slug {
-        return URL.ensureURL('https://cover.nep.li/cover/${slug}.jpg');
+        return Url.ensure('https://cover.nep.li/cover/{slug}.jpg');
     }
 
     parseChapterId := -> id, [trim = true] {
@@ -26,17 +26,17 @@
         end := match.group(3);
 
         start := trim ? int.parse(mid).toString() : mid;
-        end := end == '0' ? '' : '.${end}';
+        end := end == '0' ? '' : '.{end}';
 
-        return '${start}${end}';
+        return '{start}{end}';
     }
 
     getChapterURL := -> slug, chapter {
-        return URL.ensureURL('${baseURL}/read-online/${slug}-chapter-${chapter}-page-1.html');
+        return Url.ensure('{baseURL}/read-online/{slug}-chapter-{chapter}-page-1.html');
     }
 
     getImageURL := -> host, slug, sub, chap, page {
-        return URL.ensureURL('https://${host}/manga/${slug}/${sub == '' ? '' : sub + '/'}${chap}-${page}.png');
+        return Url.ensure('https://{host}/manga/{slug}/{sub == '' ? '' : sub + '/'}{chap}-{page}.png');
     }
 
     parseSlug := -> url {

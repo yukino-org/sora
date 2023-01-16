@@ -4,18 +4,18 @@ import 'package:utilx/locale.dart';
 import '../../../tools/utils.dart';
 
 const Locale locale = Locale(LanguageCodes.en);
-final TenkaLocalFileDS source = Utils.getAnimeDS('twist_moe');
+final TenkaLocalFileDS source = Utils.getAnimeDS('marin_moe');
 final MockedAnimeExtractor mocked = MockedAnimeExtractor(
   search: (final AnimeExtractor ext) => ext.search(
-    'bunny girl',
+    'rent a girlfriend',
     locale,
   ),
   getInfo: (final AnimeExtractor ext) => ext.getInfo(
-    'https://twist.moe/a/seishun-buta-yarou-wa-bunny-girl-senpai-no-yume-wo-minai',
+    'https://marin.moe/anime/1gxhsife',
     locale,
   ),
   getSources: (final AnimeExtractor ext) => ext.getSources(
-    'https://twist.moe/a/seishun-buta-yarou-wa-bunny-girl-senpai-no-yume-wo-minai/1',
+    'https://marin.moe/anime/1gxhsife/1',
     locale,
   ),
 );

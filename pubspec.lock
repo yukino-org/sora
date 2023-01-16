@@ -95,7 +95,7 @@ packages:
     description:
       path: "packages/fubuki_compiler"
       ref: HEAD
-      resolved-ref: bd54525cee4a0bf17e3b166dd1260a3f912522d0
+      resolved-ref: ca8bb12888423a2baca8b7537d03b7d3fcfe3d25
       url: "https://github.com/yukino-org/fubuki.git"
     source: git
     version: "0.0.0"
@@ -104,7 +104,7 @@ packages:
     description:
       path: "packages/fubuki_shared"
       ref: HEAD
-      resolved-ref: bd54525cee4a0bf17e3b166dd1260a3f912522d0
+      resolved-ref: ca8bb12888423a2baca8b7537d03b7d3fcfe3d25
       url: "https://github.com/yukino-org/fubuki"
     source: git
     version: "0.0.0"
@@ -113,7 +113,7 @@ packages:
     description:
       path: "packages/fubuki_vm"
       ref: HEAD
-      resolved-ref: bd54525cee4a0bf17e3b166dd1260a3f912522d0
+      resolved-ref: ca8bb12888423a2baca8b7537d03b7d3fcfe3d25
       url: "https://github.com/yukino-org/fubuki.git"
     source: git
     version: "0.0.0"
@@ -228,7 +228,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka_runtime
-      resolved-ref: "7e2411286c7ac771d09d8986f3daf2e378a0fc2e"
+      resolved-ref: "915650e63ceeb621c7c933ebbb5f16937d082316"
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
