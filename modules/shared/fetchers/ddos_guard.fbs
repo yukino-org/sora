@@ -19,7 +19,7 @@ request := -> options async {
 };
 
 makeHeaders := -> headers {
-    return Object.apply({
+    return Object.apply(Object.clone(headers), {
         Cookie: (headers.Cookie ?? '') + cookie,
-    }, headers);
+    });
 };

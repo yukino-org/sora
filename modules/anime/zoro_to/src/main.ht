@@ -1,16 +1,16 @@
-import 'parsers/rapidcloud.ht';
-import 'utils.ht';
+import 'parsers/rapidcloud.fbs';
+import 'utils.fbs';
 
 extractor := {
-    defaultLocale: $.defaultLocale,
+    defaultLocale: config.defaultLocale,
     search: -> terms, locale {
-        url := $.getSearchURL(terms);
+        url := config.getSearchUrl(terms);
         
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
                 url: url,
-                headers: $.defaultHeaders,
+                headers: config.defaultHeaders,
             ),
             onDone: -> resp {
                 document := HtmlElement.parse(resp.body);
@@ -24,12 +24,12 @@ extractor := {
 
                         return {
                             title: title.text.trim(),
-                            url: $.appendBaseURL(url),
+                            url: config.appendBaseUrl(url),
                             thumbnail: {
                                 url: Url.ensure(thumbnail),
-                                headers: $.defaultHeaders,
+                                headers: config.defaultHeaders,
                             ),
-                            locale: $.defaultLocale,
+                            locale: config.defaultLocale,
                         );
                     }
                 );
@@ -43,19 +43,19 @@ extractor := {
             () => Http.fetch(
                 method: 'get',
                 url: url,
-                headers: $.defaultHeaders,
+                headers: config.defaultHeaders,
             ),
             onDone: -> resp {
                 document := HtmlElement.parse(resp.body);
 
                 id := document.querySelector('#wrapper').attributes['data-id'].trim();
-                epURL := $.getEpisodesApiURL(id);
+                epUrl := config.getEpisodesApiUrl(id);
                 
                 return AsyncTask.resolve(
                     () => Http.fetch(
                         method: 'get',
-                        url: epURL,
-                        headers: Collection.mergeMap($.defaultHeaders, {
+                        url: epUrl,
+                        headers: Collection.mergeMap(config.defaultHeaders, {
                             'Referer': url,
                             'X-Requested-With': 'XMLHttpRequest',
                         }),
@@ -68,12 +68,12 @@ extractor := {
                             epDocument.querySelectorAll('.ss-list > .ep-item'),
                             -> i, x {
                                 episode := x.attributes['data-number'].trim();
-                                epURL := x.attributes['href'].trim();
+                                epUrl := x.attributes['href'].trim();
 
                                 return {
                                     episode: episode,
-                                    url: $.appendBaseURL(epURL),
-                                    locale: $.defaultLocale,
+                                    url: config.appendBaseUrl(epUrl),
+                                    locale: config.defaultLocale,
                                 );
                             }
                         );
@@ -83,12 +83,12 @@ extractor := {
                             url: url,
                             thumbnail: {
                                 url: Url.ensure(document.querySelector('#ani_detail .film-poster-img').attributes['src'].trim()),
-                                headers: $.defaultHeaders,
+                                headers: config.defaultHeaders,
                             ),
                             episodes: episodes,
-                            locale: $.defaultLocale,
+                            locale: config.defaultLocale,
                             availableLocales: [
-                                $.defaultLocale,
+                                config.defaultLocale,
                             ]
                         );
                     }
@@ -97,29 +97,29 @@ extractor := {
         );
     },
     getSources: -> _url, locale {
-        url := $.getEpisodeApiURL(_url);
+        url := config.getEpisodeApiUrl(_url);
 
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
                 url: url,
-                headers: $.defaultHeaders,
+                headers: config.defaultHeaders,
             ),
             onDone: -> resp {
                 parsed := Converter.jsonDecode(resp.body);
 
                 return AsyncTask.resolveAll(
                     Collection.mapList(
-                        Regex('data-id="(\\d+)"').allMatches(parsed['html']),
+                        RegExp.new('data-id="(\\d+)"').allMatches(parsed['html']),
                         -> i, x {
                             id := x.group(1);
-                            sourceUrl := $.getSourcesApiURL(id);
+                            sourceUrl := config.getSourcesApiUrl(id);
 
                             return () => AsyncTask.resolve(
                                 () => Http.fetch(
                                     method: 'get',
                                     url: sourceUrl,
-                                    headers: Collection.mergeMap($.defaultHeaders, {
+                                    headers: Collection.mergeMap(config.defaultHeaders, {
                                         'Referer': url,
                                         'X-Requested-With': 'XMLHttpRequest',
                                     }),

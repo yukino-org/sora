@@ -1,0 +1,118 @@
+import '../../../shared/extractors/fembed.fbs' as fembed;
+import './parsers/gogoplay.fbs' as gogoplay;
+import './config.fbs' as config;
+
+extractor := {
+    defaultLocale: config.defaultLocale,
+    search: -> terms, locale async {
+        url := config.getSearchUrl(terms);
+        resp := await Http.request({
+            method: 'get',
+            url: url,
+            headers: config.defaultHeaders,
+        });
+        document := HtmlElement.parse(resp.body);
+
+        return document.querySelectorAll('.items li').map(-> x {
+            titleElement := x.querySelector('.name a');
+            url := titleElement.attributes.href.trim();
+            thumbnail := x.querySelector('.img img').attributes.src.trim();
+
+            return {
+                title: titleElement.text.trim(),
+                url: config.appendBaseUrl(url),
+                thumbnail: {
+                    url: Url.ensure(thumbnail),
+                    headers: config.defaultHeaders,
+                },
+                locale: config.defaultLocale,
+            };
+        });
+    },
+    getInfo: -> url, locale async {
+        url = Url.ensure(url);
+        resp := await Http.request({
+            method: 'get',
+            url: url,
+            headers: config.defaultHeaders,
+        });
+        document := HtmlElement.parse(resp.body);
+
+        epPagesElement := document.querySelectorAll('#episode_page a');
+        eUrl := config.getEpisodeApiUrl(
+            document.querySelector('input#movie_id').attributes.value.trim(),
+            epPagesElement[0].attributes.ep_start.trim(),
+            epPagesElement[epPagesElement.length() - 1].attributes.ep_end.trim(),
+        );
+        eResp := await Http.request({
+            method: 'get',
+            url: eUrl,
+            headers: config.defaultHeaders,
+        });
+        eDocument := HtmlElement.parse(eResp.body);
+        episodes := eDocument.querySelectorAll('#episode_related a').map(-> x {
+            episode := x.querySelector('.name').text.replaceFirst('EP', '').trim();
+            url := x.attributes.href.trim();
+
+            return {
+                episode: episode,
+                url: config.appendBaseUrl(url),
+                locale: config.defaultLocale,
+            };
+        });
+
+        return {
+            title: document.querySelector('.anime_info_body_bg h1').text.trim(),
+            url: Url.ensure(url),
+            thumbnail: {
+                url: Url.ensure(
+                    document.querySelector('.anime_info_body_bg img')
+                        .attributes
+                        .src
+                        .trim()
+                ),
+                headers: config.defaultHeaders,
+            },
+            episodes: episodes,
+            locale: config.defaultLocale,
+            availableLocales: [config.defaultLocale],
+        };
+    },
+    getSources: -> url, locale async {
+        url = Url.ensure(url);
+        resp := await Http.request({
+            method: 'get',
+            url: url,
+            headers: config.defaultHeaders,
+        });
+        document := HtmlElement.parse(resp.body);
+
+        do := -> fn async {
+            try {
+                result := await fn();
+                return result;
+            } catch (err) {
+                # if (!Globals.isDebug) throw err;
+                return [];
+            }
+        };
+
+        sources := await Future.unify(
+            document.querySelectorAll('.anime_muti_link ul > li').map(-> x {
+                link := x.querySelector('a').attributes['data-video'];
+                if (link) {
+                    when {
+                        x.classes.contains('anime') || x.classes.contains('vidcdn'): {
+                            return do(-> : gogoplay.parse(link));
+                        }
+                        #x.classes.contains('xstreamcdn'): {
+                        #    return do(-> : fembed.parse(link, config.defaultLocale));
+                        #}
+                    }
+                }
+                return [];
+            }),
+        );
+        return sources.flat(1);
+    },
+};

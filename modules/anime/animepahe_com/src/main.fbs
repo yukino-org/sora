@@ -80,7 +80,7 @@ extractor := {
                 url: url,
                 headers: config.defaultHeaders,
             });
-            id := Regex.new(r'getUrls\((\d+)').firstMatch(resp.body).group(1);
+            id := RegExp.new.new(r'getUrls\((\d+)').firstMatch(resp.body).group(1);
             return _getSources(id, uParsed.episodeSlug);
         }
 
@@ -122,9 +122,9 @@ _getSources := -> id, slug async {
 
             return {
                 url: '{}://{}-{}.{}.{}.{}/{}/{}/{}/{}.{}'.format(m.reversed()),
-                headers: Object.apply({
+                headers: Object.apply(Object.clone(config.defaultHeaders), {
                     Referer: parsedEmbedUrl.origin,
-                }, config.defaultHeaders),
+                }),
                 quality: quality,
                 locale: config.defaultLocale,
             };

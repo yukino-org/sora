@@ -4,7 +4,7 @@ import 'package:utilx/locale.dart';
 import '../../../tools/utils.dart';
 
 const Locale locale = Locale(LanguageCodes.en);
-final TenkaLocalFileDS source = Utils.getAnimeDS('gogoanime_pe');
+final TenkaLocalFileDS source = Utils.getAnimeDS('gogoanime_bid');
 final MockedAnimeExtractor mocked = MockedAnimeExtractor(
   search: (final AnimeExtractor ext) => ext.search('bunny girl', locale),
   getInfo: (final AnimeExtractor ext) => ext.getInfo(

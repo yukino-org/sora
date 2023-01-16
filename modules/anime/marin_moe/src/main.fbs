@@ -6,11 +6,11 @@ extractor := {
         resp := await Http.request({
             method: 'get',
             url: config.getSearchUrl(terms),
-            headers: Object.apply({
+            headers: Object.apply(Object.clone(config.defaultHeaders), {
                 ['x-inertia-partial-data']: 'anime_list',
                 ['x-inertia-partial-component']: 'AnimeIndex',
                 ['x-requested-with']: 'XMLHttpRequest',
-            }, config.defaultHeaders),
+            }),
         });
         parsed := Convert.decodeJson(resp.body);
 
@@ -29,11 +29,11 @@ extractor := {
         resp := await Http.request({
             method: 'get',
             url: url,
-            headers: Object.apply({
+            headers: Object.apply(Object.clone(config.defaultHeaders), {
                 ['x-inertia-partial-data']: 'anime,episode_list',
                 ['x-inertia-partial-component']: 'AnimeDetail',
                 ['x-requested-with']: 'XMLHttpRequest',
-            }, config.defaultHeaders),
+            }),
         });
         parsed := Convert.decodeJson(resp.body);
         slug := parsed.props.anime.slug;
@@ -63,11 +63,11 @@ extractor := {
         resp := await Http.request({
             method: 'get',
             url: url,
-            headers: Object.apply({
+            headers: Object.apply(Object.clone(config.defaultHeaders), {
                 ['x-inertia-partial-data']: 'video_list',
                 ['x-inertia-partial-component']: 'Episode',
                 ['x-requested-with']: 'XMLHttpRequest',
-            }, config.defaultHeaders),
+            }),
         });
         parsed := Convert.decodeJson(resp.body);
 

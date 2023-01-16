@@ -1,17 +1,17 @@
-import 'utils.ht';
+import 'utils.fbs';
 
 extractor := {
-    defaultLocale: $.defaultLocale,
+    defaultLocale: config.defaultLocale,
     search: -> terms, locale {
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'post',
-                url: $.getSearchURL(),
-                headers: Collection.mergeMap($.defaultHeaders, {
+                url: config.getSearchUrl(),
+                headers: Collection.mergeMap(config.defaultHeaders, {
                     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                     'x-requested-with': 'XMLHttpRequest'
                 }),
-                body: URL.joinQueryParameters({
+                body: Url.joinQueryParameters({
                     'dataType': 'json',
                     'phrase': terms,
                 }),
@@ -25,12 +25,12 @@ extractor := {
                     
                     return {
                         title: x['title'],
-                        url: $.appendBaseURL(url),
+                        url: config.appendBaseUrl(url),
                         thumbnail: {
-                            url: $.appendBaseURL(thumbnail),
-                            headers: $.defaultHeaders,
+                            url: config.appendBaseUrl(thumbnail),
+                            headers: config.defaultHeaders,
                         ),
-                        locale: $.defaultLocale,
+                        locale: config.defaultLocale,
                     );
                 });
             }
@@ -41,7 +41,7 @@ extractor := {
             () => Http.fetch(
                 method: 'get',
                 url: Url.ensure(url),
-                headers: $.defaultHeaders,
+                headers: config.defaultHeaders,
             ),
             onDone: -> resp {
                 document := HtmlElement.parse(resp.body);
@@ -51,14 +51,14 @@ extractor := {
                     -> i, x {
                         sep := x.text.replaceFirst('Chapter', '').trim().split(':');
                         url := x.attributes['href'].trim();
-                        cvMatch := Regex('Chapter (\\d+\\.?\\d*)(v(\\d+))?').firstMatch(sep[0]);
+                        cvMatch := RegExp.new('Chapter (\\d+\\.?\\d*)(v(\\d+))?').firstMatch(sep[0]);
 
                         return {
                             title: sep.length > 1 ? sep[1].trim() : null,
-                            url: $.appendBaseURL(url),
+                            url: config.appendBaseUrl(url),
                             chapter: cvMatch?.group(1) ?? sep[0].replaceFirst('Chapter', '').trim(),
                             volume: cvMatch?.group(3),
-                            locale: $.defaultLocale,
+                            locale: config.defaultLocale,
                         );
                     }
                 );
@@ -70,13 +70,13 @@ extractor := {
                     title: title,
                     url: Url.ensure(url),
                     thumbnail: {
-                        url: $.appendBaseURL(thumbnail),
-                        headers: $.defaultHeaders,
+                        url: config.appendBaseUrl(thumbnail),
+                        headers: config.defaultHeaders,
                     ),
                     chapters: chapters,
-                    locale: $.defaultLocale,
+                    locale: config.defaultLocale,
                     availableLocales: [
-                        $.defaultLocale,
+                        config.defaultLocale,
                     ]
                 );
             }
@@ -89,7 +89,7 @@ extractor := {
             () => Http.fetch(
                 method: 'get',
                 url: Url.ensure(url),
-                headers: $.defaultHeaders,
+                headers: config.defaultHeaders,
             ),
             onDone: -> resp {
                 document := HtmlElement.parse(resp.body);
@@ -100,8 +100,8 @@ extractor := {
                         url := x.attributes['src'].trim();
 
                         return {
-                            url: $.appendBaseURL(url),
-                            locale: $.defaultLocale,
+                            url: config.appendBaseUrl(url),
+                            locale: config.defaultLocale,
                         );
                     }
                 );
@@ -111,7 +111,7 @@ extractor := {
     getPage: -> url, locale {
         return {
             url: url,
-            headers: $.defaultHeaders,
+            headers: config.defaultHeaders,
         );
     },
 );

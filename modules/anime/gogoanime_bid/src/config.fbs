@@ -1,0 +1,19 @@
+baseUrl := 'https://www1.gogoanime.bid';
+
+getSearchUrl := -> terms : Url.ensure(
+    '{}/search.html?keyword={}'.format([baseUrl, terms])
+);
+
+getEpisodeApiUrl := -> id, start, end : Url.ensure(
+    'https://ajax.gogo-load.com/ajax/load-list-episode?ep_start={}&ep_end={}&id={}'
+        .format([start, end, id])
+);
+
+appendBaseUrl := -> route : Url.ensure(baseUrl + route);
+
+defaultHeaders := {
+    ['User-Agent']: Http.defaultDesktopUserAgent(),
+    Referer: baseUrl,
+};
+
+defaultLocale := 'en';

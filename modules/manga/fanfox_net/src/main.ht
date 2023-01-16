@@ -1,13 +1,13 @@
-import 'utils.ht';
+import 'utils.fbs';
 
 extractor := {
-    defaultLocale: $.defaultLocale,
+    defaultLocale: config.defaultLocale,
     search: -> terms, locale {
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
-                url: $.getSearchURL(terms),
-                headers: $.defaultHeaders,
+                url: config.getSearchUrl(terms),
+                headers: config.defaultHeaders,
             ),
             onDone: -> resp {
                 document := HtmlElement.parse(resp.body);
@@ -19,12 +19,12 @@ extractor := {
 
                     return {
                         title: link.text.trim(),
-                        url: $.appendBaseURL(url),
+                        url: config.appendBaseUrl(url),
                         thumbnail: {
                             url: Url.ensure(image),
-                            headers: $.defaultHeaders,
+                            headers: config.defaultHeaders,
                         ),
-                        locale: $.defaultLocale,
+                        locale: config.defaultLocale,
                     );
                 });
             }
@@ -37,7 +37,7 @@ extractor := {
             () => Http.fetch(
                 method: 'get',
                 url: url,
-                headers: $.defaultHeaders
+                headers: config.defaultHeaders
             ),
             onDone: -> resp {
                 document := HtmlElement.parse(resp.body);
@@ -47,15 +47,15 @@ extractor := {
                         document.querySelectorAll('#chapterlist li a'),
                         -> i, x {
                             title := x.querySelector('.title3').text;
-                            shortTitle := Regex('-(.*)').firstMatch(title)?.group(1);
+                            shortTitle := RegExp.new('-(.*)').firstMatch(title)?.group(1);
                             route := x.attributes['href'];
-                            vol := Regex('Vol.(\\d+)').firstMatch(title)?.group(1);
-                            chap := Regex('Ch.([\\d.]+)').firstMatch(title)?.group(1);
+                            vol := RegExp.new('Vol.(\\d+)').firstMatch(title)?.group(1);
+                            chap := RegExp.new('Ch.([\\d.]+)').firstMatch(title)?.group(1);
 
                             if (chap != null {
                                 return {
                                     title: shortTitle ?? title,
-                                    url: $.appendBaseURL(route),
+                                    url: config.appendBaseUrl(route),
                                     chapter: chap,
                                     volume: vol,
                                     locale: locale,
@@ -73,25 +73,25 @@ extractor := {
                     url: url,
                     thumbnail: {
                         url: Url.ensure(document.querySelector('img.detail-info-cover-img').attributes['src']),
-                        headers: $.defaultHeaders,
+                        headers: config.defaultHeaders,
                     ),
                     chapters: chapters,
-                    locale: $.defaultLocale,
+                    locale: config.defaultLocale,
                     availableLocales: [
-                        $.defaultLocale,
+                        config.defaultLocale,
                     ]
                 );
             }
         );
     },
     getChapter: -> _url, locale {
-        url := $.getMobileURL(_url);
+        url := config.getMobileUrl(_url);
 
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
                 url: url,
-                headers: $.defaultHeaders,
+                headers: config.defaultHeaders,
             ),
             onDone: -> resp {
                 return Collection.mapList(
@@ -99,7 +99,7 @@ extractor := {
                     -> i, x {
                         return {
                             url: Url.ensure(x.attributes['value']),
-                            locale: $.defaultLocale,
+                            locale: config.defaultLocale,
                         );
                     }
                 );
@@ -107,21 +107,21 @@ extractor := {
         );
     },
     getPage: -> _url, locale {
-        url := $.getMobileURL(_url);
+        url := config.getMobileUrl(_url);
 
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
                 url: url,
-                headers: $.defaultHeaders,
+                headers: config.defaultHeaders,
             ),
             onDone: -> resp {
-                img := Regex('<img src="(.*?)".*id="image".*>').firstMatch(resp.body)?.group(1);
-                if (img == null) throw 'Failed to parse image URL';
+                img := RegExp.new('<img src="(.*?)".*id="image".*>').firstMatch(resp.body)?.group(1);
+                if (img == null) throw 'Failed to parse image Url';
 
                 return {
                     url: Url.ensure(img),
-                    headers: $.defaultHeaders,
+                    headers: config.defaultHeaders,
                 );
             }
         );

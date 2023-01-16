@@ -6,9 +6,9 @@ extractor := {
         resp := await Http.request({
             method: 'post',
             url: config.searchApiUrl,
-            headers: Object.apply({
+            headers: Object.apply(Object.clone(config.defaultHeaders), {
                 ['Content-Type']: 'application/json;charset=UTF-8',
-            }, config.defaultHeaders),
+            }),
             body: Convert.encodeJson({
                 search_text: terms,
                 tags: [],
@@ -71,12 +71,12 @@ extractor := {
         return resp.videos_manifest.servers.map(-> x {
             return x.streams
                 .filter(-> x : x.kind == 'hls')
-                .map(-> x {print x.slug;return{
+                .map(-> x : {
                     url: x.url,
                     headers: config.defaultHeaders,
                     quality: RegExp.new(r'\d+$').firstMatch(x.slug)?.group(0) ?? 'unknown',
                     locale: config.defaultLocale,
-                };});
+                });
         }).flat(1);
     },
 };

@@ -1,33 +1,33 @@
 
-    static const baseURL = 'https://zoro.to';
-    static const baseAjaxURL = 'https://zoro.to/ajax/v2';
+    static const baseUrl = 'https://zoro.to';
+    static const baseAjaxUrl = 'https://zoro.to/ajax/v2';
 
     defaultHeaders := {
         'User-Agent': Http.defaultDesktopUserAgent(),
-        'Referer': baseURL,
+        'Referer': baseUrl,
     }
 
     defaultLocale := Locale.parse('en');
 
-    getSearchURL := -> terms {
-        return Url.ensure('{baseURL}/search?keyword={terms}');
+    getSearchUrl := -> terms {
+        return Url.ensure('{baseUrl}/search?keyword={terms}');
     }
 
-    getEpisodesApiURL := -> id {
-        return Url.ensure('{baseAjaxURL}/episode/list/{id}');
+    getEpisodesApiUrl := -> id {
+        return Url.ensure('{baseAjaxUrl}/episode/list/{id}');
     }
 
-    getEpisodeApiURL := -> url {
-        id := Regex('\\?ep=(\\d+)').firstMatch(url).group(1);
-        return Url.ensure('{baseAjaxURL}/episode/servers?episodeId={id}');
+    getEpisodeApiUrl := -> url {
+        id := RegExp.new('\\?ep=(\\d+)').firstMatch(url).group(1);
+        return Url.ensure('{baseAjaxUrl}/episode/servers?episodeId={id}');
     }
 
-    getSourcesApiURL := -> id {
-        return Url.ensure('{baseAjaxURL}/episode/sources?id={id}');
+    getSourcesApiUrl := -> id {
+        return Url.ensure('{baseAjaxUrl}/episode/sources?id={id}');
     }
 
-    appendBaseURL := -> route {
-        return Url.ensure('{baseURL}{route}');
+    appendBaseUrl := -> route {
+        return Url.ensure('{baseUrl}{route}');
     }
 
     getRecaptchaToken := -> url {
@@ -38,10 +38,10 @@
                 headers: defaultHeaders,
             ),
             onDone: (mockRes {
-                rKey := Regex('recaptchaSiteKey\\s+=\\s+[\'"]([^\'"]+)[\'"]').firstMatch(mockRes.body).group(1);
-                rNumber := Regex('recaptchaNumber\\s+=\\s+[\'"](\\d+)[\'"]').firstMatch(mockRes.body).group(1);
+                rKey := RegExp.new('recaptchaSiteKey\\s+=\\s+[\'"]([^\'"]+)[\'"]').firstMatch(mockRes.body).group(1);
+                rNumber := RegExp.new('recaptchaNumber\\s+=\\s+[\'"](\\d+)[\'"]').firstMatch(mockRes.body).group(1);
 
-                _domain := Regex('(https?:\\/\\/[^/]+)').firstMatch(url).group(1);
+                _domain := RegExp.new('(https?:\\/\\/[^/]+)').firstMatch(url).group(1);
                 domain := Converter.base64Encode(Converter.utf8Encode('{_domain}:433')).replaceAll('=', '') + '.';
 
                 return AsyncTask.resolve(
@@ -53,7 +53,7 @@
                         }),
                     ),
                     onDone: (vTokenResp {
-                        vToken := Regex('releases/([^/]+)').firstMatch(vTokenResp.body).group(1);
+                        vToken := RegExp.new('releases/([^/]+)').firstMatch(vTokenResp.body).group(1);
 
                         return AsyncTask.resolve(
                             () => Http.fetch(
@@ -64,7 +64,7 @@
                                 }),
                             ),
                             onDone: (rTokenResp {
-                                rToken := Regex('id="recaptcha-token" value="([^"]+)"').firstMatch(rTokenResp.body).group(1);
+                                rToken := RegExp.new('id="recaptcha-token" value="([^"]+)"').firstMatch(rTokenResp.body).group(1);
 
                                 return AsyncTask.resolve(
                                     () => Http.fetch(
@@ -74,7 +74,7 @@
                                             'Referrer': '{_domain}/',
                                             'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
                                         }),
-                                        body: URL.joinQueryParameters({
+                                        body: Url.joinQueryParameters({
                                             'v': vToken,
                                             'reason': 'q',
                                             'k': rKey,
@@ -85,7 +85,7 @@
                                     ),
                                     onDone: (fTokenResp {                                       
                                         return {
-                                            'token': Regex('rresp","(.+?)"').firstMatch(fTokenResp.body).group(1),
+                                            'token': RegExp.new('rresp","(.+?)"').firstMatch(fTokenResp.body).group(1),
                                             'number': rNumber,
                                         };
                                     }

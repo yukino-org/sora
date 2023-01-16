@@ -1,0 +1,34 @@
+defaultHeaders := {
+    ['User-Agent']: Http.defaultDesktopUserAgent(),
+};
+
+getSourcesApiUrl := -> baseUrl, id : Url.ensure(
+    '{}/api/source/{}'.format([baseUrl, id])
+);
+
+parse := -> url, locale async {
+    url = Url.ensure(url);
+    parsedUrl := Url.parse(url);
+    id := RegExp.new(r'/v/([^?#&/.]+)').firstMatch(url)?.group(1);
+    if (!id) return [];
+
+    resp := await Http.fetch({
+        method: 'post',
+        url: getSourcesApiUrl(parsedUrl.origin, id),
+        headers: Object.apply(Object.clone(defaultHeaders), {
+            Referer: url,
+            ['X-Requested-With']: 'XMLHttpRequest',
+        }),
+    });
+    parsed := Convert.decodeJson(resp.body);
+    if (!parsed.success) return [];
+
+    return parsed.data.map(-> x : {
+        url: Url.ensure(x.file),
+        headers: Object.apply(Object.clone(defaultHeaders), {
+            Referer: parsedUrl.origin,
+        }),
+        quality: x.label,
+        locale: locale,
+    });
+};

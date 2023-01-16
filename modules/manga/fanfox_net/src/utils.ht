@@ -1,23 +1,23 @@
 
-    static const baseURL = 'https://fanfox.net';
+    static const baseUrl = 'https://fanfox.net';
 
     defaultHeaders := {
         'User-Agent': Http.defaultDesktopUserAgent(),
-        'Referer': baseURL,
+        'Referer': baseUrl,
         'Cookie': 'isAdult=1;',
     }
 
     defaultLocale := Locale.parse('en');
 
-    getSearchURL := -> terms {
-        return Url.ensure('{baseURL}/search?title={terms}');
+    getSearchUrl := -> terms {
+        return Url.ensure('{baseUrl}/search?title={terms}');
     }
 
-    appendBaseURL := -> route {
-        return Url.ensure('{baseURL}{route}');
+    appendBaseUrl := -> route {
+        return Url.ensure('{baseUrl}{route}');
     }
 
-    getMobileURL := -> url {
-        return Url.ensure(Regex('https?:\\/\\/fanfox').replaceFirst(url, 'https://m.fanfox'));
+    getMobileUrl := -> url {
+        return Url.ensure(RegExp.new('https?:\\/\\/fanfox').replaceFirst(url, 'https://m.fanfox'));
     }
 }

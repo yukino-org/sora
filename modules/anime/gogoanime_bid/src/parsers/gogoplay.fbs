@@ -1,0 +1,135 @@
+import '../config.fbs' as config;
+
+defaultHeaders := {
+    ['User-Agent']: Http.defaultDesktopUserAgent(),
+};
+
+cMode := 'cbc';
+cPadding := 'pkcs7';
+cCustomPadding := Convert.newBytesList(List.filled(8, 8));
+
+getAjaxApiUrl := -> baseUrl, query : Url.ensure(
+    '{}/encrypt-ajax.php?{}'.format([baseUrl, query])
+);
+
+allowedQualities := ['360', '480', '720', '1080'];
+tryGetQuality := -> url : allowedQualities.find(-> x : url.contains(x)) ?? 'unknown';
+
+# Source: (The credit goes to them)
+#  - https://github.com/justfoolingaround/animdl/blob/master/animdl/core/codebase/extractors/gogoplay/__init__.py
+#  - https://github.com/saikou-app/saikou/blob/master/app/src/main/java/ani/saikou/anime/source/extractors/GogoCDN.kt
+
+parse := -> url async {
+    url = Url.ensure(url);
+    parsedUrl := Url.parse(url);
+    resp := await Http.request({
+        method: 'get',
+        url: url,
+        headers: Object.apply(Object.clone(defaultHeaders), {
+            Referer: parsedUrl.origin,
+        }),
+    });
+
+    _matches := RegExp.new(r'container-(\d+)').allMatches(resp.body);
+    _fKey := _matches[0]?.group(1);
+    _sKey := RegExp.new(r'videocontent-(\d+)').firstMatch(resp.body)?.group(1);
+    _iv := _matches[1]?.group(1);
+    _dValue := RegExp.new(r'data-value="([^"]+)"').firstMatch(resp.body)?.group(1);
+    if (!_fKey || !_sKey || !_iv || !_dValue) return [];
+
+    fKey := Convert.encodeUtf8(_fKey);
+    sKey := Convert.encodeUtf8(_sKey);
+    iv := Convert.encodeUtf8(_iv);
+    decrypted := cDecrypt({
+        data: Converter.decodeBase64(_dValue),
+        key: fKey,
+        iv: iv,
+    });
+    dQueryParameters := Url.splitQueryString('id=' + Convert.decodeUtf8(decrypted));
+    encryptedId := cEncrypt({
+        data: Converter.encodeUtf8(dQueryParameters.id),
+        key: fKey,
+        iv: iv,
+    });
+    dQueryParameters.alias = dQueryParameters.id;
+    dQueryParameters.id = Converter.encodeBase64(encryptedId);
+
+    sResp := await Http.fetch({
+        method: 'get',
+        url: getAjaxApiUrl(
+            parsedUrl.origin,
+            Url.joinQueryParameters(dQueryParameters),
+        ),
+        headers: Object.apply(Object.clone(defaultHeaders), {
+            ['X-Requested-With']: 'XMLHttpRequest',
+            Referer: url,
+        }),
+    });
+    sRawParsed := Convert.decodeJson(sResp.body);
+    sData := Convert.decodeUtf8(
+        cDecrypt({
+            data: Converter.decodeBase64(sRawParsed.data),
+            key: sKey,
+            iv: iv,
+        })
+    ).replaceFirst('o"<P{#meme":', 'e":[{"file":');
+    sParsed := Convert.decodeJson(sData);
+    sources := [];
+    sources.pushAll(sParsed.source);
+    sources.pushAll(sParsed.source_bk);
+
+    return await Future.unify(
+        sources
+            .map(-> x : x.file)
+            .unique()
+            .map(-> x async {
+                if (x.contains('.m3u8')) {
+                    m3u8 := await parseM3U8(x);
+                    return m3u8.map(-> x : {
+                        url: x,
+                        headers: defaultHeaders,
+                        quality: tryGetQuality(x),
+                        locale: config.defaultLocale,
+                    });
+                }
+
+                return {
+                    url: x,
+                    headers: defaultHeaders,
+                    quality: tryGetQuality(x),
+                    locale: config.defaultLocale,
+                };
+            })
+    );
+};
+
+parseM3U8 := -> url async {
+    resp := await Http.request({
+        method: 'get',
+        url: url,
+        headers: Object.apply(Object.clone(defaultHeaders), {
+            Referer: url,
+        }),
+    });
+    prevUrl := RegExp.new(r'(.*?)[^\/]+$').firstMatch(url).group(1);
+
+    return resp.body.split('\n')
+        .filter(-> x : !x.startsWith('#') && (x.contains('.m3u8') || x.contains('.ts')))
+        .map(-> x : x.startsWith('http') ? x : prevUrl + x);
+};
+
+cDecrypt := -> options : Crypto.aesDecrypt({
+    encrypted: options.data,
+    key: options.key,
+    iv: options.iv,
+    mode: cMode,
+    padding: cPadding,
+});
+
+cEncrypt := -> options : Crypto.aesEncrypt({
+    input: options.data,
+    key: options.key,
+    iv: options.iv,
+    mode: cMode,
+    padding: cPadding,
+});

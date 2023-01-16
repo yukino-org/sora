@@ -1,7 +1,7 @@
-import 'utils.ht';
+import 'utils.fbs';
 
 extractor := {
-    defaultLocale: $.defaultLocale,
+    defaultLocale: config.defaultLocale,
     search: -> terms, locale {
         if (_searcher != null {
             return _searcher(terms);
@@ -15,31 +15,31 @@ extractor := {
         );
     },
     getInfo: -> url, locale {
-        slug := $.parseSlug(url);
+        slug := config.parseSlug(url);
 
         return AsyncTask.resolve(
             () => Http.fetch(
                 method: 'get',
                 url: Url.ensure(url),
-                headers: $.defaultHeaders,
+                headers: config.defaultHeaders,
             ),
             onDone: -> resp {
                 document := HtmlElement.parse(resp.body);
                 
                 chapters := Collection.mapList(
                     Converter.jsonDecode(
-                        Regex('vm\\.Chapters = (.*);')
+                        RegExp.new('vm\\.Chapters = (.*);')
                             .firstMatch(resp.body)
                             .group(1),
                     ),
                     -> i, x {
-                        chapter := $.parseChapterId(x['Chapter']);
+                        chapter := config.parseChapterId(x['Chapter']);
 
                         return {
                             title: x['ChapterName'],
-                            url: $.getChapterURL(slug, chapter),
+                            url: config.getChapterUrl(slug, chapter),
                             chapter: chapter,
-                            locale: $.defaultLocale,
+                            locale: config.defaultLocale,
                         );
                     }
                 );
@@ -51,13 +51,13 @@ extractor := {
                     title: title,
                     url: Url.ensure(url),
                     thumbnail: {
-                        url: $.getMangaThumbnailURL(slug),
-                        headers: $.defaultHeaders,
+                        url: config.getMangaThumbnailUrl(slug),
+                        headers: config.defaultHeaders,
                     ),
                     chapters: chapters,
-                    locale: $.defaultLocale,
+                    locale: config.defaultLocale,
                     availableLocales: [
-                        $.defaultLocale,
+                        config.defaultLocale,
                     ]
                 );
             }
@@ -70,39 +70,39 @@ extractor := {
             () => Http.fetch(
                 method: 'get',
                 url: Url.ensure(url),
-                headers: $.defaultHeaders,
+                headers: config.defaultHeaders,
             ),
             onDone: -> resp {
                 document := HtmlElement.parse(resp.body);
 
-                host := Regex('vm\\.CurPathName = "([^"]+)"')
+                host := RegExp.new('vm\\.CurPathName = "([^"]+)"')
                     .firstMatch(resp.body)
                     .group(1);
 
-                slug := Regex('vm\\.IndexName = "([^"]+)"')
+                slug := RegExp.new('vm\\.IndexName = "([^"]+)"')
                     .firstMatch(resp.body)
                     .group(1);
                 
                 data := Converter.jsonDecode(
-                    Regex('vm\\.CurChapter = (.*);')
+                    RegExp.new('vm\\.CurChapter = (.*);')
                         .firstMatch(resp.body)
                         .group(1)
                 );
 
-                chapterId := $.parseChapterId(data['Chapter'], false);
+                chapterId := config.parseChapterId(data['Chapter'], false);
                 subPath := data['Directory'];
                 totalPages := int.parse(data['Page']);
 
                 return Collection.mapList(
                     Collection.rangeList(0, totalPages),
                     -> i, x {
-                        pageId := Regex('(\d{3})$')
+                        pageId := RegExp.new('(\d{3})$')
                             .firstMatch('000{x + 1}')
                             .group(1);
 
                         return {
-                            url: $.getImageURL(host, slug, subPath, chapterId, pageId),
-                            locale: $.defaultLocale,
+                            url: config.getImageUrl(host, slug, subPath, chapterId, pageId),
+                            locale: config.defaultLocale,
                         );
                     }
                 );
@@ -112,7 +112,7 @@ extractor := {
     getPage: -> url, locale {
         return {
             url: url,
-            headers: $.defaultHeaders,
+            headers: config.defaultHeaders,
         );
     },
 );
@@ -123,8 +123,8 @@ _prepareSearcher := ->  {
     return AsyncTask.resolve(
         () => Http.fetch(
             method: 'post',
-            url: $.getSearchApiURL(),
-            headers: $.defaultHeaders,
+            url: config.getSearchApiUrl(),
+            headers: config.defaultHeaders,
         ),
         onDone: -> resp {
             parsed := Converter.jsonDecode(resp.body);
@@ -153,12 +153,12 @@ _prepareSearcher := ->  {
                     fuzzy.search(terms, 10),
                     (i, x) => {
                         title: x.item['s'],
-                        url: $.getMangaURL(x.item['i']),
+                        url: config.getMangaUrl(x.item['i']),
                         thumbnail: {
-                            url: $.getMangaThumbnailURL(x.item['i']),
-                            headers: $.defaultHeaders,
+                            url: config.getMangaThumbnailUrl(x.item['i']),
+                            headers: config.defaultHeaders,
                         ),
-                        locale: $.defaultLocale,
+                        locale: config.defaultLocale,
                     ),
                 );
             };

@@ -1,26 +1,26 @@
-import '../utils.ht';
+import '../utils.fbs';
 
 class RapidCloud {
     parseId := -> url {
-        return Regex('\\/embed-6\\/([^?]+)\\?z=').firstMatch(url).group(1);
+        return RegExp.new('\\/embed-6\\/([^?]+)\\?z=').firstMatch(url).group(1);
     }
 
-    getSourcesApiURL := -> id, rToken, rNumber {
+    getSourcesApiUrl := -> id, rToken, rNumber {
         return Url.ensure('https://rapid-cloud.ru/ajax/embed-6/getSources?id={id}&_token={rToken}&_number={rNumber}');
     }
 
     parse := -> url {
         return AsyncTask.resolve(
-            () => $.getRecaptchaToken(url),
+            () => config.getRecaptchaToken(url),
             onDone: (recaptcha {
                 id := parseId(url);
-                apiURL := getSourcesApiURL(id, recaptcha['token'], recaptcha['number']);
+                apiUrl := getSourcesApiUrl(id, recaptcha['token'], recaptcha['number']);
 
                 return AsyncTask.resolve(
                     () => Http.fetch(
                         method: 'get',
-                        url: apiURL,
-                        headers: $.defaultHeaders,
+                        url: apiUrl,
+                        headers: config.defaultHeaders,
                     ),
                     onDone: -> resp {
                         parsed := Converter.jsonDecode(resp.body);
@@ -29,27 +29,27 @@ class RapidCloud {
                             Collection.mapList(
                                 parsed['sources'],
                                 -> i, x {
-                                    m3u8URL := x['file'];
-                                    m3u8ParentURL := Regex('(.*)\\/[^\\/]+$').firstMatch(m3u8URL).group(1);
+                                    m3u8Url := x['file'];
+                                    m3u8ParentUrl := RegExp.new('(.*)\\/[^\\/]+$').firstMatch(m3u8Url).group(1);
 
                                     return () => AsyncTask.resolve(
                                         () => Http.fetch(
                                             method: 'get',
-                                            url: m3u8URL,
-                                            headers: $.defaultHeaders,
+                                            url: m3u8Url,
+                                            headers: config.defaultHeaders,
                                         ),
                                         onDone: -> resp {
                                             return Collection.mapList(
-                                                Regex('#EXT-X-STREAM-INF:.*?,RESOLUTION=\\d+x(\\d+),.*?\\n([^\\n]+)').allMatches(resp.body),
+                                                RegExp.new('#EXT-X-STREAM-INF:.*?,RESOLUTION=\\d+x(\\d+),.*?\\n([^\\n]+)').allMatches(resp.body),
                                                 -> i, x {
                                                     resHeight := x.group(1);
                                                     route := x.group(2);
 
                                                     return {
-                                                        url: Url.ensure('{m3u8ParentURL}/{route}'),
-                                                        headers: $.defaultHeaders,
+                                                        url: Url.ensure('{m3u8ParentUrl}/{route}'),
+                                                        headers: config.defaultHeaders,
                                                         quality: '{resHeight}p',
-                                                        locale: $.defaultLocale,
+                                                        locale: config.defaultLocale,
                                                     );
                                                 }
                                             );

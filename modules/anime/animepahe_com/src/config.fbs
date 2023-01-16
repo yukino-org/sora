@@ -43,9 +43,9 @@ parseCustomEpisodeUrl := -> url {
 
 isPlayUrl := -> url : url.contains('/play/');
 
-parsePlayUrlRegex := RegExp.new(r'\/play\/([^\/]+)\/([^\/?#]+)');
+parsePlayUrlRegExp.new := RegExp.new(r'\/play\/([^\/]+)\/([^\/?#]+)');
 parsePlayUrl := -> url {
-    m := parsePlayUrlRegex.firstMatch(url);
+    m := parsePlayUrlRegExp.new.firstMatch(url);
     return {
         animeSlug: m.group(1),
         episodeSlug: m.group(2),
@@ -54,8 +54,8 @@ parsePlayUrl := -> url {
 
 appendBaseUrl := -> route : Url.ensure(baseUrl + route);
 
-parseSlugRegex := RegExp.new(r'\/anime\/([^\/?#]+)');
-parseSlug := -> url : parseSlugRegex.firstMatch(url).group(1);
+parseSlugRegExp.new := RegExp.new(r'\/anime\/([^\/?#]+)');
+parseSlug := -> url : parseSlugRegExp.new.firstMatch(url).group(1);
 
 defaultHeaders := {
     ['User-Agent']: Http.defaultDesktopUserAgent(),
