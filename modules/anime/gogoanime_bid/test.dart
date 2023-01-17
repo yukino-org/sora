@@ -6,13 +6,13 @@ import '../../../tools/utils.dart';
 const Locale locale = Locale(LanguageCodes.en);
 final TenkaLocalFileDS source = Utils.getAnimeDS('gogoanime_bid');
 final MockedAnimeExtractor mocked = MockedAnimeExtractor(
-  search: (final AnimeExtractor ext) => ext.search('bunny girl', locale),
+  search: (final AnimeExtractor ext) => ext.search('spy kyoushitsu', locale),
   getInfo: (final AnimeExtractor ext) => ext.getInfo(
-    'https://gogoanime.sk/category/seishun-buta-yarou-wa-bunny-girl-senpai-no-yume-wo-minai',
+    'https://www1.gogoanime.bid/category/spy-kyoushitsu',
     locale,
   ),
   getSources: (final AnimeExtractor ext) => ext.getSources(
-    'https://gogoanime.sk/spy-x-family-episode-1',
+    'https://www1.gogoanime.bid/spy-kyoushitsu-episode-1',
     locale,
   ),
 );

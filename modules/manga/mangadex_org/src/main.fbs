@@ -1,0 +1,127 @@
+import 'config.fbs' as config;
+
+extractor := {
+    defaultLocale: config.defaultLocale,
+    search: -> terms, locale {
+        resp := Http.request({
+            method: 'get',
+            url: config.getSearchApiUrl(terms),
+            headers: config.defaultHeaders,
+        });
+        parsed := Convert.decodeJson(resp.body);
+        return parsed.data
+            .sublist(0, 10)
+            .map(-> x {
+                coverData := x.relationships.find(-> x : x.type == 'cover_art');
+                cover := coverData ? _getCoverImageUrl(x.id, coverData.id) : null;
+
+                return {
+                    title: x.attributes.title[locale]
+                        ?? x.attributes.title[config.defaultLocale],
+                    url: config.getMangaApiUrl(x.id),
+                    thumbnail: cover,
+                    locale: config.defaultLocale,
+                };
+            });
+    },
+    getInfo: -> url, locale {
+        id := config.parseId(url);
+        mangaUrl := config.getMangaApiUrl(id);
+        resp := Http.request({
+            method: 'get',
+            url: mangaUrl,
+            headers: config.defaultHeaders
+        });
+        parsed := Converter.jsonDecode(resp.body);
+        coverData := x.relationships.find(-> x : x.type == 'cover_art');
+        cover := coverData ? _getCoverImageUrl(x.id, coverData.id) : null;
+        langs := _getAvailableLanguages(id);
+        chapters := _getChapters(id, locale, 0, []);
+
+        return {
+            title: parsed.data.attributes.title[locale.code]
+                ?? parsed.data.attributes.title[config.defaultLocale.code],
+            url: mangaUrl,
+            thumbnail: cover,
+            chapters: chapters,
+            locale: locale,
+            availableLocales: langs
+        };
+    },
+    getChapter: -> url, locale {
+        id := url.replaceFirst('id:', '');
+        resp := Http.request({
+            method: 'get',
+            url: config.getMangaServerApiUrl(id),
+            headers: config.defaultHeaders,
+        });
+        parsed := Convert.decodeJson(resp.body);
+        chapterUrl := config.getChapterApiUrl(parsed.baseUrl, 'data', parsed.chapter.hash);
+        
+        return parsed.chapter.data.map(-> x : {
+            url: config.getPageSourceUrl(chapterUrl, x),
+            locale: locale,
+        });
+    },
+    getPage: -> url, locale : {
+        url: url,
+        headers: config.defaultHeaders,
+    },
+};
+
+_chapterLimit := 500;
+_getChapters := -> id, locale, offset, chapters {
+    resp := Http.request({
+        method: 'get',
+        url: config.getMangaFeedApiUrl(id, locale.code, _chapterLimit, offset),
+        headers: config.defaultHeaders,
+    });
+    parsed := Converter.decodeJson(resp.body);
+    parsed.data.forEach(-> x {
+        id := x.id;
+        title := x.attributes.title;
+        chapterNum := x.attributes.chapter;
+        if (chapterNum) {
+            chapters.add({
+                title: (title?.isNotEmpty ?? false) ? title : null,
+                url: 'id:' + id,
+                chapter: chapterNum,
+                volume: x.attributes.volume,
+                locale: locale,
+            });
+        }
+    });
+    if (parsed.data.isEmpty()) return chapter;
+    return _getChapters(id, locale, offset + _chapterLimit, chapters);
+};
+
+_getCoverImageUrl := -> manga, cover {
+    resp := Http.request({
+        method: 'get',
+        url: config.getCoverApiUrl(cover),
+        headers: config.defaultHeaders,
+    });
+    parsed := Convert.decodeJson(resp.body);
+    return {
+        url: config.getCoverUrl(manga, parsed.data.attributes.fileName),
+        headers: config.defaultHeaders,
+    };
+};
+
+_allLanguagesCache := Languages.all();
+_getAvailableLanguages := -> manga {
+    resp := Http.request({
+        method: 'get',
+        url: config.getMangaChapterOverviewUrl(manga, 1, 1, 100),
+        headers: config.defaultHeaders,
+    });
+    parsed := Convert.decodeJson(resp.body);
+    langs := [];
+    parsed.data.forEach(-> x {
+        lang := RegExp.new(r'\w+').firstMatch(x['attributes']['translatedLanguage'])?.group(0);
+        if (lang && _allLanguagesCache.contains(lang)) {
+            langs.add(lang);
+        }
+    });
+    return langs;
+};

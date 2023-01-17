@@ -1,0 +1,30 @@
+import './config.fbs' as config;
+
+request := -> options {
+    if (options.isRetry) throw Exception.new('Failed to access site');
+    options.headers = Object.clone(options.headers);
+    options.headers['x-inertia'] = 'true';
+    options.headers['x-inertia-version'] = _getIntertiaVersion();
+    resp := Http.request(options);
+    if (resp.statusCode == 409) {
+        options.isRetry = true;
+        return request(options);
+    }
+    return resp;
+};
+
+_inertiaVersion := null;
+
+_getIntertiaVersion := -> : _inertiaVersion ?? _fetchInertiaVersion();
+
+_fetchInertiaVersion := -> {
+    resp := Http.request({
+        method: 'get',
+        url: config.baseUrl,
+        headers: config.defaultHeaders,
+    });
+    _inertiaVersion = RegExp.new(r'version&quot;:&quot;(.+)&quot;')
+        .firstMatch(resp.body)
+        .group(1);
+    return _inertiaVersion;
+};

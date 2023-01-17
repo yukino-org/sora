@@ -1,0 +1,86 @@
+baseUrl := 'https://zoro.to';
+baseAjaxUrl := 'https://zoro.to/ajax/v2';
+
+getSearchUrl := -> terms : Url.ensure('{}/search?keyword={}'.format([baseUrl, terms]));
+
+getEpisodesApiUrl := -> id : Url.ensure('{}/episode/list/{}'.format([baseAjaxUrl, id]));
+
+getEpisodeApiUrl := -> url : Url.ensure(
+    '{}/episode/servers?episodeId={}'.format([
+        baseAjaxUrl,
+        RegExp.new(r'\?ep=(\d+)').firstMatch(url).group(1),
+    ])
+);
+
+getSourcesApiUrl := -> id : Url.ensure('{}/episode/sources?id={}'.format([baseAjaxUrl, id]));
+
+appendBaseUrl := -> route : Url.ensure(baseUrl + route);
+
+defaultHeaders := {
+    ['User-Agent']: Http.defaultDesktopUserAgent(),
+    Referer: baseUrl,
+};
+
+defaultLocale := 'en';
+
+getRecaptchaToken := -> url {
+    mockRes := Http.request({
+        method: 'get',
+        url: url,
+        headers: defaultHeaders,
+    });
+    print url;
+    rKey := RegExp
+        .new(r`recaptchaSiteKey\s+=\s+['"]([^'"]+)['"]`)
+        .firstMatch(mockRes.body)
+        .group(1);
+    rNumber := RegExp
+        .new(r`recaptchaNumber\s+=\s+['"](\d+)['"]`)
+        .firstMatch(mockRes.body)
+        .group(1);
+
+    _domain := RegExp.new(r'(https?:\/\/[^/]+)').firstMatch(url).group(1);
+    domain := Convert.encodeBase64(Convert.encodeUtf8(_domain + ':433'))
+        .replaceAll('=', '') + '.';
+
+    vTokenResp := Http.request({
+        method: 'get',
+        url: Url.ensure('https://www.google.com/recaptcha/api.js?render=' + rKey),
+        headers: Object.apply(Object.clone(defaultHeaders), {
+            Referrer: _domain + '/',
+        }),
+    });
+    vToken := RegExp.new('releases/([^/]+)').firstMatch(vTokenResp.body).group(1);
+    rTokenResp := Http.request({
+        method: 'get',
+        url: Url.ensure(
+            'https://www.google.com/recaptcha/api2/anchor?ar=1&hl=en&size=invisible&cb=kr60249sk&k={}&co={}&v={}'
+                .format([rKey, domain, vToken])
+        ),
+        headers: Collection.mergeMap(defaultHeaders, {
+            Referrer: '{_domain}/',
+        }),
+    });
+    rToken := RegExp.new('id="recaptcha-token" value="([^"]+)"').firstMatch(rTokenResp.body).group(1);
+
+    fTokenResp := Http.request({
+        method: 'post',
+        url: Url.ensure('https://www.google.com/recaptcha/api2/reload?k=' + rKey),
+        headers: Object.apply(Object.clone(defaultHeaders), {
+            Referrer: '{_domain}/',
+            ['Content-Type']: 'application/x-www-form-urlencoded;charset=UTF-8',
+        }),
+        body: Url.joinQueryParameters({
+            v: vToken,
+            reason: 'q',
+            k: rKey,
+            c: rToken,
+            sa: '',
+            co: domain,
+        })
+    });
+    return {
+        token: RegExp.new('rresp","(.+?)"').firstMatch(fTokenResp.body).group(1),
+        number: rNumber,
+    };
+};

@@ -1,0 +1,63 @@
+# TODO: Finish this
+
+import '../config.fbs' as config;
+
+parseId := -> url : RegExp.new(r'\/embed-6\/([^?]+)\?').firstMatch(url).group(1);
+
+getSourcesApiUrl := -> origin, id : Url.ensure(
+    '{}/ajax/embed-6/getSources?id={}'
+        .format([origin, id])
+);
+
+parse := -> url {
+    id := parseId(url);
+    apiUrl := getSourcesApiUrl(Url.parse(url).origin, id);
+    resp := Http.request({
+        method: 'get',
+        url: apiUrl,
+        headers: config.defaultHeaders,
+    });
+    parsed := Convert.decodeJson(resp.body);
+    secretKey := fetchSecretKey();
+    
+    return Fiber.runConcurrently(parsed.sources, -> x {
+        m3u8Url := x.file;
+        m3u8ParentUrl := RegExp.new(r'(.*)\/[^\/]+$').firstMatch(m3u8Url).group(1);
+        m3u8Resp := Http.request({
+            method: 'get',
+            url: m3u8Url,
+            headers: config.defaultHeaders,
+        });
+        RegExp
+            .new(r'#EXT-X-STREAM-INF:.*?,RESOLUTION=\d+x(\d+),.*?\n([^\n]+)')
+            .allMatches(resp.body)
+            .map(-> x {
+                resHeight := x.group(1);
+                route := x.group(2);
+
+                return {
+                    url: Url.ensure('{}/{}'.format([m3u8ParentUrl, route])),
+                    headers: config.defaultHeaders,
+                    quality: '{resHeight}p',
+                    locale: config.defaultLocale,
+                };
+            });
+    }).flat(1);
+};
+
+fetchSecretKey := -> {
+    resp := Http.request({
+        method: 'get',
+        url: 'https://raw.githubusercontent.com/consumet/rapidclown/main/key.txt',
+        headers: {},
+    });
+    return Conver.encodeUtf8(resp);
+};
+
+decryptSaltedAes := -> encrypted, key {
+    raw := Convert.decodeBase64(encrypted);
+};
+
+generateKeyFromSalt := -> salt, secret {
+    
+};

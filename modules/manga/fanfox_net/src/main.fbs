@@ -1,0 +1,104 @@
+import './config.fbs' as config;
+
+extractor := {
+    defaultLocale: config.defaultLocale,
+    search: -> terms, locale {
+        resp := Http.request({
+            method: 'get',
+            url: config.getSearchUrl(terms),
+            headers: config.defaultHeaders,
+        });
+        document := HtmlElement.parse(resp.body);
+
+        return document.querySelectorAll('.line-list li').map(-> x {
+            link := x.querySelector('.manga-list-4-item-title a');
+            url := link.attributes.href;
+            image := x.querySelector('img').attributes.src;
+
+            return {
+                title: link.text.trim(),
+                url: config.appendBaseUrl(url),
+                thumbnail: {
+                    url: Url.ensure(image),
+                    headers: config.defaultHeaders,
+                },
+                locale: config.defaultLocale,
+            };
+        });
+    },
+    getInfo: -> url, locale {
+        url = Url.ensure(url);
+        
+        resp := Http.request({
+            method: 'get',
+            url: url,
+            headers: config.defaultHeaders
+        });
+        document := HtmlElement.parse(resp.body);
+
+        chapters := [];
+        document.querySelectorAll('#chapterlist li a').forEach(-> x {
+            title := x.querySelector('.title3').text;
+            shortTitle := RegExp.new('-(.*)').firstMatch(title)?.group(1);
+            route := x.attributes['href'];
+            vol := RegExp.new(r'Vol.(\d+)').firstMatch(title)?.group(1);
+            chap := RegExp.new(r'Ch.([\d.]+)').firstMatch(title)?.group(1);
+
+            if (chap) {
+                chapters.push({
+                    title: shortTitle ?? title,
+                    url: config.appendBaseUrl(route),
+                    chapter: chap,
+                    volume: vol,
+                    locale: config.defaultLocale,
+                });
+            }
+        });
+
+        return {
+            title: document.querySelector('.detail-info-right-title-font').text,
+            url: url,
+            thumbnail: {
+                url: Url.ensure(
+                    document.querySelector('img.detail-info-cover-img')
+                        .attributes.
+                        src
+                ),
+                headers: config.defaultHeaders,
+            },
+            chapters: chapters,
+            locale: config.defaultLocale,
+            availableLocales: [config.defaultLocale],
+        };
+    },
+    getChapter: -> url, locale {
+        url = config.getMobileUrl(url);
+        resp := Http.request({
+            method: 'get',
+            url: url,
+            headers: config.defaultHeaders,
+        });
+        document := HtmlElement.parse(resp.body);
+        
+        return document
+            .querySelector('select.mangaread-page')
+            .querySelectorAll('option')
+            .map(-> x : {
+                url: Url.ensure(x.attributes.value),
+                locale: config.defaultLocale,
+            });
+    },
+    getPage: -> url, locale {
+        url = config.getMobileUrl(url);
+        resp := Http.request({
+            method: 'get',
+            url: url,
+            headers: config.defaultHeaders,
+        });
+        img := RegExp.new('<img src="([^"]+)"').firstMatch(resp.body).group(1);
+        return {
+            url: Url.ensure(img),
+            headers: config.defaultHeaders,
+        };
+    },
+};

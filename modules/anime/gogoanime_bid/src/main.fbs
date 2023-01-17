@@ -4,9 +4,9 @@ import './config.fbs' as config;
 
 extractor := {
     defaultLocale: config.defaultLocale,
-    search: -> terms, locale async {
+    search: -> terms, locale {
         url := config.getSearchUrl(terms);
-        resp := await Http.request({
+        resp := Http.request({
             method: 'get',
             url: url,
             headers: config.defaultHeaders,
@@ -29,9 +29,9 @@ extractor := {
             };
         });
     },
-    getInfo: -> url, locale async {
+    getInfo: -> url, locale {
         url = Url.ensure(url);
-        resp := await Http.request({
+        resp := Http.request({
             method: 'get',
             url: url,
             headers: config.defaultHeaders,
@@ -44,7 +44,7 @@ extractor := {
             epPagesElement[0].attributes.ep_start.trim(),
             epPagesElement[epPagesElement.length() - 1].attributes.ep_end.trim(),
         );
-        eResp := await Http.request({
+        eResp := Http.request({
             method: 'get',
             url: eUrl,
             headers: config.defaultHeaders,
@@ -78,41 +78,42 @@ extractor := {
             availableLocales: [config.defaultLocale],
         };
     },
-    getSources: -> url, locale async {
+    getSources: -> url, locale {
         url = Url.ensure(url);
-        resp := await Http.request({
+        resp := Http.request({
             method: 'get',
             url: url,
             headers: config.defaultHeaders,
         });
         document := HtmlElement.parse(resp.body);
 
-        do := -> fn async {
+        do := -> fn {
             try {
-                result := await fn();
+                result := fn();
                 return result;
             } catch (err) {
-                # if (!Globals.isDebug) throw err;
+                if (TEnvironment.isDebug) throw err;
                 return [];
             }
         };
 
-        sources := await Future.unify(
-            document.querySelectorAll('.anime_muti_link ul > li').map(-> x {
-                link := x.querySelector('a').attributes['data-video'];
-                if (link) {
-                    when {
-                        x.classes.contains('anime') || x.classes.contains('vidcdn'): {
-                            return do(-> : gogoplay.parse(link));
+        return Fiber.runConcurrently(
+            document
+                .querySelectorAll('.anime_muti_link ul > li')
+                .map(-> x : -> {
+                    link := x.querySelector('a').attributes['data-video'];
+                    if (link) {
+                        when {
+                            x.classes.contains('anime') || x.classes.contains('vidcdn'): {
+                                return do(-> : gogoplay.parse(link));
+                            }
+                            x.classes.contains('xstreamcdn'): {
+                                return do(-> : fembed.parse(link, config.defaultLocale));
+                            }
                         }
-                        #x.classes.contains('xstreamcdn'): {
-                        #    return do(-> : fembed.parse(link, config.defaultLocale));
-                        #}
                     }
-                }
-                return [];
-            }),
-        );
-        return sources.flat(1);
+                    return [];
+                })
+        ).flat(1);
     },
 };

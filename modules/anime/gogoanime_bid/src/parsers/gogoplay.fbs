@@ -4,9 +4,10 @@ defaultHeaders := {
     ['User-Agent']: Http.defaultDesktopUserAgent(),
 };
 
-cMode := 'cbc';
-cPadding := 'pkcs7';
-cCustomPadding := Convert.newBytesList(List.filled(8, 8));
+makeHeaders := -> headers : Object.apply(
+    Object.clone(defaultHeaders),
+    headers,
+);
 
 getAjaxApiUrl := -> baseUrl, query : Url.ensure(
     '{}/encrypt-ajax.php?{}'.format([baseUrl, query])
@@ -19,17 +20,17 @@ tryGetQuality := -> url : allowedQualities.find(-> x : url.contains(x)) ?? 'unkn
 #  - https://github.com/justfoolingaround/animdl/blob/master/animdl/core/codebase/extractors/gogoplay/__init__.py
 #  - https://github.com/saikou-app/saikou/blob/master/app/src/main/java/ani/saikou/anime/source/extractors/GogoCDN.kt
 
-parse := -> url async {
+parse := -> url {
     url = Url.ensure(url);
     parsedUrl := Url.parse(url);
-    resp := await Http.request({
+    resp := Http.request({
         method: 'get',
         url: url,
-        headers: Object.apply(Object.clone(defaultHeaders), {
-            Referer: parsedUrl.origin,
+        headers: makeHeaders({
+            Referer: parsedUrl.origin
         }),
     });
-
+    
     _matches := RegExp.new(r'container-(\d+)').allMatches(resp.body);
     _fKey := _matches[0]?.group(1);
     _sKey := RegExp.new(r'videocontent-(\d+)').firstMatch(resp.body)?.group(1);
@@ -40,25 +41,25 @@ parse := -> url async {
     fKey := Convert.encodeUtf8(_fKey);
     sKey := Convert.encodeUtf8(_sKey);
     iv := Convert.encodeUtf8(_iv);
-    decrypted := cDecrypt({
-        data: Converter.decodeBase64(_dValue),
+    decrypted := encrypto.decrypt({
+        data: Convert.decodeBase64(_dValue),
         key: fKey,
         iv: iv,
     });
     dQueryParameters := Url.splitQueryString('id=' + Convert.decodeUtf8(decrypted));
-    encryptedId := cEncrypt({
-        data: Converter.encodeUtf8(dQueryParameters.id),
+    encryptedId := encrypto.encrypt({
+        data: Convert.encodeUtf8(dQueryParameters.id),
         key: fKey,
         iv: iv,
     });
     dQueryParameters.alias = dQueryParameters.id;
-    dQueryParameters.id = Converter.encodeBase64(encryptedId);
+    dQueryParameters.id = Convert.encodeBase64(encryptedId);
 
-    sResp := await Http.fetch({
+    sResp := Http.request({
         method: 'get',
         url: getAjaxApiUrl(
             parsedUrl.origin,
-            Url.joinQueryParameters(dQueryParameters),
+            Url.joinQueryString(dQueryParameters),
         ),
         headers: Object.apply(Object.clone(defaultHeaders), {
             ['X-Requested-With']: 'XMLHttpRequest',
@@ -67,8 +68,8 @@ parse := -> url async {
     });
     sRawParsed := Convert.decodeJson(sResp.body);
     sData := Convert.decodeUtf8(
-        cDecrypt({
-            data: Converter.decodeBase64(sRawParsed.data),
+        encrypto.decrypt({
+            data: Convert.decodeBase64(sRawParsed.data),
             key: sKey,
             iv: iv,
         })
@@ -78,13 +79,13 @@ parse := -> url async {
     sources.pushAll(sParsed.source);
     sources.pushAll(sParsed.source_bk);
 
-    return await Future.unify(
+    return Fiber.runConcurrently(
         sources
             .map(-> x : x.file)
             .unique()
-            .map(-> x async {
+            .map(-> x : -> {
                 if (x.contains('.m3u8')) {
-                    m3u8 := await parseM3U8(x);
+                    m3u8 := parseM3U8(x);
                     return m3u8.map(-> x : {
                         url: x,
                         headers: defaultHeaders,
@@ -93,23 +94,23 @@ parse := -> url async {
                     });
                 }
 
-                return {
+                return [{
                     url: x,
                     headers: defaultHeaders,
                     quality: tryGetQuality(x),
                     locale: config.defaultLocale,
-                };
+                }];
             })
-    );
+    ).flat(1);
 };
 
-parseM3U8 := -> url async {
-    resp := await Http.request({
+parseM3U8 := -> url {
+    resp := Http.request({
         method: 'get',
         url: url,
-        headers: Object.apply(Object.clone(defaultHeaders), {
+        headers: {
             Referer: url,
-        }),
+        },
     });
     prevUrl := RegExp.new(r'(.*?)[^\/]+$').firstMatch(url).group(1);
 
@@ -118,18 +119,21 @@ parseM3U8 := -> url async {
         .map(-> x : x.startsWith('http') ? x : prevUrl + x);
 };
 
-cDecrypt := -> options : Crypto.aesDecrypt({
-    encrypted: options.data,
-    key: options.key,
-    iv: options.iv,
-    mode: cMode,
-    padding: cPadding,
-});
-
-cEncrypt := -> options : Crypto.aesEncrypt({
-    input: options.data,
-    key: options.key,
-    iv: options.iv,
-    mode: cMode,
-    padding: cPadding,
-});
+encrypto := {
+    mode: 'cbc',
+    padding: 'PKCS7',
+    encrypt: -> options : Crypto.aesEncrypt({
+        input: options.data,
+        key: options.key,
+        iv: options.iv,
+        mode: encrypto.mode,
+        padding: encrypto.padding,
+    }),
+    decrypt: -> options : Crypto.aesDecrypt({
+        input: options.data,
+        key: options.key,
+        iv: options.iv,
+        mode: encrypto.mode,
+        padding: encrypto.padding,
+    }),
+};

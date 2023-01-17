@@ -15,8 +15,6 @@ getEpisodeUrl := -> animeSlug, episodeSlug : Url.ensure(
 defaultHeaders := {
     ['User-Agent']: Http.defaultDesktopUserAgent(),
     Referer: baseUrl,
-    ['x-inertia']: 'true',
-    ['x-inertia-version']: '5ec023866657ee7f8f9db8b2040b3ffc',
 };
 
 defaultLocale := 'en';

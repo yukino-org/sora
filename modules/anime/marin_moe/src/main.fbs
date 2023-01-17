@@ -1,9 +1,10 @@
 import './config.fbs' as config;
+import './fetcher.fbs' as fetcher;
 
 extractor := {
     defaultLocale: config.defaultLocale,
-    search: -> terms, locale async {
-        resp := await Http.request({
+    search: -> terms, locale {
+        resp := fetcher.request({
             method: 'get',
             url: config.getSearchUrl(terms),
             headers: Object.apply(Object.clone(config.defaultHeaders), {
@@ -12,6 +13,7 @@ extractor := {
                 ['x-requested-with']: 'XMLHttpRequest',
             }),
         });
+        # body := RegExp.new(r'data-page="([\S\s]+)">').firstMatch(resp.body).group(1);
         parsed := Convert.decodeJson(resp.body);
 
         return parsed.props.anime_list.data.map(-> x : {
@@ -24,9 +26,9 @@ extractor := {
             locale: config.defaultLocale,
         });
     },
-    getInfo: -> url, locale async {
+    getInfo: -> url, locale {
         url = Url.ensure(url);
-        resp := await Http.request({
+        resp := fetcher.request({
             method: 'get',
             url: url,
             headers: Object.apply(Object.clone(config.defaultHeaders), {
@@ -58,26 +60,24 @@ extractor := {
             availableLocales: [config.defaultLocale],
         };
     },
-    getSources: -> url, locale async {
+    getSources: -> url, locale {
         url = Url.ensure(url);
-        resp := await Http.request({
+        resp := fetcher.request({
             method: 'get',
             url: url,
             headers: Object.apply(Object.clone(config.defaultHeaders), {
-                ['x-inertia-partial-data']: 'video_list',
+                ['x-inertia-partial-data']: 'video',
                 ['x-inertia-partial-component']: 'Episode',
                 ['x-requested-with']: 'XMLHttpRequest',
             }),
         });
         parsed := Convert.decodeJson(resp.body);
 
-        return parsed.props.video_list.data.map(-> x {
-            return x.mirror.map(-> x : {
-                url: x.code.file,
-                headers: config.defaultHeaders,
-                quality: x.resolution,
-                locale: config.defaultLocale,
-            });
-        }).flat(1);
+        return parsed.props.video.data.mirror.map(-> x : {
+            url: x.code.file,
+            headers: config.defaultHeaders,
+            quality: x.resolution,
+            locale: config.defaultLocale,
+        });
     },
 };

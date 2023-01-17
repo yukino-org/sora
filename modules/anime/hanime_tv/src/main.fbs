@@ -2,8 +2,8 @@ import './config.fbs' as config;
 
 extractor := {
     defaultLocale: config.defaultLocale,
-    search: -> terms, locale async {
-        resp := await Http.request({
+    search: -> terms, locale {
+        resp := Http.request({
             method: 'post',
             url: config.searchApiUrl,
             headers: Object.apply(Object.clone(config.defaultHeaders), {
@@ -38,10 +38,10 @@ extractor := {
             };
         });
     },
-    getInfo: -> url, locale async {
+    getInfo: -> url, locale {
         url = Url.ensure(url);
         slug := config.parseSlug(url);
-        resp := await _getInfo(slug);
+        resp := _getInfo(slug);
 
         title := resp.hentai_video.name;
         censored := resp.hentai_video.is_censored;
@@ -63,10 +63,10 @@ extractor := {
             availableLocales: [config.defaultLocale],
         };
     },
-    getSources: -> url, locale async {
+    getSources: -> url, locale {
         url = Url.ensure(url);
         slug := config.parseSlug(url);
-        resp := await _getInfo(slug);
+        resp := _getInfo(slug);
 
         return resp.videos_manifest.servers.map(-> x {
             return x.streams
@@ -83,11 +83,11 @@ extractor := {
 
 _infoCache := {};
 
-_getInfo := -> slug async : _infoCache[slug] ?? _fetchInfo(slug);
+_getInfo := -> slug : _infoCache[slug] ?? _fetchInfo(slug);
 
-_fetchInfo := -> slug async {
+_fetchInfo := -> slug {
     url := config.getAnimeApiUrl(slug);
-    resp := await Http.request({
+    resp := Http.request({
         method: 'get',
         url: url,
         headers: config.defaultHeaders,

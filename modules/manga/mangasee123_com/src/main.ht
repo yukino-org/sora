@@ -18,7 +18,7 @@ extractor := {
         slug := config.parseSlug(url);
 
         return AsyncTask.resolve(
-            () => Http.fetch(
+            () => Http.request(
                 method: 'get',
                 url: Url.ensure(url),
                 headers: config.defaultHeaders,
@@ -67,7 +67,7 @@ extractor := {
         url := Url.ensure(_url);
 
         return AsyncTask.resolve(
-            () => Http.fetch(
+            () => Http.request(
                 method: 'get',
                 url: Url.ensure(url),
                 headers: config.defaultHeaders,
@@ -121,7 +121,7 @@ var _searcher;
 
 _prepareSearcher := ->  {
     return AsyncTask.resolve(
-        () => Http.fetch(
+        () => Http.request(
             method: 'post',
             url: config.getSearchApiUrl(),
             headers: config.defaultHeaders,
