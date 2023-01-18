@@ -1,0 +1,12 @@
+baseUrl := 'https://readm.org';
+
+defaultHeaders := {
+    ['User-Agent']: Http.defaultDesktopUserAgent(),
+    Referer: baseUrl,
+};
+
+defaultLocale := 'en';
+
+getSearchUrl := -> : Url.ensure('{}/service/search'.format([baseUrl]));
+
+appendBaseUrl := -> route : Url.ensure(baseUrl + route);

@@ -1,0 +1,89 @@
+import './config.fbs' as config;
+
+extractor := {
+    defaultLocale: config.defaultLocale,
+    search: -> terms, locale {
+        resp := Http.request({
+            method: 'post',
+            url: config.getSearchUrl(),
+            headers: Object.apply(Object.clone(config.defaultHeaders), {
+                ['Content-Type']: 'application/x-www-form-urlencoded; charset=UTF-8',
+                ['x-requested-with']: 'XMLHttpRequest'
+            }),
+            body: Url.joinQueryString({
+                dataType: 'json',
+                phrase: terms,
+            }),
+        });
+        parsed := Convert.decodeJson(resp.body);
+        return parsed.manga.map(-> x : {
+            title: x.title,
+            url: config.appendBaseUrl(x.url),
+            thumbnail: {
+                url: config.appendBaseUrl(x.image),
+                headers: config.defaultHeaders,
+            },
+            locale: config.defaultLocale,
+        });
+    },
+    getInfo: -> url, locale {
+        url = Url.ensure(url);
+        resp := Http.request({
+            method: 'get',
+            url: Url.ensure(url),
+            headers: config.defaultHeaders,
+        });
+        document := HtmlElement.parse(resp.body);
+
+        chapters := document
+            .querySelectorAll('.episodes-list .table-episodes-title a')
+            .map(-> x {
+                sep := x.text.replaceFirst('Chapter', '').trim().split(':');
+                url := x.attributes.href.trim();
+                cvMatch := RegExp.new(r'Chapter (\d+\.?\d*)(v(\d+))?').firstMatch(sep[0]);
+
+                return {
+                    title: sep[1]?.trim(),
+                    url: config.appendBaseUrl(url),
+                    chapter: cvMatch?.group(1) ?? sep[0].replaceFirst('Chapter', '').trim(),
+                    volume: cvMatch?.group(3),
+                    locale: config.defaultLocale,
+                };
+            });
+
+        return {
+            title: document.querySelector('.page-title').text.trim(),
+            url: url,
+            thumbnail: {
+                url: config.appendBaseUrl(
+                    document.querySelector('.series-profile-thumb')
+                        .attributes
+                        .src
+                        .trim()
+                ),
+                headers: config.defaultHeaders,
+            },
+            chapters: chapters,
+            locale: config.defaultLocale,
+            availableLocales: [config.defaultLocale],
+        };
+    },
+    getChapter: -> url, locale {
+        url = Url.ensure(url);
+        resp := Http.request({
+            method: 'get',
+            url: Url.ensure(url),
+            headers: config.defaultHeaders,
+        });
+        document := HtmlElement.parse(resp.body);
+
+        return document.querySelectorAll('.ch-images img').map(-> x : {
+            url: config.appendBaseUrl(x.attributes.src.trim()),
+            locale: config.defaultLocale,
+        });
+    },
+    getPage: -> url, locale : {
+        url: url,
+        headers: config.defaultHeaders,
+    },
+};

@@ -1,0 +1,132 @@
+import './config.fbs' as config;
+
+extractor := {
+    defaultLocale: config.defaultLocale,
+    search: -> terms, locale {
+        if (!_searcher) _prepareSearcher();
+        return _searcher(terms);
+    },
+    getInfo: -> url, locale {
+        url = Url.ensure(url);
+        slug := config.parseSlug(url);
+        resp := Http.request({
+            method: 'get',
+            url: url,
+            headers: config.defaultHeaders,
+        });
+        document := HtmlElement.parse(resp.body);
+        
+        chapters := Convert
+            .decodeJson(
+                RegExp.new(r'vm\.Chapters = (.*);').firstMatch(resp.body).group(1)
+            )
+            .map(-> x {
+                chapter := config.parseChapterId(x.Chapter);
+                return {
+                    title: x.ChapterName,
+                    url: config.getChapterUrl(slug, chapter),
+                    chapter: chapter,
+                    locale: config.defaultLocale,
+                };
+            });
+
+        title := document
+            .querySelector('.MainContainer .BoxBody .list-group h1')
+            .text
+            .trim();
+        thumbnail := document
+            .querySelector('.MainContainer .BoxBody .img-fluid')
+            .attributes
+            .src
+            .trim();
+        
+        return {
+            title: title,
+            url: url,
+            thumbnail: {
+                url: config.getMangaThumbnailUrl(slug),
+                headers: config.defaultHeaders,
+            },
+            chapters: chapters,
+            locale: config.defaultLocale,
+            availableLocales: [config.defaultLocale],
+        };
+    },
+    getChapter: -> url, locale {
+        url = Url.ensure(url);
+        resp := Http.request({
+            method: 'get',
+            url: url,
+            headers: config.defaultHeaders,
+        });
+        document := HtmlElement.parse(resp.body);
+        host := RegExp
+            .new(r'vm\.CurPathName = "([^"]+)"')
+            .firstMatch(resp.body)
+            .group(1);
+        slug := RegExp
+            .new(r'vm\.IndexName = "([^"]+)"')
+            .firstMatch(resp.body)
+            .group(1);
+        data := Convert.decodeJson(
+            RegExp.new(r'vm\.CurChapter = (.*);')
+                .firstMatch(resp.body)
+                .group(1)
+        );
+
+        chapterId := config.parseChapterId(data.Chapter, false);
+        subPath := data.Directory;
+        totalPages := Number.from(data.Page);
+
+        return List.generate(totalPages, -> x {
+            pageId := RegExp.new(r'(\d{3})$')
+                .firstMatch('000' + (x + 1))
+                .group(1);
+
+            return {
+                url: config.getImageUrl(host, slug, subPath, chapterId, pageId),
+                locale: config.defaultLocale,
+            };
+        });
+    },
+    getPage: -> url, locale : {
+        url: url,
+        headers: config.defaultHeaders,
+    },
+};
+
+_searcher := null;
+
+_prepareSearcher := -> {
+    resp := Http.request({
+        method: 'post',
+        url: config.getSearchApiUrl(),
+        headers: config.defaultHeaders,
+    });
+    parsed := Convert.decodeJson(resp.body);
+    items := parsed.map(-> x : {
+        i: x.i,
+        s: x.s,
+        a: x.a.join(' | '),
+    });
+    fuzzy := FuzzySearch.new({
+        items: items,
+        keys: [
+            { getter: -> x : x.s, weight: 2 },
+            { getter: -> x : x.a, weight: 1 },
+            { getter: -> x : x.i, weight: 1 },
+        ],
+    });
+
+    _searcher = -> terms : fuzzy
+        .search(terms)
+        .map(-> x: {
+            title: x.item.s,
+            url: config.getMangaUrl(x.item.i),
+            thumbnail: {
+                url: config.getMangaThumbnailUrl(x.item.i),
+                headers: config.defaultHeaders,
+            },
+            locale: config.defaultLocale,
+        });
+};

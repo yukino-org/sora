@@ -1,4 +1,4 @@
-import 'config.fbs' as config;
+import './config.fbs' as config;
 
 extractor := {
     defaultLocale: config.defaultLocale,
@@ -32,15 +32,15 @@ extractor := {
             url: mangaUrl,
             headers: config.defaultHeaders
         });
-        parsed := Converter.jsonDecode(resp.body);
-        coverData := x.relationships.find(-> x : x.type == 'cover_art');
-        cover := coverData ? _getCoverImageUrl(x.id, coverData.id) : null;
+        parsed := Convert.decodeJson(resp.body);
+        coverData := parsed.data.relationships.find(-> x : x.type == 'cover_art');
+        cover := coverData ? _getCoverImageUrl(parsed.data.id, coverData.id) : null;
         langs := _getAvailableLanguages(id);
         chapters := _getChapters(id, locale, 0, []);
 
         return {
-            title: parsed.data.attributes.title[locale.code]
-                ?? parsed.data.attributes.title[config.defaultLocale.code],
+            title: parsed.data.attributes.title[locale]
+                ?? parsed.data.attributes.title[config.defaultLocale],
             url: mangaUrl,
             thumbnail: cover,
             chapters: chapters,
@@ -73,10 +73,10 @@ _chapterLimit := 500;
 _getChapters := -> id, locale, offset, chapters {
     resp := Http.request({
         method: 'get',
-        url: config.getMangaFeedApiUrl(id, locale.code, _chapterLimit, offset),
+        url: config.getMangaFeedApiUrl(id, locale, _chapterLimit, offset),
         headers: config.defaultHeaders,
     });
-    parsed := Converter.decodeJson(resp.body);
+    parsed := Convert.decodeJson(resp.body);
     parsed.data.forEach(-> x {
         id := x.id;
         title := x.attributes.title;
@@ -91,7 +91,7 @@ _getChapters := -> id, locale, offset, chapters {
             });
         }
     });
-    if (parsed.data.isEmpty()) return chapter;
+    if (parsed.data.isEmpty()) return chapters;
     return _getChapters(id, locale, offset + _chapterLimit, chapters);
 };
 

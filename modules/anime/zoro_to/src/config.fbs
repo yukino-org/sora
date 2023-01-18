@@ -29,7 +29,6 @@ getRecaptchaToken := -> url {
         url: url,
         headers: defaultHeaders,
     });
-    print url;
     rKey := RegExp
         .new(r`recaptchaSiteKey\s+=\s+['"]([^'"]+)['"]`)
         .firstMatch(mockRes.body)

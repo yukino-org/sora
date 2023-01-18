@@ -13,8 +13,8 @@ getSearchApiUrl := -> terms : Url.ensure(
     '{}/manga?title={}'.format([baseApiUrl, terms])
 );
 
-getMangaApiUrl := -> id : Url.ensure('
-    {}/manga/{}'.format([baseApiUrl, id])
+getMangaApiUrl := -> id : Url.ensure(
+    '{}/manga/{}'.format([baseApiUrl, id])
 );
 
 getMangaFeedApiUrl := -> id, locale, limit, offset : Url.ensure(
