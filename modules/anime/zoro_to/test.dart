@@ -14,7 +14,7 @@ final MockedAnimeExtractor mocked = MockedAnimeExtractor(
     'https://zoro.to/rascal-does-not-dream-of-bunny-girl-senpai-149?ref=search',
     locale,
   ),
-  getSources: (final AnimeExtractor ext) => ext.getSources(
+  getSource: (final AnimeExtractor ext) => ext.getSource(
     'https://zoro.to/watch/rascal-does-not-dream-of-bunny-girl-senpai-149?ep=4008',
     locale,
   ),

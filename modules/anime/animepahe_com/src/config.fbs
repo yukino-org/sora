@@ -18,7 +18,7 @@ getEpisodesApiUrlFromNumber := -> id, num {
     return getEpisodesApiUrl(id, page);
 };
 
-getSourcesApiUrl := -> id, slug {
+getStreamsApiUrl := -> id, slug {
     return '{}?m=links&id={}&session={}'.format([baseApiUrl, id, slug]);
 };
 

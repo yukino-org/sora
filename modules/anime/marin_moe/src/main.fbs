@@ -60,7 +60,7 @@ extractor := {
             availableLocales: [config.defaultLocale],
         };
     },
-    getSources: -> url, locale {
+    getSource: -> url, locale {
         url = Url.ensure(url);
         resp := fetcher.request({
             method: 'get',
@@ -73,11 +73,16 @@ extractor := {
         });
         parsed := Convert.decodeJson(resp.body);
 
-        return parsed.props.video.data.mirror.map(-> x : {
+        streams := parsed.props.video.data.mirror.map(-> x : {
             url: x.code.file,
             headers: config.defaultHeaders,
             quality: x.resolution,
             locale: config.defaultLocale,
         });
+
+        return {
+            streams: streams,
+            subtitles: [],
+        };
     },
 };

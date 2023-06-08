@@ -1,4 +1,4 @@
-baseUrl := 'https://www1.gogoanime.bid';
+baseUrl := 'https://gogoanime.hu';
 
 getSearchUrl := -> terms : Url.ensure(
     '{}/search.html?keyword={}'.format([baseUrl, terms])

@@ -1,4 +1,6 @@
-import '../../../shared/extractors/fembed.fbs' as fembed;
+# import '../../../shared/extractors/fembed.fbs' as fembed;
+import '../../../shared/extractors/streamsb.fbs' as streamsb;
+import '../../../shared/utils/debugx.fbs' as debugx;
 import './parsers/gogoplay.fbs' as gogoplay;
 import './config.fbs' as config;
 
@@ -78,7 +80,7 @@ extractor := {
             availableLocales: [config.defaultLocale],
         };
     },
-    getSources: -> url, locale {
+    getSource: -> url, locale {
         url = Url.ensure(url);
         resp := Http.request({
             method: 'get',
@@ -87,17 +89,7 @@ extractor := {
         });
         document := HtmlElement.parse(resp.body);
 
-        do := -> fn {
-            try {
-                result := fn();
-                return result;
-            } catch (err) {
-                if (TEnvironment.isDebug) throw err;
-                return [];
-            }
-        };
-
-        return Fiber.runConcurrently(
+        streams := Fiber.runConcurrently(
             document
                 .querySelectorAll('.anime_muti_link ul > li')
                 .map(-> x : -> {
@@ -105,15 +97,32 @@ extractor := {
                     if (link) {
                         when {
                             x.classes.contains('anime') || x.classes.contains('vidcdn'): {
-                                return do(-> : gogoplay.parse(link));
+                                return debugx.executeSafe(
+                                    -> : gogoplay.parse(link),
+                                    []
+                                );
                             }
-                            x.classes.contains('xstreamcdn'): {
-                                return do(-> : fembed.parse(link, config.defaultLocale));
+                            # x.classes.contains('xstreamcdn'): {
+                            #     return debugx.executeSafe(
+                            #         -> : fembed.parse(link, config.defaultLocale),
+                            #         []
+                            #     );
+                            # }
+                            x.classes.contains('streamsb'): {
+                                return debugx.executeSafe(
+                                    -> : streamsb.parse(link, config.defaultLocale),
+                                    []
+                                );
                             }
                         }
                     }
                     return [];
                 })
         ).flat(1);
+
+        return {
+            streams: streams,
+            subtitles: [],
+        };
     },
 };

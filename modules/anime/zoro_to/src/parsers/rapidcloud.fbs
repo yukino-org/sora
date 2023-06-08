@@ -4,14 +4,14 @@ import '../config.fbs' as config;
 
 parseId := -> url : RegExp.new(r'\/embed-6\/([^?]+)\?').firstMatch(url).group(1);
 
-getSourcesApiUrl := -> origin, id : Url.ensure(
+getStreamsApiUrl := -> origin, id : Url.ensure(
     '{}/ajax/embed-6/getSources?id={}'
         .format([origin, id])
 );
 
 parse := -> url {
     id := parseId(url);
-    apiUrl := getSourcesApiUrl(Url.parse(url).origin, id);
+    apiUrl := getStreamsApiUrl(Url.parse(url).origin, id);
     resp := Http.request({
         method: 'get',
         url: apiUrl,

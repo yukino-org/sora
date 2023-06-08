@@ -1,0 +1,9 @@
+executeSafe := -> fn, failValue {
+    try {
+        result := fn();
+        return result;
+    } catch (err) {
+        if (TEnvironment.isDebug) throw err;
+        return failValue;
+    }
+};

@@ -63,12 +63,12 @@ extractor := {
             availableLocales: [config.defaultLocale],
         };
     },
-    getSources: -> url, locale {
+    getSource: -> url, locale {
         url = Url.ensure(url);
         slug := config.parseSlug(url);
         resp := _getInfo(slug);
 
-        return resp.videos_manifest.servers.map(-> x {
+        streams := resp.videos_manifest.servers.map(-> x {
             return x.streams
                 .filter(-> x : x.kind == 'hls')
                 .map(-> x : {
@@ -78,6 +78,11 @@ extractor := {
                     locale: config.defaultLocale,
                 });
         }).flat(1);
+
+        return {
+            streams: streams,
+            subtitles: [],
+        };
     },
 };
 

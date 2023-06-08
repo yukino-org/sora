@@ -127,7 +127,7 @@ $seperator ${data.map((final Map<String, String> x) => cols.keys.map((final Stri
         'name': 'Name',
         'search': '`search`',
         'getInfo': '`getInfo`',
-        'getSources': '`getSources`',
+        'getSource': '`getSource`',
       },
       animeResults.entries
           .map(
@@ -136,7 +136,7 @@ $seperator ${data.map((final Map<String, String> x) => cols.keys.map((final Stri
               'name': _getMarkdownURLFromPath(x.key),
               'search': _getValueFromBenchmarks(x.value['search']!),
               'getInfo': _getValueFromBenchmarks(x.value['getInfo']!),
-              'getSources': _getValueFromBenchmarks(x.value['getSources']!),
+              'getSource': _getValueFromBenchmarks(x.value['getSource']!),
             },
           )
           .toList(),

@@ -22,8 +22,8 @@ final MockedAnimeExtractor mocked = MockedAnimeExtractor(
     MockedData.episodeURL = result.episodes.first.url;
     return result;
   },
-  getSources: (final AnimeExtractor ext) =>
-      ext.getSources(MockedData.episodeURL, locale),
+  getSource: (final AnimeExtractor ext) =>
+      ext.getSource(MockedData.episodeURL, locale),
 );
 
 Future<void> main() async {

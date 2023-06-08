@@ -14,7 +14,7 @@ final MockedAnimeExtractor mocked = MockedAnimeExtractor(
     'https://marin.moe/anime/1gxhsife',
     locale,
   ),
-  getSources: (final AnimeExtractor ext) => ext.getSources(
+  getSource: (final AnimeExtractor ext) => ext.getSource(
     'https://marin.moe/anime/1gxhsife/1',
     locale,
   ),

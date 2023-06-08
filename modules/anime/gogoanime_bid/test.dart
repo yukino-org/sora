@@ -11,7 +11,7 @@ final MockedAnimeExtractor mocked = MockedAnimeExtractor(
     'https://www1.gogoanime.bid/category/spy-kyoushitsu',
     locale,
   ),
-  getSources: (final AnimeExtractor ext) => ext.getSources(
+  getSource: (final AnimeExtractor ext) => ext.getSource(
     'https://www1.gogoanime.bid/spy-kyoushitsu-episode-1',
     locale,
   ),

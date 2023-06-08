@@ -70,7 +70,7 @@ extractor := {
             availableLocales: [config.defaultLocale],
         };
     },
-    getSources: -> url, locale {
+    getSource: -> url, locale {
         url = Url.ensure(url);
 
         if (config.isPlayUrl(url)) {
@@ -81,7 +81,7 @@ extractor := {
                 headers: config.defaultHeaders,
             });
             id := RegExp.new.new(r'getUrls\((\d+)').firstMatch(resp.body).group(1);
-            return _getSources(id, uParsed.episodeSlug);
+            return _getSource(id, uParsed.episodeSlug);
         }
 
         uParsed := config.parseCustomEpisodeUrl(url);
@@ -93,18 +93,19 @@ extractor := {
         });
         eParsed := Convert.decodeJson(eResp.body);
         eData := eParsed.data.find(-> x : x.episode == eNum);
-        return _getSources(eData.animeId, eData.session);
+        return _getSource(eData.animeId, eData.session);
     },
 };
 
-_getSources := -> id, slug {
+_getSource := -> id, slug {
     resp := Http.request({
         method: 'get',
-        url: config.getSourcesApiUrl(id, slug),
+        url: config.getStreamsApiUrl(id, slug),
         headers: config.defaultHeaders,
     });
     parsed := Convert.decodeJson(resp.body);
-    return parsed.data.map(-> x {
+    
+    streams := parsed.data.map(-> x {
         quality := Object.keys(x)[0];
         y := x[quality];
         embed := Url.ensure(y.kwik);
@@ -128,4 +129,9 @@ _getSources := -> id, slug {
             locale: config.defaultLocale,
         };
     });
+
+    return {
+        streams: streams,
+        subtitles: [],
+    };
 };

@@ -11,7 +11,7 @@ final MockedAnimeExtractor mocked = MockedAnimeExtractor(
     'https://hanime.tv/videos/hentai/overflow-season-1',
     locale,
   ),
-  getSources: (final AnimeExtractor ext) => ext.getSources(
+  getSource: (final AnimeExtractor ext) => ext.getSource(
     'https://hanime.tv/videos/hentai/overflow-season-1#__episode=1',
     locale,
   ),

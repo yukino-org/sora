@@ -12,7 +12,7 @@ getEpisodeApiUrl := -> url : Url.ensure(
     ])
 );
 
-getSourcesApiUrl := -> id : Url.ensure('{}/episode/sources?id={}'.format([baseAjaxUrl, id]));
+getStreamsApiUrl := -> id : Url.ensure('{}/episode/sources?id={}'.format([baseAjaxUrl, id]));
 
 appendBaseUrl := -> route : Url.ensure(baseUrl + route);
 

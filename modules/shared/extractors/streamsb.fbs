@@ -1,34 +1,41 @@
+import '../utils/hexify.fbs' as hexify;
+
 defaultHeaders := {
     ['User-Agent']: Http.defaultDesktopUserAgent(),
 };
 
 getStreamsApiUrl := -> baseUrl, id : Url.ensure(
-    '{}/api/source/{}'.format([baseUrl, id])
+    '{}/375664356a494546326c4b797c7c6e756577776778623171737/{}'.format([baseUrl, encodeId(id)])
 );
 
 parse := -> url, locale {
     url = Url.ensure(url);
     parsedUrl := Url.parse(url);
-    id := RegExp.new(r'/v/([^?#&/.]+)').firstMatch(url)?.group(1);
+    id := RegExp.new(r'/e/([^?#&/.]+)').firstMatch(url)?.group(1);
     if (!id) return [];
 
     resp := Http.request({
-        method: 'post',
+        method: 'get',
         url: getStreamsApiUrl(parsedUrl.origin, id),
         headers: Object.apply(Object.clone(defaultHeaders), {
             Referer: url,
-            ['X-Requested-With']: 'XMLHttpRequest',
+            watchsb: 'sbstream',
         }),
     });
     parsed := Convert.decodeJson(resp.body);
-    if (!parsed.success) return [];
+    if (parsed.status_code != 200) return [];
 
-    return parsed.data.map(-> x : {
-        url: Url.ensure(x.file),
+    return [parsed.stream_data.file, parsed.stream_data.backup].map(-> x : {
+        url: Url.ensure(x),
         headers: Object.apply(Object.clone(defaultHeaders), {
             Referer: parsedUrl.origin,
         }),
-        quality: x.label,
+        quality: 'unknown',
         locale: locale,
     });
+};
+
+encodeId := -> id {
+    id = 'CringeScrape||{}||CringeScrape||streamsb'.format([id]);
+    return hexify.encode(id);
 };

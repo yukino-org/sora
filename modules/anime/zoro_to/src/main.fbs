@@ -78,7 +78,7 @@ extractor := {
             availableLocales: [config.defaultLocale],
         };
     },
-    getSources: -> url, locale {
+    getSource: -> url, locale {
         url = config.getEpisodeApiUrl(url);
         resp := Http.request({
             method: 'get',
@@ -86,12 +86,13 @@ extractor := {
             headers: config.defaultHeaders,
         });
         parsed := Convert.decodeJson(resp.body);
-        return RegExp
+
+        streams := RegExp
             .new(r'data-id="(\d+)"')
             .allMatches(parsed.html)
             .map(-> x {
                 id := x.group(1);
-                sUrl := config.getSourcesApiUrl(id);
+                sUrl := config.getStreamsApiUrl(id);
                 sResp := Http.request({
                     method: 'get',
                     url: sUrl,
@@ -109,5 +110,10 @@ extractor := {
             })
             .filter(-> x : x != null)
             .flat(1);
+
+        return {
+            streams: streams,
+            subtitles: [],
+        };
     },
 };
