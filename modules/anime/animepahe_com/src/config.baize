@@ -2,14 +2,14 @@ baseUrl := 'https://animepahe.com';
 baseApiUrl := 'https://animepahe.org/api';
 
 getSearchApiUrl := -> terms, length {
-    length = length ?? 8;
+    length ??= 8;
     return '{}?m=search&l={}&q={}'.format([baseApiUrl, length, terms]);
 };
 
 episodesApiPerPage := 30;
 
 getEpisodesApiUrl := -> id, page {
-    page = page ?? 1;
+    page ??= 1;
     return '{}?m=release&id={}&sort=episode_asc&page={}'.format([baseApiUrl, id, page]);
 };
 

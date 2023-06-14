@@ -1,4 +1,4 @@
-import './config.fbs' as config;
+import './config.baize' as config;
 
 extractor := {
     defaultLocale: config.defaultLocale,

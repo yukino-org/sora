@@ -25,6 +25,33 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.11.0"
+  baize_compiler:
+    dependency: transitive
+    description:
+      path: "packages/baize_compiler"
+      ref: HEAD
+      resolved-ref: d365e1a165f95dce31c50323f27b1fa3228deee5
+      url: "https://github.com/zyrouge/baize.git"
+    source: git
+    version: "0.0.0"
+  baize_shared:
+    dependency: transitive
+    description:
+      path: "packages/baize_shared"
+      ref: HEAD
+      resolved-ref: d365e1a165f95dce31c50323f27b1fa3228deee5
+      url: "https://github.com/zyrouge/baize.git"
+    source: git
+    version: "0.0.0"
+  baize_vm:
+    dependency: transitive
+    description:
+      path: "packages/baize_vm"
+      ref: HEAD
+      resolved-ref: d365e1a165f95dce31c50323f27b1fa3228deee5
+      url: "https://github.com/zyrouge/baize.git"
+    source: git
+    version: "0.0.0"
   clock:
     dependency: transitive
     description:
@@ -69,10 +96,10 @@ packages:
     dependency: transitive
     description:
       name: csslib
-      sha256: "831883fb353c8bdc1d71979e5b342c7d88acfbc643113c14ae51e2442ea0f20f"
+      sha256: "706b5707578e0c1b4b7550f64078f0a0f19dec3f50a178ffae7006b0a9ca58fb"
       url: "https://pub.dev"
     source: hosted
-    version: "0.17.3"
+    version: "1.0.0"
   devx:
     dependency: "direct dev"
     description:
@@ -90,41 +117,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.0.1"
-  fubuki_compiler:
-    dependency: transitive
-    description:
-      path: "packages/fubuki_compiler"
-      ref: HEAD
-      resolved-ref: "95c94133f1bd8f9241f8758b0d959444ea7bd998"
-      url: "https://github.com/yukino-org/fubuki.git"
-    source: git
-    version: "0.0.0"
-  fubuki_shared:
-    dependency: transitive
-    description:
-      path: "packages/fubuki_shared"
-      ref: HEAD
-      resolved-ref: "95c94133f1bd8f9241f8758b0d959444ea7bd998"
-      url: "https://github.com/yukino-org/fubuki"
-    source: git
-    version: "0.0.0"
-  fubuki_vm:
-    dependency: transitive
-    description:
-      path: "packages/fubuki_vm"
-      ref: HEAD
-      resolved-ref: "95c94133f1bd8f9241f8758b0d959444ea7bd998"
-      url: "https://github.com/yukino-org/fubuki.git"
-    source: git
-    version: "0.0.0"
   html:
     dependency: transitive
     description:
       name: html
-      sha256: "58e3491f7bf0b6a4ea5110c0c688877460d1a6366731155c4a4580e7ded773e8"
+      sha256: "3a7812d5bcd2894edf53dfaf8cd640876cf6cef50a8f238745c8b8120ea74d3a"
       url: "https://pub.dev"
     source: hosted
-    version: "0.15.3"
+    version: "0.15.4"
   http:
     dependency: transitive
     description:
@@ -210,7 +210,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka
-      resolved-ref: "08b6de044ed81e108228748d1c81f03fce179b75"
+      resolved-ref: dcdfe3337c28c5d9475abe9ac05eee5d8531f5a8
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "1.0.5"
@@ -219,7 +219,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka_dev_tools
-      resolved-ref: "05bfc8a802998d9aa673c26afbe2acdd7c15f3b5"
+      resolved-ref: f641ca1cc6fe736768816dc2b249ea7fbfb7ff82
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
@@ -228,7 +228,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka_runtime
-      resolved-ref: "4d39882dab2fe73893486498138022364dc21f6e"
+      resolved-ref: abeadc5d0b9b95cb1629481314a8f8536a708ae2
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"

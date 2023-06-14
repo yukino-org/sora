@@ -14,7 +14,7 @@ abstract class Emojis {
 }
 
 abstract class Utils {
-  static const String mainScriptFile = 'main.fbs';
+  static const String mainScriptFile = 'main.baize';
 
   static final String baseDir = path.dirname(Directory.current.path);
 

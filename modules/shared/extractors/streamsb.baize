@@ -1,4 +1,4 @@
-import '../utils/hexify.fbs' as hexify;
+import '../utils/hexify.baize' as hexify;
 
 defaultHeaders := {
     ['User-Agent']: Http.defaultDesktopUserAgent(),

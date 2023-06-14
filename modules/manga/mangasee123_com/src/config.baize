@@ -16,7 +16,7 @@ getMangaThumbnailUrl := -> slug : Url.ensure(
 );
 
 parseChapterId := -> id, trim {
-    trim = trim ?? true;
+    trim ??= true;
     matched := RegExp.new(r'^(\d)(\d+)(\d)$').firstMatch(id);
     mMid := matched.group(2);
     mEnd := matched.group(3);

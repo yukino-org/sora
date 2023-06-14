@@ -1,4 +1,4 @@
-import './config.fbs' as config;
+import './config.baize' as config;
 
 request := -> options {
     if (options.isRetry) throw Exception.new('Failed to access site');

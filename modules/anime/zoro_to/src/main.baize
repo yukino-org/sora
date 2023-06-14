@@ -1,5 +1,5 @@
-import './parsers/rapidcloud.fbs' as rapidcloud;
-import './config.fbs' as config;
+import './parsers/rapidcloud.baize' as rapidcloud;
+import './config.baize' as config;
 
 extractor := {
     defaultLocale: config.defaultLocale,

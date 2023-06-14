@@ -1,8 +1,8 @@
-# import '../../../shared/extractors/fembed.fbs' as fembed;
-import '../../../shared/extractors/streamsb.fbs' as streamsb;
-import '../../../shared/utils/debugx.fbs' as debugx;
-import './parsers/gogoplay.fbs' as gogoplay;
-import './config.fbs' as config;
+# import '../../../shared/extractors/fembed.baize' as fembed;
+import '../../../shared/extractors/streamsb.baize' as streamsb;
+import '../../../shared/utils/debugx.baize' as debugx;
+import './parsers/gogoplay.baize' as gogoplay;
+import './config.baize' as config;
 
 extractor := {
     defaultLocale: config.defaultLocale,
