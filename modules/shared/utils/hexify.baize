@@ -2,7 +2,7 @@ hexMap := '0123456789ABCDEF'.split('');
 
 encode := -> input {
     output := [];
-    input.toCodeUnits().forEach(-> x : {
+    input.toCodeUnits().forEach(-> x {
         output.push(String.from((x / 16).truncate()));
         output.push(hexMap[x % 16]);
     });
