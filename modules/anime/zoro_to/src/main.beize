@@ -35,7 +35,6 @@ extractor := {
             url: url,
             headers: config.defaultHeaders,
         }).await;
-        print(url);
         document := HtmlElement.parse(resp.body);
         id := document.querySelector('#wrapper').attributes['data-id'].trim();
 
@@ -47,7 +46,7 @@ extractor := {
                 Referer: url,
                 ['X-Requested-With']: 'XMLHttpRequest',
             }),
-        });
+        }).await;
         epParsed := Convert.decodeJson(epResp.body);
         epDocument := HtmlElement.parse(epParsed['html']);
         episodes := epDocument.querySelectorAll('.ss-list > .ep-item').map(-> x {
@@ -88,29 +87,28 @@ extractor := {
         }).await;
         parsed := Convert.decodeJson(resp.body);
 
-        streams := RegExp
-            .new(r'data-id="(\d+)"')
-            .allMatches(parsed.html)
-            .map(-> x {
-                id := x.group(1);
-                sUrl := config.getStreamsApiUrl(id);
-                sResp := Http.request({
-                    method: 'get',
-                    url: sUrl,
-                    headers: Object.apply(Object.clone(config.defaultHeaders), {
-                        Referer: url,
-                        ['X-Requested-With']: 'XMLHttpRequest',
-                    }),
-                });
-                sParsed := Convert.decodeJson(sResp.body);
-                embedUrl := sParsed.link;
-                when {
-                    embedUrl.contains('rapid-cloud'): return rapidcloud.parse(embedUrl);
-                    else: return [];
-                }
-            })
-            .filter(-> x : x != null)
-            .flat(1);
+        streams := Fiber.runConcurrently(
+            RegExp.new(r'data-id="(\d+)"')
+                .allMatches(parsed.html)
+                .map(-> x : -> async {
+                    id := x.group(1);
+                    sUrl := config.getStreamsApiUrl(id);
+                    sResp := Http.request({
+                        method: 'get',
+                        url: sUrl,
+                        headers: Object.apply(Object.clone(config.defaultHeaders), {
+                            Referer: url,
+                            ['X-Requested-With']: 'XMLHttpRequest',
+                        }),
+                    }).await;
+                    sParsed := Convert.decodeJson(sResp.body);
+                    embedUrl := sParsed.link;
+                    when {
+                        embedUrl.contains('rapid-cloud'): return rapidcloud.parse(embedUrl);
+                        else: return [];
+                    }
+                })
+        ).await.flat(1);
 
         return {
             streams: streams,

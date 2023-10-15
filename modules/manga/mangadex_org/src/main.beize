@@ -2,18 +2,18 @@ import './config.beize' as config;
 
 extractor := {
     defaultLocale: config.defaultLocale,
-    search: -> terms, locale {
+    search: -> async terms, locale {
         resp := Http.request({
             method: 'get',
             url: config.getSearchApiUrl(terms),
             headers: config.defaultHeaders,
-        });
+        }).await;
         parsed := Convert.decodeJson(resp.body);
-        return parsed.data
-            .sublist(0, 10)
-            .map(-> x {
+
+        return Fiber.runConcurrently(
+            parsed.data.sublist(0, 10).map(-> x : -> async {
                 coverData := x.relationships.find(-> x : x.type == 'cover_art');
-                cover := coverData ? _getCoverImageUrl(x.id, coverData.id) : null;
+                cover := coverData ? _getCoverImageUrl(x.id, coverData.id).await : null;
 
                 return {
                     title: x.attributes.title[locale]
@@ -22,21 +22,22 @@ extractor := {
                     thumbnail: cover,
                     locale: config.defaultLocale,
                 };
-            });
+            })
+        ).await;
     },
-    getInfo: -> url, locale {
+    getInfo: -> async url, locale {
         id := config.parseId(url);
         mangaUrl := config.getMangaApiUrl(id);
         resp := Http.request({
             method: 'get',
             url: mangaUrl,
             headers: config.defaultHeaders
-        });
+        }).await;
         parsed := Convert.decodeJson(resp.body);
         coverData := parsed.data.relationships.find(-> x : x.type == 'cover_art');
-        cover := coverData ? _getCoverImageUrl(parsed.data.id, coverData.id) : null;
-        langs := _getAvailableLanguages(id);
-        chapters := _getChapters(id, locale, 0, []);
+        cover := coverData ? _getCoverImageUrl(parsed.data.id, coverData.id).await : null;
+        langs := _getAvailableLanguages(id).await;
+        chapters := _getChapters(id, locale, 0, []).await;
 
         return {
             title: parsed.data.attributes.title[locale]
@@ -48,13 +49,13 @@ extractor := {
             availableLocales: langs
         };
     },
-    getChapter: -> url, locale {
+    getChapter: -> async url, locale {
         id := url.replaceFirst('id:', '');
         resp := Http.request({
             method: 'get',
             url: config.getMangaServerApiUrl(id),
             headers: config.defaultHeaders,
-        });
+        }).await;
         parsed := Convert.decodeJson(resp.body);
         chapterUrl := config.getChapterApiUrl(parsed.baseUrl, 'data', parsed.chapter.hash);
         
@@ -63,19 +64,19 @@ extractor := {
             locale: locale,
         });
     },
-    getPage: -> url, locale : {
+    getPage: -> async url, locale : {
         url: url,
         headers: config.defaultHeaders,
     },
 };
 
 _chapterLimit := 500;
-_getChapters := -> id, locale, offset, chapters {
+_getChapters := -> async id, locale, offset, chapters {
     resp := Http.request({
         method: 'get',
         url: config.getMangaFeedApiUrl(id, locale, _chapterLimit, offset),
         headers: config.defaultHeaders,
-    });
+    }).await;
     parsed := Convert.decodeJson(resp.body);
     parsed.data.forEach(-> x {
         id := x.id;
@@ -92,15 +93,15 @@ _getChapters := -> id, locale, offset, chapters {
         }
     });
     if (parsed.data.isEmpty()) return chapters;
-    return _getChapters(id, locale, offset + _chapterLimit, chapters);
+    return _getChapters(id, locale, offset + _chapterLimit, chapters).await;
 };
 
-_getCoverImageUrl := -> manga, cover {
+_getCoverImageUrl := -> async manga, cover {
     resp := Http.request({
         method: 'get',
         url: config.getCoverApiUrl(cover),
         headers: config.defaultHeaders,
-    });
+    }).await;
     parsed := Convert.decodeJson(resp.body);
     return {
         url: config.getCoverUrl(manga, parsed.data.attributes.fileName),
@@ -109,12 +110,12 @@ _getCoverImageUrl := -> manga, cover {
 };
 
 _allLanguagesCache := Languages.all();
-_getAvailableLanguages := -> manga {
+_getAvailableLanguages := -> async manga {
     resp := Http.request({
         method: 'get',
         url: config.getMangaChapterOverviewUrl(manga, 1, 1, 100),
         headers: config.defaultHeaders,
-    });
+    }).await;
     parsed := Convert.decodeJson(resp.body);
     langs := [];
     parsed.data.forEach(-> x {

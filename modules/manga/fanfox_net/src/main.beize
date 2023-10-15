@@ -2,12 +2,12 @@ import './config.beize' as config;
 
 extractor := {
     defaultLocale: config.defaultLocale,
-    search: -> terms, locale {
+    search: -> async terms, locale {
         resp := Http.request({
             method: 'get',
             url: config.getSearchUrl(terms),
             headers: config.defaultHeaders,
-        });
+        }).await;
         document := HtmlElement.parse(resp.body);
 
         return document.querySelectorAll('.line-list li').map(-> x {
@@ -26,14 +26,13 @@ extractor := {
             };
         });
     },
-    getInfo: -> url, locale {
+    getInfo: -> async url, locale {
         url = Url.ensure(url);
-        
         resp := Http.request({
             method: 'get',
             url: url,
             headers: config.defaultHeaders
-        });
+        }).await;
         document := HtmlElement.parse(resp.body);
 
         chapters := [];
@@ -71,13 +70,13 @@ extractor := {
             availableLocales: [config.defaultLocale],
         };
     },
-    getChapter: -> url, locale {
+    getChapter: -> async url, locale {
         url = config.getMobileUrl(url);
         resp := Http.request({
             method: 'get',
             url: url,
             headers: config.defaultHeaders,
-        });
+        }).await;
         document := HtmlElement.parse(resp.body);
         
         return document
@@ -88,13 +87,13 @@ extractor := {
                 locale: config.defaultLocale,
             });
     },
-    getPage: -> url, locale {
+    getPage: -> async url, locale {
         url = config.getMobileUrl(url);
         resp := Http.request({
             method: 'get',
             url: url,
             headers: config.defaultHeaders,
-        });
+        }).await;
         img := RegExp.new('<img src="([^"]+)"').firstMatch(resp.body).group(1);
         return {
             url: Url.ensure(img),
