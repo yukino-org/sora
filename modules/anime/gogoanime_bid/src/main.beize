@@ -1,18 +1,18 @@
-# import '../../../shared/extractors/fembed.baize' as fembed;
-import '../../../shared/extractors/streamsb.baize' as streamsb;
-import '../../../shared/utils/debugx.baize' as debugx;
-import './parsers/gogoplay.baize' as gogoplay;
-import './config.baize' as config;
+# import '../../../shared/extractors/fembed.beize' as fembed;
+import './parsers/gogoplay.beize' as gogoplay;
+import './config.beize' as config;
+import '../../../shared/extractors/streamsb.beize' as streamsb;
+import '../../../shared/utils/debugx.beize' as debugx;
 
 extractor := {
     defaultLocale: config.defaultLocale,
-    search: -> terms, locale {
+    search: -> async terms, locale {
         url := config.getSearchUrl(terms);
         resp := Http.request({
             method: 'get',
             url: url,
             headers: config.defaultHeaders,
-        });
+        }).await;
         document := HtmlElement.parse(resp.body);
 
         return document.querySelectorAll('.items li').map(-> x {
@@ -31,13 +31,13 @@ extractor := {
             };
         });
     },
-    getInfo: -> url, locale {
+    getInfo: -> async url, locale {
         url = Url.ensure(url);
         resp := Http.request({
             method: 'get',
             url: url,
             headers: config.defaultHeaders,
-        });
+        }).await;
         document := HtmlElement.parse(resp.body);
 
         epPagesElement := document.querySelectorAll('#episode_page a');
@@ -50,7 +50,7 @@ extractor := {
             method: 'get',
             url: eUrl,
             headers: config.defaultHeaders,
-        });
+        }).await;
         eDocument := HtmlElement.parse(eResp.body);
         episodes := eDocument.querySelectorAll('#episode_related a').map(-> x {
             episode := x.querySelector('.name').text.replaceFirst('EP', '').trim();
@@ -80,45 +80,44 @@ extractor := {
             availableLocales: [config.defaultLocale],
         };
     },
-    getSource: -> url, locale {
+    getSource: -> async url, locale {
         url = Url.ensure(url);
         resp := Http.request({
             method: 'get',
             url: url,
             headers: config.defaultHeaders,
-        });
+        }).await;
         document := HtmlElement.parse(resp.body);
 
         streams := Fiber.runConcurrently(
             document
                 .querySelectorAll('.anime_muti_link ul > li')
-                .map(-> x : -> {
+                .map(-> x : -> async {
                     link := x.querySelector('a').attributes['data-video'];
-                    if (link) {
-                        when {
-                            x.classes.contains('anime') || x.classes.contains('vidcdn'): {
-                                return debugx.executeSafe(
-                                    -> : gogoplay.parse(link),
-                                    []
-                                );
-                            }
-                            # x.classes.contains('xstreamcdn'): {
-                            #     return debugx.executeSafe(
-                            #         -> : fembed.parse(link, config.defaultLocale),
-                            #         []
-                            #     );
-                            # }
-                            x.classes.contains('streamsb'): {
-                                return debugx.executeSafe(
-                                    -> : streamsb.parse(link, config.defaultLocale),
-                                    []
-                                );
-                            }
+                    if (!link) return [];
+                    when {
+                        x.classes.contains('anime') || x.classes.contains('vidcdn'): {
+                            return debugx.executeAsyncSafe(
+                                -> : gogoplay.parse(link),
+                                []
+                            );
                         }
+                        # x.classes.contains('xstreamcdn'): {
+                        #     return debugx.executeAsyncSafe(
+                        #         -> : fembed.parse(link, config.defaultLocale),
+                        #         []
+                        #     );
+                        # }
+                        x.classes.contains('streamsb'): {
+                            return debugx.executeAsyncSafe(
+                                -> : streamsb.parse(link, config.defaultLocale),
+                                []
+                            );
+                        }
+                        else: return [];
                     }
-                    return [];
                 })
-        ).flat(1);
+        ).await.flat(1);
 
         return {
             streams: streams,

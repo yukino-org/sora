@@ -1,4 +1,4 @@
-import '../utils/hexify.baize' as hexify;
+import '../utils/hexify.beize' as hexify;
 
 defaultHeaders := {
     ['User-Agent']: Http.defaultDesktopUserAgent(),
@@ -8,7 +8,7 @@ getStreamsApiUrl := -> baseUrl, id : Url.ensure(
     '{}/375664356a494546326c4b797c7c6e756577776778623171737/{}'.format([baseUrl, encodeId(id)])
 );
 
-parse := -> url, locale {
+parse := -> async url, locale {
     url = Url.ensure(url);
     parsedUrl := Url.parse(url);
     id := RegExp.new(r'/e/([^?#&/.]+)').firstMatch(url)?.group(1);
@@ -21,7 +21,7 @@ parse := -> url, locale {
             Referer: url,
             watchsb: 'sbstream',
         }),
-    });
+    }).await;
     parsed := Convert.decodeJson(resp.body);
     if (parsed.status_code != 200) return [];
 

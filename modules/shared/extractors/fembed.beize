@@ -6,7 +6,7 @@ getStreamsApiUrl := -> baseUrl, id : Url.ensure(
     '{}/api/source/{}'.format([baseUrl, id])
 );
 
-parse := -> url, locale {
+parse := -> async url, locale {
     url = Url.ensure(url);
     parsedUrl := Url.parse(url);
     id := RegExp.new(r'/v/([^?#&/.]+)').firstMatch(url)?.group(1);
@@ -19,7 +19,7 @@ parse := -> url, locale {
             Referer: url,
             ['X-Requested-With']: 'XMLHttpRequest',
         }),
-    });
+    }).await;
     parsed := Convert.decodeJson(resp.body);
     if (!parsed.success) return [];
 

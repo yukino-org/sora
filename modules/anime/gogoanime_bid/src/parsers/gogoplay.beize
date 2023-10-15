@@ -1,4 +1,4 @@
-import '../config.baize' as config;
+import '../config.beize' as config;
 
 defaultHeaders := {
     ['User-Agent']: Http.defaultDesktopUserAgent(),
@@ -18,9 +18,8 @@ tryGetQuality := -> url : allowedQualities.find(-> x : url.contains(x)) ?? 'unkn
 
 # Source: (The credit goes to them)
 #  - https://github.com/justfoolingaround/animdl/blob/master/animdl/core/codebase/extractors/gogoplay/__init__.py
-#  - https://github.com/saikou-app/saikou/blob/master/app/src/main/java/ani/saikou/anime/source/extractors/GogoCDN.kt
 
-parse := -> url {
+parse := -> async url {
     url = Url.ensure(url);
     parsedUrl := Url.parse(url);
     resp := Http.request({
@@ -29,7 +28,7 @@ parse := -> url {
         headers: makeHeaders({
             Referer: parsedUrl.origin
         }),
-    });
+    }).await;
     
     _matches := RegExp.new(r'container-(\d+)').allMatches(resp.body);
     _fKey := _matches[0]?.group(1);
@@ -65,7 +64,7 @@ parse := -> url {
             ['X-Requested-With']: 'XMLHttpRequest',
             Referer: url,
         }),
-    });
+    }).await;
     sRawParsed := Convert.decodeJson(sResp.body);
     sData := Convert.decodeUtf8(
         encrypto.decrypt({
@@ -83,9 +82,9 @@ parse := -> url {
         sources
             .map(-> x : x.file)
             .unique()
-            .map(-> x : -> {
+            .map(-> x : -> async {
                 if (x.contains('.m3u8')) {
-                    m3u8 := parseM3U8(x);
+                    m3u8 := parseM3U8(x).await;
                     return m3u8.map(-> x : {
                         url: x,
                         headers: defaultHeaders,
@@ -101,17 +100,17 @@ parse := -> url {
                     locale: config.defaultLocale,
                 }];
             })
-    ).flat(1);
+    ).await.flat(1);
 };
 
-parseM3U8 := -> url {
+parseM3U8 := -> async url {
     resp := Http.request({
         method: 'get',
         url: url,
         headers: {
             Referer: url,
         },
-    });
+    }).await;
     prevUrl := RegExp.new(r'(.*?)[^\/]+$').firstMatch(url).group(1);
 
     return resp.body.split('\n')

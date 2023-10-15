@@ -1,6 +1,6 @@
 # TODO: Finish this
 
-import '../config.baize' as config;
+import '../config.beize' as config;
 
 parseId := -> url : RegExp.new(r'\/embed-6\/([^?]+)\?').firstMatch(url).group(1);
 

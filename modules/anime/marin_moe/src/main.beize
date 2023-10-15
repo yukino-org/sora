@@ -1,5 +1,5 @@
-import './config.baize' as config;
-import './fetcher.baize' as fetcher;
+import './config.beize' as config;
+import './fetcher.beize' as fetcher;
 
 extractor := {
     defaultLocale: config.defaultLocale,

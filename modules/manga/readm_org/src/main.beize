@@ -1,4 +1,4 @@
-import './config.baize' as config;
+import './config.beize' as config;
 
 extractor := {
     defaultLocale: config.defaultLocale,

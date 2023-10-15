@@ -52,6 +52,12 @@ parsePlayUrl := -> url {
     };
 };
 
+getPlayUrl := -> animeSlug, episodeSlug {
+    return Url.ensure(
+        '{}/play/{}/{}'.format([baseUrl, animeSlug, episodeSlug])
+    );
+};
+
 appendBaseUrl := -> route : Url.ensure(baseUrl + route);
 
 parseSlugRegExp := RegExp.new(r'\/anime\/([^\/?#]+)');

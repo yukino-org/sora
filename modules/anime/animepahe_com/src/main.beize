@@ -1,13 +1,13 @@
-import './config.baize' as config;
+import './config.beize' as config;
 
 extractor := {
     defaultLocale: config.defaultLocale,
-    search: -> terms, locale {
+    search: -> async terms, locale {
         resp := Http.request({
             method: 'get',
             url: config.getSearchApiUrl(terms),
             headers: config.defaultHeaders,
-        });
+        }).await;
         parsed := Convert.decodeJson(resp.body);
         
         return parsed.data.map(
@@ -22,14 +22,14 @@ extractor := {
             }
         );
     },
-    getInfo: -> url, locale {
+    getInfo: -> async url, locale {
         url = Url.ensure(url);
         slug := config.parseSlug(url);
         resp := Http.request({
             method: 'get',
             url: url,
             headers: config.defaultHeaders,
-        });
+        }).await;
         id := RegExp.new(r'\/a\/(\d+)').firstMatch(resp.body).group(1);
         document := HtmlElement.parse(resp.body);
 
@@ -37,7 +37,7 @@ extractor := {
             method: 'get',
             url: config.getEpisodesApiUrl(slug),
             headers: config.defaultHeaders,
-        });
+        }).await;
         eParsed := Convert.decodeJson(eResp.body);
         eStart := eParsed.from;
         eTotal := eParsed.total;
@@ -70,18 +70,12 @@ extractor := {
             availableLocales: [config.defaultLocale],
         };
     },
-    getSource: -> url, locale {
+    getSource: -> async url, locale {
         url = Url.ensure(url);
 
         if (config.isPlayUrl(url)) {
             uParsed := config.parsePlayUrl(url);
-            resp := Http.request({
-                method: 'get',
-                url: url,
-                headers: config.defaultHeaders,
-            });
-            id := RegExp.new.new(r'getUrls\((\d+)').firstMatch(resp.body).group(1);
-            return _getSource(id, uParsed.episodeSlug);
+            return _getSource(uParsed.animeSlug, uParsed.episodeSlug).await;
         }
 
         uParsed := config.parseCustomEpisodeUrl(url);
@@ -90,45 +84,47 @@ extractor := {
             method: 'get',
             url: config.getEpisodesApiUrlFromNumber(uParsed.animeSlug, eNum),
             headers: config.defaultHeaders,
-        });
+        }).await;
         eParsed := Convert.decodeJson(eResp.body);
         eData := eParsed.data.find(-> x : x.episode == eNum);
-        return _getSource(eData.animeId, eData.session);
+        return _getSource(uParsed.animeSlug, eData.session).await;
     },
 };
 
-_getSource := -> id, slug {
+_getSource := -> async animeSlug, episodeSlug {
     resp := Http.request({
         method: 'get',
-        url: config.getStreamsApiUrl(id, slug),
+        url: config.getPlayUrl(animeSlug, episodeSlug),
         headers: config.defaultHeaders,
-    });
-    parsed := Convert.decodeJson(resp.body);
+    }).await;
+    embedUrls := RegExp
+        .new(r`data-src="([^"]+)"[^>]+data-resolution="(\d+)"`)
+        .allMatches(resp.body);
     
-    streams := parsed.data.map(-> x {
-        quality := Object.keys(x)[0];
-        y := x[quality];
-        embed := Url.ensure(y.kwik);
-        parsedEmbedUrl := Url.parse(embed);
-        eResp := Http.request({
-            method: 'get',
-            url: embed,
-            headers: config.defaultHeaders,
-        });
-        m := RegExp.new(r`Plyr\|(.+?)['"]`)
-            .firstMatch(eResp.body)
-            .group(1)
-            .split('|');
+    streams := Fiber.runConcurrently(
+        embedUrls.map(-> x : -> async {
+            embedUrl := Url.ensure(x.group(1));
+            parsedEmbedUrl := Url.parse(embedUrl);
+            eResp := Http.request({
+                method: 'get',
+                url: embedUrl,
+                headers: config.defaultHeaders,
+            }).await;
+            m := RegExp.new(r`Plyr\|(.+?)['"]`)
+                .firstMatch(eResp.body)
+                .group(1)
+                .split('|');
 
-        return {
-            url: '{}://{}-{}.{}.{}.{}/{}/{}/{}/{}.{}'.format(m.reversed()),
-            headers: Object.apply(Object.clone(config.defaultHeaders), {
-                Referer: parsedEmbedUrl.origin,
-            }),
-            quality: quality,
-            locale: config.defaultLocale,
-        };
-    });
+            return {
+                url: '{}://{}-{}.{}.{}.{}/{}/{}/{}/{}.{}'.format(m.reversed()),
+                headers: Object.apply(Object.clone(config.defaultHeaders), {
+                    Referer: parsedEmbedUrl.origin,
+                }),
+                quality: x.group(2),
+                locale: config.defaultLocale,
+            };
+        })
+    ).await;
 
     return {
         streams: streams,

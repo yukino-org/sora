@@ -1,0 +1,19 @@
+executeSafe := -> fn, failValue {
+    try {
+        result := fn();
+        return result;
+    } catch (err) {
+        if (TEnvironment.isDebug) throw err;
+        return failValue;
+    }
+};
+
+executeAsyncSafe := -> async fn, failValue {
+    try {
+        result := fn().await;
+        return result;
+    } catch (err) {
+        if (TEnvironment.isDebug) throw err;
+        return failValue;
+    }
+};
