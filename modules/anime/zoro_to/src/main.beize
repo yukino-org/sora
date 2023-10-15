@@ -3,13 +3,13 @@ import './config.beize' as config;
 
 extractor := {
     defaultLocale: config.defaultLocale,
-    search: -> terms, locale {
+    search: -> async terms, locale {
         url := config.getSearchUrl(terms);
         resp := Http.request({
             method: 'get',
             url: url,
             headers: config.defaultHeaders,
-        });
+        }).await;
         document := HtmlElement.parse(resp.body);
 
         return document.querySelectorAll('#main-content .tab-content .flw-item').map(-> x {
@@ -28,13 +28,14 @@ extractor := {
             };
         });
     },
-    getInfo: -> url, locale {
+    getInfo: -> async url, locale {
         url = Url.ensure(url);
         resp := Http.request({
             method: 'get',
             url: url,
             headers: config.defaultHeaders,
-        });
+        }).await;
+        print(url);
         document := HtmlElement.parse(resp.body);
         id := document.querySelector('#wrapper').attributes['data-id'].trim();
 
@@ -78,13 +79,13 @@ extractor := {
             availableLocales: [config.defaultLocale],
         };
     },
-    getSource: -> url, locale {
+    getSource: -> async url, locale {
         url = config.getEpisodeApiUrl(url);
         resp := Http.request({
             method: 'get',
             url: url,
             headers: config.defaultHeaders,
-        });
+        }).await;
         parsed := Convert.decodeJson(resp.body);
 
         streams := RegExp

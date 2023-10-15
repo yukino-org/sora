@@ -5,29 +5,28 @@ import '../config.beize' as config;
 parseId := -> url : RegExp.new(r'\/embed-6\/([^?]+)\?').firstMatch(url).group(1);
 
 getStreamsApiUrl := -> origin, id : Url.ensure(
-    '{}/ajax/embed-6/getSources?id={}'
-        .format([origin, id])
+    '{}/ajax/embed-6/getSources?id={}'.format([origin, id])
 );
 
-parse := -> url {
+parse := -> async url {
     id := parseId(url);
     apiUrl := getStreamsApiUrl(Url.parse(url).origin, id);
     resp := Http.request({
         method: 'get',
         url: apiUrl,
         headers: config.defaultHeaders,
-    });
+    }).await;
     parsed := Convert.decodeJson(resp.body);
     secretKey := fetchSecretKey();
-    
-    return Fiber.runConcurrently(parsed.sources, -> x {
+
+    return Fiber.runConcurrently(parsed.sources, -> async x {
         m3u8Url := x.file;
         m3u8ParentUrl := RegExp.new(r'(.*)\/[^\/]+$').firstMatch(m3u8Url).group(1);
         m3u8Resp := Http.request({
             method: 'get',
             url: m3u8Url,
             headers: config.defaultHeaders,
-        });
+        }).await;
         RegExp
             .new(r'#EXT-X-STREAM-INF:.*?,RESOLUTION=\d+x(\d+),.*?\n([^\n]+)')
             .allMatches(resp.body)
@@ -42,15 +41,15 @@ parse := -> url {
                     locale: config.defaultLocale,
                 };
             });
-    }).flat(1);
+    }).await.flat(1);
 };
 
-fetchSecretKey := -> {
+fetchSecretKey := -> async {
     resp := Http.request({
         method: 'get',
         url: 'https://raw.githubusercontent.com/consumet/rapidclown/main/key.txt',
         headers: {},
-    });
+    }).await;
     return Conver.encodeUtf8(resp);
 };
 

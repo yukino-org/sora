@@ -1,5 +1,5 @@
-baseUrl := 'https://zoro.to';
-baseAjaxUrl := 'https://zoro.to/ajax/v2';
+baseUrl := 'https://aniwatch.to';
+baseAjaxUrl := 'https://aniwatch.to/ajax/v2';
 
 getSearchUrl := -> terms : Url.ensure('{}/search?keyword={}'.format([baseUrl, terms]));
 
@@ -23,18 +23,16 @@ defaultHeaders := {
 
 defaultLocale := 'en';
 
-getRecaptchaToken := -> url {
+getRecaptchaToken := -> async url {
     mockRes := Http.request({
         method: 'get',
         url: url,
         headers: defaultHeaders,
-    });
-    rKey := RegExp
-        .new(r`recaptchaSiteKey\s+=\s+['"]([^'"]+)['"]`)
+    }).await;
+    rKey := RegExp.new(r`recaptchaSiteKey\s+=\s+['"]([^'"]+)['"]`)
         .firstMatch(mockRes.body)
         .group(1);
-    rNumber := RegExp
-        .new(r`recaptchaNumber\s+=\s+['"](\d+)['"]`)
+    rNumber := RegExp.new(r`recaptchaNumber\s+=\s+['"](\d+)['"]`)
         .firstMatch(mockRes.body)
         .group(1);
 
@@ -48,7 +46,7 @@ getRecaptchaToken := -> url {
         headers: Object.apply(Object.clone(defaultHeaders), {
             Referrer: _domain + '/',
         }),
-    });
+    }).await;
     vToken := RegExp.new('releases/([^/]+)').firstMatch(vTokenResp.body).group(1);
     rTokenResp := Http.request({
         method: 'get',
@@ -59,8 +57,10 @@ getRecaptchaToken := -> url {
         headers: Collection.mergeMap(defaultHeaders, {
             Referrer: '{_domain}/',
         }),
-    });
-    rToken := RegExp.new('id="recaptcha-token" value="([^"]+)"').firstMatch(rTokenResp.body).group(1);
+    }).await;
+    rToken := RegExp.new('id="recaptcha-token" value="([^"]+)"')
+        .firstMatch(rTokenResp.body)
+        .group(1);
 
     fTokenResp := Http.request({
         method: 'post',
@@ -77,7 +77,7 @@ getRecaptchaToken := -> url {
             sa: '',
             co: domain,
         })
-    });
+    }).await;
     return {
         token: RegExp.new('rresp","(.+?)"').firstMatch(fTokenResp.body).group(1),
         number: rNumber,
