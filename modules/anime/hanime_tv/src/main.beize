@@ -2,7 +2,7 @@ import './config.beize' as config;
 
 extractor := {
     defaultLocale: config.defaultLocale,
-    search: -> terms, locale {
+    search: -> async terms, locale {
         resp := Http.request({
             method: 'post',
             url: config.searchApiUrl,
@@ -19,7 +19,7 @@ extractor := {
                 ordering: 'desc',
                 page: 0,
             }),
-        });
+        }).await;
         parsed := Convert.decodeJson(resp.body);
         hits := Convert.decodeJson(parsed.hits);
 
@@ -38,10 +38,10 @@ extractor := {
             };
         });
     },
-    getInfo: -> url, locale {
+    getInfo: -> async url, locale {
         url = Url.ensure(url);
         slug := config.parseSlug(url);
-        resp := _getInfo(slug);
+        resp := _getInfo(slug).await;
 
         title := resp.hentai_video.name;
         censored := resp.hentai_video.is_censored;
@@ -63,10 +63,10 @@ extractor := {
             availableLocales: [config.defaultLocale],
         };
     },
-    getSource: -> url, locale {
+    getSource: -> async url, locale {
         url = Url.ensure(url);
         slug := config.parseSlug(url);
-        resp := _getInfo(slug);
+        resp := _getInfo(slug).await;
 
         streams := resp.videos_manifest.servers.map(-> x {
             return x.streams
@@ -88,15 +88,15 @@ extractor := {
 
 _infoCache := {};
 
-_getInfo := -> slug : _infoCache[slug] ?? _fetchInfo(slug);
+_getInfo := -> async slug : _infoCache[slug] ?? _fetchInfo(slug).await;
 
-_fetchInfo := -> slug {
+_fetchInfo := -> async slug {
     url := config.getAnimeApiUrl(slug);
     resp := Http.request({
         method: 'get',
         url: url,
         headers: config.defaultHeaders,
-    });
+    }).await;
     parsed := Convert.decodeJson(resp.body);
     _infoCache[slug] = parsed;
     return parsed;
