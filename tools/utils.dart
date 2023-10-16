@@ -27,6 +27,9 @@ abstract class Utils {
   static final String summaryOutput =
       path.join(Directory.current.path, 'dist/summary/README.md');
 
+  static final String summaryBadgeOutput =
+      path.join(Directory.current.path, 'dist/summary/badge.json');
+
   static const String ghUserName = 'yukino-org';
   static const String ghRepoName = 'tenka-modules';
   static const String ghMainBranch = 'main';

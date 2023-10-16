@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 
+import 'dart:convert';
 import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
@@ -64,6 +65,17 @@ class TestAll {
     final File summaryFile = File(Utils.summaryOutput);
     await FSUtils.ensureFile(summaryFile);
     await summaryFile.writeAsString(summary);
+
+    final File summaryBadgeFile = File(Utils.summaryBadgeOutput);
+    await FSUtils.ensureFile(summaryBadgeFile);
+    await summaryBadgeFile.writeAsString(
+      jsonEncode(<dynamic, dynamic>{
+        'schemaVersion': 1,
+        'label': 'test-modules',
+        'message': '$passed passed, $failed failed',
+        'color': '00d458',
+      }),
+    );
   }
 
   String _getModuleNameFromPath(final String fullPath) =>
