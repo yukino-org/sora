@@ -73,7 +73,7 @@ class TestAll {
         'schemaVersion': 1,
         'label': 'test-modules',
         'message': '$passed passed, $failed failed',
-        'color': '00d458',
+        'color': '4b3fd1',
       }),
     );
   }
