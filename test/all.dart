@@ -10,12 +10,6 @@ import '../tools/utils.dart';
 import 'files.dart';
 
 class TestAll {
-  TestAll({
-    required this.verbose,
-  });
-
-  final bool verbose;
-
   final Map<String, Map<String, Benchmarks>> animeResults =
       <String, Map<String, Benchmarks>>{};
 
@@ -46,7 +40,6 @@ class TestAll {
     }
 
     print('Tested: $k');
-    if (verbose) print(' ');
   }
 
   Future<void> finish() async {
@@ -184,31 +177,17 @@ Future<void> main(final List<String> args) async {
   final bool ci = args.contains('--ci');
 
   await Procedure.run(() async {
-    final TestAll tester = TestAll(verbose: !ci);
+    final TestAll tester = TestAll();
     await tester.init();
 
     final List<Future<void> Function()> fns = <Future<void> Function()>[
       ...TestFiles.anime.entries.map(
         (final MapEntry<TenkaLocalFileDS, MockedAnimeExtractor> x) =>
-            () => tester.run(
-                  TenkaType.anime,
-                  x.key,
-                  () => x.value.run(
-                    x.key,
-                    verbose: !ci,
-                  ),
-                ),
+            () => tester.run(TenkaType.anime, x.key, () => x.value.run(x.key)),
       ),
       ...TestFiles.manga.entries.map(
         (final MapEntry<TenkaLocalFileDS, MockedMangaExtractor> x) =>
-            () => tester.run(
-                  TenkaType.manga,
-                  x.key,
-                  () => x.value.run(
-                    x.key,
-                    verbose: !ci,
-                  ),
-                ),
+            () => tester.run(TenkaType.manga, x.key, () => x.value.run(x.key)),
       ),
     ];
 
