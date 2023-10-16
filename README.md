@@ -9,16 +9,15 @@
 By using this project, you agree to the [usage policy](https://yukino-org.github.io/wiki/tenka/disclaimer/).
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL_v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Tests](https://github.com/yukino-org/tenka-modules/actions/workflows/tests.yml/badge.svg)](https://github.com/yukino-org/tenka-modules/actions/workflows/tests.yml)
+[![Test Modules](https://raw.githubusercontent.com/yukino-org/tenka-modules/summary/badge.json)](https://github.com/yukino-org/tenka-modules/actions/workflows/test-modules.yml)
 
 ## Anime
 
 -   [AnimePahe.com (https://animepahe.com)](./modules/anime/animepahe_com)
 -   [Gogoanime.pe (https://gogoanime.cm)](./modules/anime/gogoanime_pe)
 -   [HAnime.tv (https://hanime.tv)](./modules/anime/kawaiifu_com)
--   [Tenshi.moe (https://tenshi.moe)](./modules/anime/tenshi_moe)
--   ~~[Twist.moe (https://twist.moe)](./modules/anime/twist_moe)~~
--   [Zoro.to (https://zoro.to)](./modules/anime/zoro_to)
+-   ~~[Tenshi.moe (https://tenshi.moe)](./modules/anime/tenshi_moe)~~
+-   ~~[Zoro.to (https://zoro.to)](./modules/anime/zoro_to)~~
 
 ## Manga
 
