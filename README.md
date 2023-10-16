@@ -1,8 +1,8 @@
 <p align="center">
-    <img src="https://github.com/yukino-org/media/blob/main/images/subbanners/gh-tenka-banner.png?raw=true">
+    <img src="https://github.com/yukino-org/media/blob/main/images/subbanners/gh-sora-banner.png?raw=true">
 </p>
 
-# Tenka Modules
+# Sora
 
 ⚡ Officially maintained Tenka modules by Yukino. Check module status [here](https://github.com/yukino-org/sora/tree/summary#readme).
 

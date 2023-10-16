@@ -13,17 +13,25 @@ abstract class MockedData {
 
 final MockedAnimeExtractor mocked = MockedAnimeExtractor(
   search: (final AnimeExtractor ext) async {
-    final List<SearchInfo> results = await ext.search('bunny girl', locale);
+    final List<SearchInfo> results = await ext.search(
+      'bunny girl',
+      ext.defaultLocale,
+    );
     MockedData.animeURL = results.first.url;
     return results;
   },
   getInfo: (final AnimeExtractor ext) async {
-    final AnimeInfo result = await ext.getInfo(MockedData.animeURL, locale);
+    final AnimeInfo result = await ext.getInfo(
+      MockedData.animeURL,
+      ext.defaultLocale,
+    );
     MockedData.episodeURL = result.episodes.first.url;
     return result;
   },
-  getSource: (final AnimeExtractor ext) =>
-      ext.getSource(MockedData.episodeURL, locale),
+  getSource: (final AnimeExtractor ext) => ext.getSource(
+    MockedData.episodeURL,
+    ext.defaultLocale,
+  ),
 );
 
 Future<void> main() async {

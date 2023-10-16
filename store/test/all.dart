@@ -7,8 +7,8 @@ import 'package:path/path.dart' as path;
 import 'package:tenka/tenka.dart';
 import 'package:tenka_dev_tools/tenka_dev_tools.dart';
 import 'package:utilx/utils.dart';
-import '../tools/utils.dart';
-import 'files.dart';
+import '../../tools/utils.dart';
+import 'modules.dart';
 
 class TestAll {
   final Map<String, Map<String, Benchmarks>> animeResults =
@@ -191,11 +191,11 @@ Future<void> main(final List<String> args) async {
     await tester.init();
 
     final List<Future<void> Function()> fns = <Future<void> Function()>[
-      ...TestFiles.anime.entries.map(
+      ...TestModules.anime.entries.map(
         (final MapEntry<TenkaLocalFileDS, MockedAnimeExtractor> x) =>
             () => tester.run(TenkaType.anime, x.key, () => x.value.run(x.key)),
       ),
-      ...TestFiles.manga.entries.map(
+      ...TestModules.manga.entries.map(
         (final MapEntry<TenkaLocalFileDS, MockedMangaExtractor> x) =>
             () => tester.run(TenkaType.manga, x.key, () => x.value.run(x.key)),
       ),
