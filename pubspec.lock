@@ -30,7 +30,7 @@ packages:
     description:
       path: "packages/beize_compiler"
       ref: HEAD
-      resolved-ref: "161a7604048b4af8121f0e21a77137c00372021a"
+      resolved-ref: "483d80874f9e1252a7b35b5f2dabb26fbbc021b8"
       url: "https://github.com/zyrouge/beize.git"
     source: git
     version: "0.0.0"
@@ -39,7 +39,7 @@ packages:
     description:
       path: "packages/beize_shared"
       ref: HEAD
-      resolved-ref: "161a7604048b4af8121f0e21a77137c00372021a"
+      resolved-ref: "483d80874f9e1252a7b35b5f2dabb26fbbc021b8"
       url: "https://github.com/zyrouge/beize.git"
     source: git
     version: "0.0.0"
@@ -48,7 +48,7 @@ packages:
     description:
       path: "packages/beize_vm"
       ref: HEAD
-      resolved-ref: "161a7604048b4af8121f0e21a77137c00372021a"
+      resolved-ref: "483d80874f9e1252a7b35b5f2dabb26fbbc021b8"
       url: "https://github.com/zyrouge/beize.git"
     source: git
     version: "0.0.0"

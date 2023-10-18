@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 abstract class Paths {
-  static final String rootDir = p.dirname(Directory.current.path);
+  static final String rootDir = Directory.current.path;
   static final String animeDir = p.join(rootDir, 'modules/anime');
   static final String mangaDir = p.join(rootDir, 'modules/manga');
 
