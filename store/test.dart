@@ -3,21 +3,23 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:tenka/tenka.dart';
 import 'package:tenka_dev_tools/tenka_dev_tools.dart';
 import 'package:utilx/utils.dart';
-import '../../tools/utils.dart';
-import 'modules.dart';
+import 'core/module.dart';
+import 'core/modules.dart';
+import 'utils/constants.dart';
+import 'utils/emojis.dart';
+import 'utils/paths.dart';
+import 'utils/runner.dart';
 
-class TestAll {
+class STester {
   final Map<String, Map<String, Benchmarks>> animeResults =
       <String, Map<String, Benchmarks>>{};
 
   final Map<String, Map<String, Benchmarks>> mangaResults =
       <String, Map<String, Benchmarks>>{};
-
-  Future<void> init() async {}
 
   Future<void> run(
     final TenkaType type,
@@ -25,7 +27,7 @@ class TestAll {
     final Future<Map<String, Benchmarks>> Function() fn,
   ) async {
     final String k =
-        '${Colorize(path.basename(path.dirname(source.root))).cyan()} ${Colorize('(${Utils.prettyPath(source.fullPath)})').darkGray()}';
+        '${Colorize(p.basename(p.dirname(source.root))).cyan()} ${Colorize('(${Paths.pretty(source.fullPath)})').darkGray()}';
 
     print('Testing: $k');
 
@@ -50,7 +52,7 @@ class TestAll {
 
     for (final MapEntry<String, Map<String, Benchmarks>> x in results.entries) {
       print(
-        ' ${Colorize('*').darkGray()} ${Colorize(_getModuleNameFromPath(x.key)).cyan()} ${Colorize('(${Utils.prettyPath(x.key)})').darkGray()}',
+        ' ${Colorize('*').darkGray()} ${Colorize(_getModuleNameFromPath(x.key)).cyan()} ${Colorize('(${Paths.pretty(x.key)})').darkGray()}',
       );
 
       for (final MapEntry<String, Benchmarks> y in x.value.entries) {
@@ -60,11 +62,11 @@ class TestAll {
       }
     }
 
-    final File summaryFile = File(Utils.summaryOutput);
-    await FSUtils.ensureFile(summaryFile);
-    await summaryFile.writeAsString(summary);
+    final File summaryReadmeFile = File(Paths.summaryReadme);
+    await FSUtils.ensureFile(summaryReadmeFile);
+    await summaryReadmeFile.writeAsString(summary);
 
-    final File summaryBadgeFile = File(Utils.summaryBadgeOutput);
+    final File summaryBadgeFile = File(Paths.summaryBadge);
     await FSUtils.ensureFile(summaryBadgeFile);
     await summaryBadgeFile.writeAsString(
       jsonEncode(<dynamic, dynamic>{
@@ -77,7 +79,7 @@ class TestAll {
   }
 
   String _getModuleNameFromPath(final String fullPath) =>
-      path.basename(path.dirname(path.dirname(fullPath)));
+      p.basename(p.dirname(p.dirname(fullPath)));
 
   String _getValueFromBenchmarks(final Benchmarks result) =>
       '${Emojis.fromBool(result.success)} (${result.time.elapsed}ms)';
@@ -99,9 +101,9 @@ $seperator ${data.map((final Map<String, String> x) => cols.keys.map((final Stri
 
   String _getMarkdownURLFromPath(final String fullPath) {
     final String name = _getModuleNameFromPath(fullPath);
-    final String rPath = path.relative(fullPath, from: Utils.baseDir);
+    final String rPath = p.relative(fullPath, from: Paths.rootDir);
     final String url =
-        '${Utils.ghMainBranchURL}/$rPath'.replaceAll(RegExp(r'\\'), '/');
+        '${Constants.ghMainBranchURL}/$rPath'.replaceAll(RegExp(r'\\'), '/');
 
     return '[$name]($url)';
   }
@@ -181,32 +183,49 @@ $animeTable
 $mangaTable
 ''';
   }
+
+  static Future<void> runProcedure(final Future<void> Function() fn) async {
+    await TenkaDevEnvironment.prepare();
+    await fn();
+    await TenkaDevEnvironment.dispose();
+  }
 }
 
 Future<void> main(final List<String> args) async {
   final bool ci = args.contains('--ci');
-
-  await Procedure.run(() async {
-    final TestAll tester = TestAll();
-    await tester.init();
-
-    final List<Future<void> Function()> fns = <Future<void> Function()>[
-      ...TestModules.anime.entries.map(
-        (final MapEntry<TenkaLocalFileDS, MockedAnimeExtractor> x) =>
-            () => tester.run(TenkaType.anime, x.key, () => x.value.run(x.key)),
-      ),
-      ...TestModules.manga.entries.map(
-        (final MapEntry<TenkaLocalFileDS, MockedMangaExtractor> x) =>
-            () => tester.run(TenkaType.manga, x.key, () => x.value.run(x.key)),
-      ),
-    ];
-
+  final STester tester = STester();
+  final List<Future<void> Function()> fns = <Future<void> Function()>[
+    ...SModules.anime.map(
+      (final SAnimeModule x) => () async {
+        final TenkaMetadata config = await x.config();
+        final TenkaLocalFileDS source = config.source as TenkaLocalFileDS;
+        final MockedAnimeExtractor mocked = x.mock();
+        return tester.run(
+          TenkaType.anime,
+          source,
+          () => mocked.run(source),
+        );
+      },
+    ),
+    ...SModules.manga.map(
+      (final SMangaModule x) => () async {
+        final TenkaMetadata config = await x.config();
+        final TenkaLocalFileDS source = config.source as TenkaLocalFileDS;
+        final MockedMangaExtractor mocked = x.mock();
+        return tester.run(
+          TenkaType.manga,
+          source,
+          () => mocked.run(source),
+        );
+      },
+    ),
+  ];
+  await STester.runProcedure(() async {
     if (ci) {
-      await Utils.parallel(fns, concurrent: 3);
+      await Runner.parallel(fns, concurrent: 3);
     } else {
-      await Utils.sequencial(fns);
+      await Runner.sequencial(fns);
     }
-
-    await tester.finish();
   });
+  await tester.finish();
 }

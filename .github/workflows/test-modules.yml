@@ -21,14 +21,12 @@ jobs:
             - uses: dart-lang/setup-dart@v1
 
             - name: 🚧 Do prerequisites
-              run: |
-                  dart pub get
+              run: dart pub get
 
             - name: 🧪 Test modules
-              run: dart run ./store/test/all.dart --ci
+              run: dart run ./store/test.dart --ci
 
             - name: 🚀 Upload summary
-              if: always()
               working-directory: ${{ env.GIT_OUTPUT_DIR }}
               run: |
                   git init
