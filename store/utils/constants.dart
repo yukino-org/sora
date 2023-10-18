@@ -5,4 +5,7 @@ abstract class Constants {
 
   static const String ghMainBranchURL =
       'https://github.com/$ghUserName/$ghRepoName/tree/$ghMainBranch';
+
+  static const String ghDistBranchRawURL =
+      'https://raw.githubusercontent.com/$ghUserName/$ghRepoName/$ghMainBranch';
 }

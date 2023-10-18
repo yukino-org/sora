@@ -6,7 +6,10 @@ abstract class Paths {
   static final String animeDir = p.join(rootDir, 'modules/anime');
   static final String mangaDir = p.join(rootDir, 'modules/manga');
 
-  static final String summaryDir = p.join(rootDir, 'dist/summary');
+  static final String distDir = p.join(rootDir, 'dist');
+  static final String distDataDir = p.join(distDir, 'data');
+
+  static final String summaryDir = p.join(rootDir, 'dist-summary');
   static final String summaryReadme = p.join(summaryDir, 'README.md');
   static final String summaryBadge = p.join(summaryDir, 'badge.json');
 
