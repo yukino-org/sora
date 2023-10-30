@@ -8,6 +8,7 @@ import 'package:tenka_dev_tools/tenka_dev_tools.dart';
 import 'package:utilx/utils.dart';
 import 'core/module.dart';
 import 'core/modules.dart';
+import 'utils/constants.dart';
 import 'utils/paths.dart';
 
 class SBuilder {
@@ -33,18 +34,15 @@ class SBuilder {
     }
 
     final TenkaStore store = TenkaStore(
-      baseURLs: <String, String>{
-        // TODO: fix this
-        'github': '',
-      },
+      baseURL: Constants.ghDistBranchRawURL,
       modules: modules,
       builtAt: now,
-      checksum: TenkaStore.generateChecksum(),
     );
-    await File(p.join(Paths.distDir, 'store.json'))
-        .writeAsString(json.encode(store.toJson()));
+    final String storeJson = json.encode(store.toJson());
+    await File(p.join(Paths.distDir, 'store.json')).writeAsString(storeJson);
+    final String storeChecksum = sha256.convert(storeJson.codeUnits).toString();
     await File(p.join(Paths.distDir, 'store.sha256'))
-        .writeAsString(store.checksum);
+        .writeAsString(storeChecksum);
   }
 
   Future<void> dispose() async {

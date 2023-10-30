@@ -1,32 +1,30 @@
-name: Test Modules
+name: Deploy
 
 on:
     workflow_dispatch:
-    schedule:
-        - cron: "0 0 * * *"
 
 env:
-    GIT_CONFIG_NAME: "github-actions"
+    GIT_CONFIG_NAME: github-actions
     GIT_CONFIG_EMAIL: yukino-org@users.noreply.github.com
-    GIT_COMMIT_MSG: "[actions] test-modules (${{ github.sha }})"
-    GIT_OUTPUT_DIR: dist/summary
-    GIT_OUTPUT_BRANCH: summary
+    GIT_COMMIT_MSG: "[actions] deploy (${{ github.sha }})"
+    GIT_OUTPUT_DIR: dist
+    GIT_OUTPUT_BRANCH: dist
 
 jobs:
-    test-modules:
+    deploy-store:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v4
             - uses: dart-lang/setup-dart@v1
 
             - name: 🚧 Do prerequisites
               run: dart pub get
 
-            - name: 🧪 Test modules
-              run: dart run ./store/test.dart --ci
+            - name: 🔨 Build store
+              run: dart run ./store/build.dart
 
-            - name: 🚀 Upload summary
+            - name: 🚀 Deploy
               uses: zyrouge/github-push-action@v1
               with:
                   local-username: ${{ env.GIT_CONFIG_NAME }}
