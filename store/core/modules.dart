@@ -1,16 +1,15 @@
-import './modules_exported.dart';
-import 'module.dart';
+import 'package:sora_builder/sora_builder.dart';
+import 'modules_exports.dart';
 
-abstract class SModules {
-  static final List<SAnimeModule> anime = <SAnimeModule>[
+final SoraModules $modules = SoraModules(
+  anime: <SoraAnimeModule>[
     AnimePahe(),
     GogoAnime(),
     HAnime(),
-  ];
-
-  static final List<SMangaModule> manga = <SMangaModule>[
+  ],
+  manga: <SoraMangaModule>[
     FanFox(),
     MangaDex(),
     MangaSee123(),
-  ];
-}
+  ],
+);

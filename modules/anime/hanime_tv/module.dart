@@ -2,7 +2,7 @@ import 'package:tenka/tenka.dart';
 import 'package:tenka_dev_tools/test/anime.dart';
 import '../../../store/core/module.dart';
 
-class HAnime extends SAnimeModule {
+class HAnime extends $AnimeModule {
   @override
   String id() => 'hanime_tv';
 

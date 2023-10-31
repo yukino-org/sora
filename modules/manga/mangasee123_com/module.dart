@@ -2,7 +2,7 @@ import 'package:tenka/tenka.dart';
 import 'package:tenka_dev_tools/tenka_dev_tools.dart';
 import '../../../store/core/module.dart';
 
-class MangaSee123 extends SMangaModule {
+class MangaSee123 extends $MangaModule {
   @override
   String id() => 'mangasee123_com';
 

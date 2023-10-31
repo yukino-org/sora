@@ -9,7 +9,9 @@
 By using this project, you agree to the [usage policy](https://yukino-org.github.io/wiki/tenka/disclaimer/).
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL_v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Test Modules](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fyukino-org%2Fsora%2Fsummary%2Fbadge.json)](https://github.com/yukino-org/sora/actions/workflows/test-modules.yml)
+[![Deploy](https://github.com/yukino-org/sora/actions/workflows/deploy.yml/badge.svg)](https://github.com/yukino-org/sora/actions/workflows/deploy.yml)
+[![Test Modules](https://github.com/yukino-org/sora/actions/workflows/test-modules.yml/badge.svg)](https://github.com/yukino-org/sora/actions/workflows/test-modules.yml)
+[![Test Modules Summary](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fyukino-org%2Fsora%2Fsummary%2Fbadge.json)](https://github.com/yukino-org/sora/actions/workflows/test-modules.yml)
 
 ## Anime
 

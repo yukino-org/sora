@@ -1,5 +1,5 @@
-name: sora
-description: "⚡ Officially maintained Tenka modules by Yukino"
+name: sora_builder
+description: "🏗️ Sora Store Builder"
 version: 0.0.0
 
 publish_to: none
@@ -8,8 +8,8 @@ environment:
     sdk: ">=2.18.0 <3.0.0"
 
 dependencies:
-    sora_builder:
-        path: ./packages/sora_builder
+    crypto: ^3.0.3
+    path: ^1.8.0
     tenka:
         git:
             url: https://github.com/yukino-org/packages.git
@@ -18,9 +18,14 @@ dependencies:
         git:
             url: https://github.com/yukino-org/packages.git
             ref: dart_tenka_dev_tools
+    utilx:
+        git:
+            url: https://github.com/yukino-org/packages.git
+            ref: dart_utilx
 
 dev_dependencies:
     devx:
         git:
             url: https://github.com/yukino-org/packages.git
             ref: dart_devx
+    intl: ^0.18.1

@@ -2,7 +2,7 @@ import 'package:tenka/tenka.dart';
 import 'package:tenka_dev_tools/test/anime.dart';
 import '../../../store/core/module.dart';
 
-class GogoAnime extends SAnimeModule {
+class GogoAnime extends $AnimeModule {
   @override
   String id() => 'gogoanime_bid';
 

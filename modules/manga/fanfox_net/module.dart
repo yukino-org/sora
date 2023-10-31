@@ -2,7 +2,7 @@ import 'package:tenka/tenka.dart';
 import 'package:tenka_dev_tools/tenka_dev_tools.dart';
 import '../../../store/core/module.dart';
 
-class FanFox extends SMangaModule {
+class FanFox extends $MangaModule {
   @override
   String id() => 'fanfox_net';
 

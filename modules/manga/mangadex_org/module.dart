@@ -2,7 +2,7 @@ import 'package:tenka/tenka.dart';
 import 'package:tenka_dev_tools/tenka_dev_tools.dart';
 import '../../../store/core/module.dart';
 
-class MangaDex extends SMangaModule {
+class MangaDex extends $MangaModule {
   @override
   String id() => 'mangadex_org';
 

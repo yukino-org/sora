@@ -2,7 +2,7 @@ import 'package:tenka/tenka.dart';
 import 'package:tenka_dev_tools/tenka_dev_tools.dart';
 import '../../../store/core/module.dart';
 
-class ReadM extends SMangaModule {
+class ReadM extends $MangaModule {
   @override
   String id() => 'readm_org';
 
