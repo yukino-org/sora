@@ -199,7 +199,7 @@ $seperator ${data.map((final Map<String, String> x) => cols.keys.map((final Stri
     return '''
 # 👨‍⚕️ Modules Checkup
 
-Last checked at ${DateTime.now().toUtc()} (UTC).
+Last checked at ${DateTime.now().toUtc().toString().replaceFirst(r'\.\d+Z', '')} (UTC).
 
 ## Anime
 
