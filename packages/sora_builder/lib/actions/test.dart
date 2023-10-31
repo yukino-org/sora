@@ -29,7 +29,9 @@ class SoraTester {
     await TenkaDevEnvironment.prepare();
   }
 
-  Future<void> test() async {
+  Future<void> test({
+    final bool summarize = true,
+  }) async {
     for (final SoraAnimeModule x in modules.anime) {
       final TenkaMetadata config = await x.config();
       final TenkaLocalFileDS source = config.source as TenkaLocalFileDS;
@@ -42,7 +44,9 @@ class SoraTester {
       final MockedMangaExtractor mocked = x.mock();
       await _test(TenkaType.manga, source, () => mocked.run(source));
     }
-    await _summarize();
+    if (summarize) {
+      await _summarize();
+    }
   }
 
   Future<void> dispose() async {

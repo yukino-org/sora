@@ -122,7 +122,7 @@ _prepareSearcher := -> async {
 
     _searcher = -> async terms {
         results := fuzzy.search(terms).await;
-        return results.sublist(0, results.length()).map(-> x: {
+        return results.sublist(0, 10).map(-> x: {
             title: x.item.s,
             url: config.getMangaUrl(x.item.i),
             thumbnail: {

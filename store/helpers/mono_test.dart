@@ -17,6 +17,6 @@ Future<void> $test(final SoraBaseModule<dynamic> module) async {
     urls: $urls,
   );
   await tester.initialize();
-  await tester.test();
+  await tester.test(summarize: false);
   await tester.dispose();
 }
