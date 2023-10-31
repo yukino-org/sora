@@ -9,6 +9,7 @@ Future<void> main(final List<String> args) async {
     paths: $paths,
     urls: $urls,
   );
+  await tester.initialize();
   await tester.test();
-  await tester.finish();
+  await tester.dispose();
 }

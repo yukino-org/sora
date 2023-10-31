@@ -25,6 +25,10 @@ class SoraTester {
   final Map<String, Map<String, Benchmarks>> mangaResults =
       <String, Map<String, Benchmarks>>{};
 
+  Future<void> initialize() async {
+    await TenkaDevEnvironment.prepare();
+  }
+
   Future<void> test() async {
     for (final SoraAnimeModule x in modules.anime) {
       final TenkaMetadata config = await x.config();
@@ -38,6 +42,11 @@ class SoraTester {
       final MockedMangaExtractor mocked = x.mock();
       await _test(TenkaType.manga, source, () => mocked.run(source));
     }
+    await _summarize();
+  }
+
+  Future<void> dispose() async {
+    await TenkaDevEnvironment.dispose();
   }
 
   Future<void> _test(
@@ -61,7 +70,7 @@ class SoraTester {
     print('Tested: $k');
   }
 
-  Future<void> finish() async {
+  Future<void> _summarize() async {
     print(
       'Full Summary: [${Colorize('+$passed').green()} ${Colorize('-$failed').red()}]',
     );
