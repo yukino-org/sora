@@ -33,4 +33,5 @@ jobs:
                   directory: ${{ env.GIT_OUTPUT_DIR }}
                   branch: ${{ env.GIT_OUTPUT_BRANCH }}
                   skip-fetch: true
+                  checkout-orphan: true
                   force: true
