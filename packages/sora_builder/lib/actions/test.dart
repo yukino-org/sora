@@ -199,7 +199,7 @@ $seperator ${data.map((final Map<String, String> x) => cols.keys.map((final Stri
     return '''
 # 👨‍⚕️ Modules Checkup
 
-Last checked at ${DateTime.now().toUtc().toString().replaceFirst(r'\.\d+Z', '')} (UTC).
+Last checked at ${_humanizeDate(DateTime.now().toUtc())} (UTC).
 
 ## Anime
 
@@ -211,3 +211,6 @@ $mangaTable
 ''';
   }
 }
+
+String _humanizeDate(final DateTime date) =>
+    date.toString().replaceFirst(RegExp(r'\.\d+Z$'), '');
