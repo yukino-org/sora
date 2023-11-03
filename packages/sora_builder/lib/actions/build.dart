@@ -71,7 +71,7 @@ class SoraBuilder {
       throw Exception('Failed to compile module: ${x.id()}\n$err');
     }
 
-    final String distSourceBasename = '${config.id}.s.dat';
+    final String distSourceBasename = '${config.id}.dat';
     final String distSourcePath =
         p.join(paths.storeOutputDataDir, distSourceBasename);
     final String distSourceSubPath =
