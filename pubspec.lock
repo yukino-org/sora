@@ -30,7 +30,7 @@ packages:
     description:
       path: "packages/beize_compiler"
       ref: HEAD
-      resolved-ref: "4750cdcd5e6b28ccc8949dc60498418b3988e263"
+      resolved-ref: "4bc59806e6770bf738cebefe3ab1a6f768a190a4"
       url: "https://github.com/zyrouge/beize.git"
     source: git
     version: "0.0.0"
@@ -39,7 +39,7 @@ packages:
     description:
       path: "packages/beize_shared"
       ref: HEAD
-      resolved-ref: "4750cdcd5e6b28ccc8949dc60498418b3988e263"
+      resolved-ref: "4bc59806e6770bf738cebefe3ab1a6f768a190a4"
       url: "https://github.com/zyrouge/beize.git"
     source: git
     version: "0.0.0"
@@ -48,7 +48,7 @@ packages:
     description:
       path: "packages/beize_vm"
       ref: HEAD
-      resolved-ref: "4750cdcd5e6b28ccc8949dc60498418b3988e263"
+      resolved-ref: "4bc59806e6770bf738cebefe3ab1a6f768a190a4"
       url: "https://github.com/zyrouge/beize.git"
     source: git
     version: "0.0.0"
@@ -227,7 +227,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka_runtime
-      resolved-ref: f935c7923d639d7cf3204ed20cf7e4524db7d801
+      resolved-ref: "88c24830af512495176c1a56f39153e509f783ba"
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
