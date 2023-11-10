@@ -17,7 +17,8 @@ abstract class SoraPaths {
   String get storeOutputDir => p.join(_rootDir, 'dist');
   String get storeOutputDataDir => p.join(storeOutputDir, 'data');
   String get storeOutputJsonPath => p.join(storeOutputDir, 'store.json');
-  String get storeOutputChecksumPath => p.join(storeOutputDir, 'store.sha256');
+  String get storeOutputChecksumPath =>
+      p.join(storeOutputDir, 'store.sha256sum');
   String get summaryOutputDir => p.join(_rootDir, 'dist-summary');
   String get summaryOutputReadmePath => p.join(summaryOutputDir, 'README.md');
   String get summaryOutputBadgePath => p.join(summaryOutputDir, 'badge.json');
