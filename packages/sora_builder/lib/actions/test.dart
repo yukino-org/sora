@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:tenka/tenka.dart';
 import 'package:tenka_dev_tools/tenka_dev_tools.dart';
-import 'package:utilx/utils.dart';
+import 'package:utilx/utilx.dart';
 import '../core/exports.dart';
 import '../utils/exports.dart';
 

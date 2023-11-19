@@ -5,7 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
 import 'package:tenka/tenka.dart';
 import 'package:tenka_dev_tools/tenka_dev_tools.dart';
-import 'package:utilx/utils.dart';
+import 'package:utilx/utilx.dart';
 import '../core/exports.dart';
 
 class SoraBuilder {
@@ -29,7 +29,7 @@ class SoraBuilder {
     await FSUtils.recreateDirectory(Directory(paths.storeOutputDataDir));
 
     final TenkaStore store = TenkaStore(
-      baseURL: urls.storeBaseUrl(),
+      baseUrl: urls.storeBaseUrl(),
       modules: <String, TenkaMetadata>{},
       builtAt: now,
     );
