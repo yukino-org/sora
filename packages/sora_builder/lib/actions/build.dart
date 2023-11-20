@@ -57,7 +57,6 @@ class SoraBuilder {
     final TenkaStore store,
     final SoraBaseModule<dynamic> x,
   ) async {
-    final SoraGeneratedConfig? generatedConfig = await x.generatedConfig();
     final TenkaMetadata config = await x.config();
     final TenkaBase64DS nSource;
     try {
@@ -91,22 +90,7 @@ class SoraBuilder {
       TenkaLocalFileDSConverter.converter.fromFullPath(distThumbnailPath),
     );
 
-    final String nSha = sha256.convert(nSource.data).toString();
-    final TenkaVersion nVersion = generatedConfig != null
-        ? TenkaVersion.parse(generatedConfig.version)
-        : TenkaVersion(now.year, now.month, 0);
-    if (generatedConfig != null && generatedConfig.sha != nSha) {
-      nVersion.increment();
-    }
-    final SoraGeneratedConfig nGeneratedConfig = SoraGeneratedConfig(
-      version: nVersion.toString(),
-      sha: nSha,
-    );
-    final File generatedConfigFile =
-        File(paths.getGeneratedConfigPath(x.dir()));
-    await generatedConfigFile
-        .writeAsString(json.encode(nGeneratedConfig.toJson()));
-
+    final String hash = sha256.convert(nSource.data).toString();
     final TenkaMetadata nMetadata = TenkaMetadata(
       id: config.id,
       name: config.name,
@@ -115,7 +99,7 @@ class SoraBuilder {
       source: TenkaCloudDS('/$distSourceSubPath'),
       thumbnail: TenkaCloudDS('/$distThumbnailSubPath'),
       nsfw: config.nsfw,
-      version: nVersion,
+      hash: hash,
       deprecated: config.deprecated,
     );
     store.modules[nMetadata.id] = nMetadata;
