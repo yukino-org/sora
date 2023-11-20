@@ -19,7 +19,9 @@ jobs:
             - uses: dart-lang/setup-dart@v1
 
             - name: 🚧 Do prerequisites
-              run: dart pub get
+              run: |
+                  dart pub get
+                  (cd ./packages/sora_builder; dart pub get)
 
             - name: 🔨 Build store
               run: dart run ./store/build.dart

@@ -30,7 +30,7 @@ packages:
     description:
       path: "packages/beize_compiler"
       ref: HEAD
-      resolved-ref: "0e8ce3dedcb41d035e11a2a3068643614a64fa15"
+      resolved-ref: "8669c3486375bfe9af7a13032aaa71af37828202"
       url: "https://github.com/zyrouge/beize.git"
     source: git
     version: "0.0.0"
@@ -39,7 +39,7 @@ packages:
     description:
       path: "packages/beize_shared"
       ref: HEAD
-      resolved-ref: "0e8ce3dedcb41d035e11a2a3068643614a64fa15"
+      resolved-ref: "8669c3486375bfe9af7a13032aaa71af37828202"
       url: "https://github.com/zyrouge/beize.git"
     source: git
     version: "0.0.0"
@@ -48,7 +48,7 @@ packages:
     description:
       path: "packages/beize_vm"
       ref: HEAD
-      resolved-ref: "0e8ce3dedcb41d035e11a2a3068643614a64fa15"
+      resolved-ref: "8669c3486375bfe9af7a13032aaa71af37828202"
       url: "https://github.com/zyrouge/beize.git"
     source: git
     version: "0.0.0"
@@ -105,7 +105,7 @@ packages:
     description:
       path: "."
       ref: dart_devx
-      resolved-ref: b337c5c4f10c4a23a626a1e8de5cf93f7fd57231
+      resolved-ref: fd0547cda6c86c1b55f15778105ba7901a0e9ab0
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
@@ -153,10 +153,10 @@ packages:
     dependency: transitive
     description:
       name: lint
-      sha256: f4bd4dbaa39f4ae8836f2d1275f2f32bc68b3a8cce0a0735dd1f7a601f06682a
+      sha256: "77b3777e8e9adca8e942da1e835882ae3248dfa00488a2ebbdbc1f1a4aa3f4a7"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.2"
+    version: "2.2.0"
   meta:
     dependency: transitive
     description:
@@ -209,7 +209,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka
-      resolved-ref: "99668f89bbfcc63aaaf6d1c04c9447e22805cbc7"
+      resolved-ref: "0cc375734fc3751cf9406396cf86cfe9e855052f"
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "1.0.5"
@@ -218,7 +218,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka_dev_tools
-      resolved-ref: "50558a82f039a7878edbb35aede96899ab66ddee"
+      resolved-ref: "6769ea99e3f1fdc328b50160bc75c0cea2e4306f"
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
@@ -227,7 +227,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka_runtime
-      resolved-ref: "88c24830af512495176c1a56f39153e509f783ba"
+      resolved-ref: "3aa14ba346435090b44cab2acc7307eed8381024"
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
@@ -252,7 +252,7 @@ packages:
     description:
       path: "."
       ref: dart_utilx
-      resolved-ref: "7b2ddc4c01806acf239b47eba3bda5e59f983f5c"
+      resolved-ref: "0093df29de72886823b27cd9f3603b4ab8262fd8"
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
@@ -269,9 +269,9 @@ packages:
     description:
       path: "."
       ref: main
-      resolved-ref: "9a635be15e5dead4913b1231fe9e53c060a13640"
+      resolved-ref: "9f3fc307c43ccb41de401083ff16b1e2db4479b0"
       url: "https://github.com/zyrouge/dart_zlint.git"
     source: git
     version: "0.0.0"
 sdks:
-  dart: ">=3.0.0 <4.0.0"
+  dart: ">=3.1.0 <4.0.0"

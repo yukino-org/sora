@@ -14,8 +14,8 @@ class AnimePahe extends $AnimeModule {
 
   @override
   MockedAnimeExtractor mock() {
-    late final String animeURL;
-    late final String episodeURL;
+    late final String animeUrl;
+    late final String episodeUrl;
 
     final MockedAnimeExtractor mocked = MockedAnimeExtractor(
       search: (final AnimeExtractor ext) async {
@@ -23,19 +23,19 @@ class AnimePahe extends $AnimeModule {
           'bunny girl',
           ext.defaultLocale,
         );
-        animeURL = results.first.url;
+        animeUrl = results.first.url;
         return results;
       },
       getInfo: (final AnimeExtractor ext) async {
         final AnimeInfo result = await ext.getInfo(
-          animeURL,
+          animeUrl,
           ext.defaultLocale,
         );
-        episodeURL = result.episodes.first.url;
+        episodeUrl = result.episodes.first.url;
         return result;
       },
       getSource: (final AnimeExtractor ext) => ext.getSource(
-        episodeURL,
+        episodeUrl,
         ext.defaultLocale,
       ),
     );
