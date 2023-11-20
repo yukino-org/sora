@@ -5,7 +5,6 @@ abstract class SoraPaths {
 
   String getAnimeModuleDir(final String id) => p.join(animeModulesDir, id);
   String getMangaModuleDir(final String id) => p.join(mangaModulesDir, id);
-  String getGeneratedConfigPath(final String dir) => p.join(dir, '_data.json');
   String getModuleMainScriptFile(final String dir) =>
       p.join(dir, 'src/main.beize');
   String getModuleLogoFile(final String dir) => p.join(dir, 'logo.png');
