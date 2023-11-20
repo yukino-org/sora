@@ -44,9 +44,9 @@ class SoraBuilder {
     final File storeFile = File(paths.storeOutputJsonPath);
     await storeFile.writeAsString(storeJson);
 
-    final String storeChecksum = sha256.convert(storeJson.codeUnits).toString();
+    final String storeHash = sha256.convert(storeJson.codeUnits).toString();
     final File storeChecksumFile = File(paths.storeOutputChecksumPath);
-    await storeChecksumFile.writeAsString(storeChecksum);
+    await storeChecksumFile.writeAsString(storeHash);
   }
 
   Future<void> dispose() async {
@@ -90,7 +90,7 @@ class SoraBuilder {
       TenkaLocalFileDSConverter.converter.fromFullPath(distThumbnailPath),
     );
 
-    final String hash = sha256.convert(nSource.data).toString();
+    final String hash = sha256.convert(nSource.data).toString().substring(0, 8);
     final TenkaMetadata nMetadata = TenkaMetadata(
       id: config.id,
       name: config.name,
