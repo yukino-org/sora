@@ -18,7 +18,6 @@ class SoraBuilder {
   final SoraModules modules;
   final SoraPaths paths;
   final SoraUrls urls;
-  final DateTime now = DateTime.now();
 
   Future<void> initialize() async {
     await TenkaDevEnvironment.prepare();
@@ -31,7 +30,6 @@ class SoraBuilder {
     final TenkaStore store = TenkaStore(
       baseUrl: urls.storeBaseUrl(),
       modules: <String, TenkaMetadata>{},
-      builtAt: now,
     );
     for (final SoraBaseModule<dynamic> x in <SoraBaseModule<dynamic>>[
       ...modules.anime,
