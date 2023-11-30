@@ -1,4 +1,4 @@
-baseUrl := 'https://gogoanime.hu';
+baseUrl := 'https://anitaku.to';
 
 getSearchUrl := -> terms : Url.ensure(
     '{}/search.html?keyword={}'.format([baseUrl, terms])

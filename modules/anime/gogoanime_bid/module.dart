@@ -20,11 +20,11 @@ class GogoAnime extends $AnimeModule {
         ext.defaultLocale,
       ),
       getInfo: (final AnimeExtractor ext) => ext.getInfo(
-        'https://www1.gogoanime.bid/category/spy-kyoushitsu',
+        'https://anitaku.to/category/spy-kyoushitsu',
         ext.defaultLocale,
       ),
       getSource: (final AnimeExtractor ext) => ext.getSource(
-        'https://www1.gogoanime.bid/spy-kyoushitsu-episode-1',
+        'https://anitaku.to/spy-kyoushitsu-episode-1',
         ext.defaultLocale,
       ),
     );

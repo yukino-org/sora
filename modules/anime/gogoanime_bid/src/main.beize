@@ -108,12 +108,12 @@ extractor := {
                         #         []
                         #     );
                         # }
-                        x.classes.contains('streamsb'): {
-                            return debugx.executeAsyncSafe(
-                                -> : streamsb.parse(link, config.defaultLocale),
-                                []
-                            );
-                        }
+                        # x.classes.contains('streamsb'): {
+                        #     return debugx.executeAsyncSafe(
+                        #         -> : streamsb.parse(link, config.defaultLocale),
+                        #         []
+                        #     );
+                        # }
                         else: return [];
                     }
                 })
