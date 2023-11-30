@@ -20,11 +20,11 @@ class GogoAnime extends $AnimeModule {
         ext.defaultLocale,
       ),
       getInfo: (final AnimeExtractor ext) => ext.getInfo(
-        'https://anitaku.to/category/spy-kyoushitsu',
+        'https://anitaku.to/category/kage-no-jitsuryokusha-ni-naritakute-2nd-season',
         ext.defaultLocale,
       ),
       getSource: (final AnimeExtractor ext) => ext.getSource(
-        'https://anitaku.to/spy-kyoushitsu-episode-1',
+        'https://anitaku.to/kage-no-jitsuryokusha-ni-naritakute-2nd-season-episode-9',
         ext.defaultLocale,
       ),
     );
